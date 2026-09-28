@@ -1,2 +1,1 @@
-// Intentionally empty: scaffold only.
-export {};
+export { validateData } from "./data/validate.js";

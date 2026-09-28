@@ -85,7 +85,7 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 | Stan | Room2.BedC | Walks unaided, shuffling, 0.6 m/s, high falls risk | 1 staff, prompting | 08:00 / 22:00 | 60 / 60 min | — | Lewy body: night wandering, hallucinations; sundowns from 16:30 |
 | Dennis | Room2.BedD | Bed-bound | **2 staff** in bed | — (in bed) | 60 / 60 min | 2-hourly day and night | End of life; mouth care with checks; cannot ask for help |
 
-Staff walk at 1.2 m/s; visitors at 1.0 m/s (Bernard and Pat, both in their 80s or older, at 0.6 m/s).
+Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/s (Bernard and Pat 0.6), children 1.1 m/s.
 
 A resident counts as **checked** when a care staff member does a care task with them or an explicit check (event `resident.checked`).
 

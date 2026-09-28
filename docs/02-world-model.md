@@ -49,6 +49,7 @@ Furniture is a labelled rectangle of kind `bed`, `desk`, `table`, `chair`, `sofa
 
 - `bed`, `desk`, `table` and `sofa` **block** movement.
 - `chair` and `wc` do **not** block. A person sits on the point.
+- Furniture ids use a lowercase suffix (`Room1.BedA.bed`, `WaitingArea.chair3`, `Reception.desk`) so they never clash with named point ids.
 
 ## Named points
 
@@ -62,10 +63,10 @@ Named points are where people go and where interactions happen. Each point has a
 | `Room1.BedA.Chair` | Bedside chair (resident sits up, meals, visitors) |
 | `Room1.WC`, `Room2.WC` | En-suite toilet |
 | `Corridor.West`, `Corridor.Mid`, `Corridor.East` | Corridor waypoints and night-break spots |
-| `WaitingArea.Seat1`–`Seat6` | Lounge seats |
+| `WaitingArea.Seat1`–`Seat8` | Lounge seats |
 | `Reception.Desk` | Visitor sign-in spot (in front of the desk) |
 | `Reception.DeskStaff` | Receptionist's seat |
-| `StaffRoom.Seat1`–`Seat5` | Handover and break seats |
+| `StaffRoom.Seat1`–`Seat6` | Handover and break seats |
 | `ExitDoor` | Just inside the exit; where people appear from and leave to `Outside` |
 
 ## Navigation grid
