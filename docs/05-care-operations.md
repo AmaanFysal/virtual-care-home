@@ -24,19 +24,22 @@ Not a clinical tool: behaviour here is plausible, not authoritative. A registere
 | Mon | Blessing | Tom | Kasia | Aisha | Florin | Agency RN |
 | Tue | Blessing | Tom | Dave | Aisha | Florin | Maria |
 | Wed | Blessing | Kasia | Dave | Aisha | Florin | Maria |
-| Thu | Blessing | Agency | Kasia | Tom | Aisha | Maria |
-| Fri | Blessing | Agency | Dave | Tom | Aisha | Agency RN |
-| Sat | Kasia | Agency | Dave | Agency | Agency | Agency RN |
-| Sun | Kasia | Agency | Dave | Agency | Florin | Agency RN |
+| Thu | Blessing | Tom | Kasia | Lucy (bank) | Aisha | Maria |
+| Fri | Blessing | Tom | Dave | Shanice (bank) | Aisha | Agency RN |
+| Sat | Kasia | Lucy (bank) | Dave | Shanice (bank) | Agency | Agency RN |
+| Sun | Kasia | Lucy (bank) | Dave | Shanice (bank) | Florin | Agency RN |
 
-Shift counts: Blessing 5, Dave 5, Kasia 5, Aisha 5 (3 lates, 2 nights), Tom 4, Florin 4 nights, Maria 3 long days. **Agency: 11 shifts a week**: 7 carer shifts (early CA Thu to Sun, late CA Sat and Sun, night Sat) and 4 RN days (Mon, Fri, Sat, Sun). Weekends are thin, which is realistic.
+Shift counts: Blessing 5, Dave 5, Kasia 5, Aisha 5 (3 lates, 2 nights), Tom 4, Florin 4 nights, Maria 3 long days; bank carers Lucy 3 and Shanice 3.
+
+**Bank staff** (`employment: "bank"` in `staff.json`) are the home's own flexible pool: Lucy Brennan and Shanice Clarke know the residents but are not meds-trained. They cover the recurring gaps, so the only **agency** shifts in a normal week are the 4 RN days (Mon, Fri, Sat, Sun) and the Saturday night. Generated agency carers otherwise appear only when sickness or short staffing is injected (Phase 3).
 
 Rules the rota keeps (checked by the validator and tests):
-- **At most one lone agency night a week** (Saturday). More only if short staffing is injected later (Phase 3).
+- **At most one lone agency night a week** (Saturday); no agency on early or late carer slots.
+- **A female carer on every early and late shift**, for Peggy's female-only personal care. At night, when the night carer is male, the floating night carer covers it.
 - **11 hours' rest** (Working Time Regulations): no late followed by an early next day, and no day shift the day after a night.
 - Every late lead is meds-trained for the 21:00 round; shift leads are never agency.
 
-**Agency staff** are generated when their shift starts (`agy_` ids, grey circles). Agency carers are not meds-trained and don't know residents' preferences. The agency nurse is meds-trained and can assess falls. Their names come from a fixed list, picked with the `rota` RNG stream.
+**Agency staff** are generated when their shift is planned (`agy_` ids, grey circles). Agency carers are not meds-trained and don't know residents' preferences. The agency nurse is meds-trained and can assess falls. Their names come from a fixed list, picked with the `rota` RNG stream.
 
 ## Handovers
 

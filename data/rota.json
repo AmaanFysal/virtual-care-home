@@ -99,11 +99,11 @@
     "Thu": {
       "early": {
         "lead": "stf_blessing",
-        "ca": "AGENCY"
+        "ca": "stf_tom"
       },
       "late": {
         "lead": "stf_kasia",
-        "ca": "stf_tom"
+        "ca": "stf_lucy"
       },
       "night": {
         "carer": "stf_aisha"
@@ -122,11 +122,11 @@
     "Fri": {
       "early": {
         "lead": "stf_blessing",
-        "ca": "AGENCY"
+        "ca": "stf_tom"
       },
       "late": {
         "lead": "stf_dave",
-        "ca": "stf_tom"
+        "ca": "stf_shanice"
       },
       "night": {
         "carer": "stf_aisha"
@@ -144,11 +144,11 @@
     "Sat": {
       "early": {
         "lead": "stf_kasia",
-        "ca": "AGENCY"
+        "ca": "stf_lucy"
       },
       "late": {
         "lead": "stf_dave",
-        "ca": "AGENCY"
+        "ca": "stf_shanice"
       },
       "night": {
         "carer": "AGENCY"
@@ -162,11 +162,11 @@
     "Sun": {
       "early": {
         "lead": "stf_kasia",
-        "ca": "AGENCY"
+        "ca": "stf_lucy"
       },
       "late": {
         "lead": "stf_dave",
-        "ca": "AGENCY"
+        "ca": "stf_shanice"
       },
       "night": {
         "carer": "stf_florin"

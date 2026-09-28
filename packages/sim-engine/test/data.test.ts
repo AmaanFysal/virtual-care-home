@@ -11,13 +11,17 @@ describe("data/ files", () => {
 
   it("have the agreed cast", () => {
     expect(data.residents).toHaveLength(6);
-    expect(data.staff).toHaveLength(10);
+    expect(data.staff.filter((s) => s.employment === "permanent")).toHaveLength(10);
+    expect(data.staff.filter((s) => s.employment === "bank").map((s) => s.id)).toEqual(["stf_lucy", "stf_shanice"]);
     expect(data.visitors).toHaveLength(25);
   });
 
-  it("have at most one lone agency night a week", () => {
-    const agencyNights = Object.values(data.rota.week).filter((day) => day.night.carer === "AGENCY");
+  it("use agency only for RN days and one lone night a week", () => {
+    const week = Object.values(data.rota.week);
+    const agencyNights = week.filter((day) => day.night.carer === "AGENCY");
     expect(agencyNights.length).toBeLessThanOrEqual(1);
+    const agencyDayCarers = week.flatMap((day) => [day.early.lead, day.early.ca, day.late.lead, day.late.ca]).filter((id) => id === "AGENCY");
+    expect(agencyDayCarers).toEqual([]); // bank staff cover these; agency only for injected sickness later
   });
 
   it("store floor area and ceiling height for every room", () => {
@@ -59,6 +63,12 @@ describe("validateData catches", () => {
     const data = fresh();
     data.residents[0]!.care.next_of_kin = "vis_sarah"; // Sarah is Dennis's daughter, not Peggy's
     expect(validateData(data).join("\n")).toMatch(/next_of_kin "vis_sarah"/);
+  });
+
+  it("a day shift with no female carer", () => {
+    const data = fresh();
+    data.rota.week.Tue.late.ca = "stf_tom"; // Dave and Tom
+    expect(validateData(data).join("\n")).toMatch(/Tue: the late shift has no female carer/);
   });
 
   it("a man in the female room", () => {

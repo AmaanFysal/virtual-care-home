@@ -228,6 +228,7 @@ function validatePeople(data: WorldData, errors: string[]): void {
     const where = `staff ${s.id}`;
     idPrefix(s.id, "stf_", where);
     if (!ROLES.has(s.role)) errors.push(`${where}: unknown role "${s.role}"`);
+    if (s.employment !== "permanent" && s.employment !== "bank") errors.push(`${where}: employment must be permanent or bank`);
     for (const c of s.competencies) if (!COMPETENCIES.has(c)) errors.push(`${where}: unknown competency "${c}"`);
     if (!(s.walk_speed_mps > 0)) errors.push(`${where}: walk_speed_mps must be positive`);
     for (const rel of s.relationships) if (!known.has(rel.with)) errors.push(`${where}: relationship with unknown "${rel.with}"`);
@@ -328,6 +329,12 @@ function validateRota(data: WorldData, errors: string[]): void {
       errors.push(`${where}: rn_day must be a registered nurse or agency`);
     }
     for (const id of [...day.office, ...day.reception]) if (!staffById.has(id)) errors.push(`${where}: unknown office/reception staff "${id}"`);
+
+    // Peggy has female carers only for personal care, so every day shift needs a woman on it.
+    for (const shift of ["early", "late"] as const) {
+      const carers = [day[shift].lead, day[shift].ca].map((id) => staffById.get(id));
+      if (!carers.some((s) => s?.gender === "female")) errors.push(`${where}: the ${shift} shift has no female carer (Peggy's personal care)`);
+    }
 
     const named = onDuty(day).filter((id) => id !== AGENCY);
     for (const id of duplicates(named)) errors.push(`${where}: ${id} is on two shifts`);

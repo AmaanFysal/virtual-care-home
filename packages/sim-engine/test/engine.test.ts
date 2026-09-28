@@ -184,13 +184,16 @@ describe("rota", () => {
     expect(events.filter((e) => e.type === "agency.spawned")).toEqual([]);
   });
 
-  it("spawns agency carers and nurses for uncovered slots, and removes them after they leave", () => {
+  it("spawns agency workers only for RN days and the Saturday night, and removes them after they leave", () => {
     const sim = createSim({ seed: "1", data });
     const events = run(sim, 24 * 5); // to Sun 06:00
     const spawned = events.filter((e) => e.type === "agency.spawned");
-    // Thu early CA; Fri RN and early CA; Sat RN, early CA, late CA and night.
-    expect(spawned).toHaveLength(7);
-    expect(new Set(spawned.map((e) => e.actors[0])).size).toBe(7);
+    expect(spawned.map((e) => [e.payload.shift, e.payload.role])).toEqual([
+      ["rn_day", "nurse"], // Fri
+      ["rn_day", "nurse"], // Sat
+      ["night", "carer"], // Sat
+    ]);
+    expect(new Set(spawned.map((e) => e.actors[0])).size).toBe(3);
     for (const e of spawned) expect(e.actors[0]).toMatch(/^agy_/);
     const remaining = [...sim.world.people.values()].filter((p) => p.kind === "agency");
     for (const p of remaining) expect(p.staff!.shift?.ended ?? false).toBe(false);

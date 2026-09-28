@@ -194,6 +194,8 @@ export interface Staff {
   gender: Gender;
   age: number;
   role: StaffRole;
+  /** Bank staff are the home's own flexible pool: they know the residents but have no fixed hours. */
+  employment: "permanent" | "bank";
   experience_years: number;
   prior?: string;
   origin?: string;
