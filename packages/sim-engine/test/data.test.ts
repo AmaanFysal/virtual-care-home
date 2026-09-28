@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateData } from "../src/data/validate.js";
-import { loadWorldData } from "./load-data.js";
+import { loadWorldData } from "../tools/load-data.js";
 
 describe("data/ files", () => {
   const data = loadWorldData();

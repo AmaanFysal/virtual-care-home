@@ -1,0 +1,160 @@
+// The simulation: builds the world from data and advances it one 5-second tick at a time
+// (docs/03). Pure: no I/O, no wall clock, all randomness from seeded streams.
+
+import {
+  DEFAULT_START_T,
+  TICK_SECONDS,
+  type AnySimEvent,
+  type PersonView,
+  type Resident,
+  type SimInput,
+  type WorldData,
+} from "@vch/shared-types";
+import { validateData } from "./data/validate.js";
+import { emit } from "./emit.js";
+import { createStreams, hashString } from "./rng.js";
+import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaMinute, staffPerson } from "./rota.js";
+import type { Person, World } from "./state.js";
+import { buildGrid } from "./world/grid.js";
+import { moveAll, spawnWaiting } from "./world/movement.js";
+
+export interface SimOptions {
+  seed: string;
+  data: WorldData;
+  /** Sim seconds since Mon 2026-11-02 00:00; must be on a minute boundary. Default Tue 06:00. */
+  startT?: number;
+}
+
+export interface Sim {
+  readonly tick: number;
+  readonly t: number;
+  /** Advances one tick and returns the events it produced. */
+  step(): AnySimEvent[];
+  /** Queues an input; `applyTick` must be in the future. */
+  enqueue(input: SimInput): void;
+  people(): PersonView[];
+  /** Internal state, for tests and the inspector. Treat as read-only. */
+  readonly world: World;
+}
+
+function residentPerson(r: Resident, world: World): Person {
+  const bed = world.points.get(r.room)!;
+  const name = `${r.name.known_as} ${r.name.last}`;
+  return {
+    id: r.id,
+    kind: "resident",
+    name,
+    initials: initials(name),
+    gender: r.gender,
+    speed: r.mobility.walk_speed_mps,
+    onMap: true,
+    x: bed.x,
+    y: bed.y,
+    roomId: bed.room,
+    posture: "in_bed",
+    badges: ["asleep"],
+    task: null,
+    move: null,
+    atPoint: r.room,
+    heldZone: null,
+    waitingAtDoor: null,
+    staff: null,
+  };
+}
+
+export function createSim(options: SimOptions): Sim {
+  const { seed, data } = options;
+  const startT = options.startT ?? DEFAULT_START_T;
+  if (startT % 60 !== 0) throw new Error("startT must be on a minute boundary");
+  const errors = validateData(data);
+  if (errors.length > 0) throw new Error(`Invalid data:\n${errors.join("\n")}`);
+
+  const world: World = {
+    seed,
+    startT,
+    tick: 0,
+    t: startT,
+    data,
+    grid: buildGrid(data.floorplan),
+    points: new Map(data.floorplan.points.map((p) => [p.id, p])),
+    rng: createStreams(seed),
+    people: new Map(),
+    order: [],
+    shifts: [],
+    plannedDays: new Set(),
+    spawnQueue: [],
+    zoneOwner: new Map(),
+    zoneReleasedTick: new Map(),
+    rnOnCall: true,
+    agencyCount: 0,
+    inputs: [],
+    pending: [],
+    seq: 0,
+  };
+
+  for (const r of data.residents) addPerson(world, residentPerson(r, world));
+  for (const s of data.staff) addPerson(world, staffPerson(s));
+  placeInitialStaff(world);
+  emit(world, "sim.started", [], { seed, startT, dataVersion: hashString(JSON.stringify(data)) });
+
+  const applyInputs = () => {
+    while (world.inputs.length > 0 && world.inputs[0]!.applyTick <= world.tick) {
+      const input = world.inputs.shift()!;
+      if (input.type === "inject_fall") {
+        const { residentId, severity } = (input as SimInput<"inject_fall">).payload;
+        const resident = world.people.get(residentId);
+        if (!resident || resident.kind !== "resident" || !resident.onMap) continue;
+        // Phase 1 M2: the fall is recorded; the response procedure arrives in M5.
+        resident.posture = "on_floor";
+        resident.badges = ["alert"];
+        emit(world, "resident.fell", [residentId], { residentId, severity, roomId: resident.roomId ?? "" }, input.source);
+      }
+    }
+  };
+
+  return {
+    get tick() {
+      return world.tick;
+    },
+    get t() {
+      return world.t;
+    },
+    world,
+    step() {
+      world.tick += 1;
+      world.t = startT + world.tick * TICK_SECONDS;
+      applyInputs();
+      if (world.t % 60 === 0) rotaMinute(world);
+      const spawned = spawnWaiting(world);
+      const arrived = moveAll(world);
+      rotaArrivals(world, spawned, arrived);
+      const events = world.pending;
+      world.pending = [];
+      return events;
+    },
+    enqueue(input) {
+      if (input.applyTick <= world.tick) throw new Error(`Input ${input.seq} applies at tick ${input.applyTick}, but the sim is at ${world.tick}`);
+      world.inputs.push(input);
+      world.inputs.sort((a, b) => a.applyTick - b.applyTick || a.seq - b.seq);
+    },
+    people() {
+      return world.order.map((id) => toView(world.people.get(id)!));
+    },
+  };
+}
+
+export function toView(p: Person): PersonView {
+  return {
+    id: p.id,
+    kind: p.kind,
+    name: p.name,
+    initials: p.initials,
+    onMap: p.onMap,
+    x: Math.round(p.x * 1000) / 1000,
+    y: Math.round(p.y * 1000) / 1000,
+    roomId: p.roomId,
+    posture: p.posture,
+    badges: [...p.badges],
+    task: p.task,
+  };
+}

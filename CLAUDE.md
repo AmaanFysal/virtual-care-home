@@ -12,6 +12,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm typecheck`: typecheck every package
 - `pnpm test`: run Vitest across the repo
 - `pnpm --filter @vch/sim-engine <script>`: run a script in one package
+- `pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--positions]`: headless run printing the event log
 
 ## Layout
 

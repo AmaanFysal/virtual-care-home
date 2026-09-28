@@ -4,10 +4,17 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./load-data": "./tools/load-data.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sim": "tsx scripts/sim.ts"
   },
-  "dependencies": { "@vch/shared-types": "workspace:*" }
+  "dependencies": {
+    "@vch/shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
 }

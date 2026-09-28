@@ -35,9 +35,10 @@ The engine has no clock of its own. It exposes `step()`, which advances exactly 
    3. **Needs:** decay needs and staff workload by one minute.
    4. **Decisions:** raise help requests; create scheduled tasks (rounds, checks, meals); assign tasks to staff by utility; residents pick self-care actions.
 3. **Behaviour trees:** tick every active tree once.
-4. **Movement:** advance every walking person along their path, with doorway reservations.
-5. **Arrivals:** a person who reached their destination has their behaviour tree step notified on the next tick.
-6. **Invariants:** checked by the test harness after each tick; the server logs violations as `invariant.violated`.
+4. **Spawning:** people waiting outside enter at `ExitDoor`, one per clear doorway.
+5. **Movement:** advance every walking person along their path, with doorway reservations ([04](04-agents-and-behaviour.md)).
+6. **Arrivals:** the rota (and, from M4a, behaviour trees) react to people who reached their destination.
+7. **Invariants:** checked by the test harness after each tick; the server logs violations as `invariant.violated`.
 
 Within each system, people are processed in ascending id order.
 
@@ -65,7 +66,15 @@ sim.state(): WorldState           // full state for snapshot-on-connect and insp
 sim.tick / sim.time               // current tick and sim seconds
 ```
 
-The engine is pure TypeScript with no I/O. Data comes in as parsed JSON; events come out as return values.
+The engine is pure TypeScript with no I/O. Data comes in as parsed JSON (validated with `validateData`; `createSim` throws on invalid data); events come out as return values. `sim.started` carries a `dataVersion`, an FNV-1a hash of the data, so a log records exactly which data produced it.
+
+Node-only helpers live outside `src/`: `tools/load-data.ts` (exported as `@vch/sim-engine/load-data`) and the headless CLI `scripts/sim.ts`.
+
+## Rota in the engine (M2)
+
+- Each day's shifts are planned at 00:00 (and for the start day and the previous night at creation). Named staff arrive 5 to 15 minutes early, agency workers 0 to 10, drawn from the `rota` stream.
+- Arriving staff wait in the staff room until their shift starts, then go to a placeholder post (leads and night carer `Corridor.Mid`, CAs `Corridor.West`, RN `Corridor.East`) until M4a adds tasks and handovers. Joanne works at the staff-room table (there is no separate office in v1), Bev in the waiting area, Sanjay at the desk.
+- Agency workers (`agy_001`, ...) are created when their day is planned, named from the pool without repeats that day, and removed a day after they leave.
 
 ## Performance budget
 

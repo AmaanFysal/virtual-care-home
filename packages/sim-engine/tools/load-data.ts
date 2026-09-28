@@ -1,4 +1,4 @@
-// Test helper: reads the JSON files in data/. Tests may do I/O; src/ may not.
+// Reads the JSON files in data/. Node-only: used by tests, the CLI and the server (src/ does no I/O).
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
