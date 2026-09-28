@@ -1,0 +1,68 @@
+# Virtual Care Home
+
+A live multi-agent simulation of one UK care home wing (6 residents, 10 staff, 25 visitors).
+Deterministic server-side TypeScript sim for bodies, event-driven LLM minds (Phase 2), director for events (Phase 3).
+Browser shows simple 2D shapes and a control dashboard over WebSockets.
+
+This file is an index. Details live in `docs/`; read the relevant doc before working on an area.
+
+## Commands
+
+- `pnpm install`: install workspace dependencies (Node 22+, pnpm 9)
+- `pnpm typecheck`: typecheck every package
+- `pnpm test`: run Vitest across the repo
+- `pnpm --filter @vch/sim-engine <script>`: run a script in one package
+
+## Layout
+
+- `packages/shared-types`: types shared by server and browser (events, commands, state)
+- `packages/sim-engine`: the deterministic simulation (no I/O)
+- `apps/server`: Node server hosting the engine, WebSockets, persistence
+- `apps/web`: React + 2D canvas; renders server state only
+- `data/`: floor plan and persona JSON
+- `docs/`: numbered design docs, ADRs, workstreams, research
+
+## Non-negotiables (full text: docs/00-constitution.md)
+
+1. Server-authoritative simulation; the engine is the single writer.
+2. Deterministic runs: seeded RNG only, no wall-clock time in the engine.
+3. The browser draws state only; no sim logic in `apps/web`.
+4. v1 is people and building only: no sensors, equipment or air quality.
+5. Every event has a `source` field (`engine`, `director`, `user`, `llm`, `external`).
+6. Simple 2D visuals: rectangles, circles, badges.
+
+## When working on X, read
+
+| Working on | Read |
+|---|---|
+| Project rules, anything contentious | `docs/00-constitution.md` |
+| Packages, dependencies, tooling, infra | `docs/01-system-and-monorepo.md` |
+| Floor plan, rooms, doors, entities | `docs/02-world-model.md` |
+| Tick loop, clock, RNG, inputs | `docs/03-simulation-engine.md` |
+| Needs, utility AI, behaviour trees, movement | `docs/04-agents-and-behaviour.md` |
+| Rota, routines, care rules, CQC obligations | `docs/05-care-operations.md` |
+| Residents, staff, visitors, relationships | `docs/06-personas-and-families.md` |
+| Event schema, event log, snapshots, replay | `docs/07-events-and-persistence.md` |
+| WebSocket protocol, canvas, dashboard | `docs/08-realtime-and-ui.md` |
+| LLM minds, memory, cost (Phase 2) | `docs/09-minds-llm.md` |
+| Director, scenario cards (Phase 3) | `docs/10-director-and-scenarios.md` |
+| Tests, invariants, golden scenarios | `docs/11-testing.md` |
+| Risks, caveats, tech debt | `docs/12-risks-and-debt.md` |
+| Background and evidence | `docs/research/` (plan-v2.md wins over v1) |
+| Current work | `docs/workstreams/phase-1-rules-mvp/` |
+
+Path-scoped rules in `.claude/rules/` load automatically for `packages/sim-engine/**` and `apps/web/**`.
+
+## Workflow: spec-driven
+
+1. **Discuss** the change with the user.
+2. **Spec**: write or update the workstream `spec.md`.
+3. **Plan** in plan mode; record tasks in `plan.md`.
+4. **Implement** task by task, one reviewable change at a time.
+5. **End of session**: run the `pre-pr` skill, update `PROGRESS.md` and the affected numbered doc.
+
+Significant decisions get an ADR (`docs/adr/0000-template.md`). Don't start work outside the current spec without asking.
+
+## Skills
+
+`new-behaviour-tree`, `new-scenario`, `new-event-type`, `pre-pr`, and `/new-persona` (manual only).
