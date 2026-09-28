@@ -13,7 +13,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm test`: run Vitest across the repo
 - `pnpm dev`: run the sim server (:8787) and the web app (http://localhost:5173) together
 - `pnpm --filter @vch/sim-engine <script>`: run a script in one package
-- `pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--positions]`: headless run printing the event log
+- `pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--positions] [--report]`: headless run printing the event log (`--report`: requests per day, longest waits, call-outs)
 
 ## Layout
 

@@ -91,7 +91,7 @@ describe("a week on the wing (seed 1)", () => {
     for (const v of checkInvariants(s.world)) violations.push(`${clock(s.t)} ${v.rule}: ${v.details}`);
   });
 
-  it("never breaks an invariant (floor cover, standing spots, two-person care, RN reachable)", () => {
+  it("never breaks an invariant (floor cover, standing spots, two-person care, RN reachable, checks, request waits)", () => {
     expect(violations.slice(0, 5)).toEqual([]);
     expect(ofType(events, "invariant.violated")).toEqual([]);
   });
@@ -125,7 +125,7 @@ describe("a week on the wing (seed 1)", () => {
 
   it("answers help requests, with two staff for Raj and only women for Peggy's personal care", () => {
     const requests = ofType(events, "resident.requested_help");
-    expect(requests.length).toBeGreaterThan(100);
+    expect(requests.length).toBeGreaterThan(30);
     const assigned = new Map(ofType(events, "task.assigned").map((e) => [e.payload.taskId, e.payload.staffIds]));
     const women = new Set(data.staff.filter((s) => s.gender === "female").map((s) => s.id));
     for (const r of requests) {

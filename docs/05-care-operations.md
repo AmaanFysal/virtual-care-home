@@ -97,7 +97,21 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 
 Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/s (Bernard and Pat 0.6), children 1.1 m/s.
 
-A resident counts as **checked** when a care staff member does a care task with them or an explicit check (event `resident.checked`).
+A resident counts as **checked** whenever a carer sees them: an explicit check (`resident.checked`), any care with them, or a carer at work in the same room within 6 metres (observation, not logged). Check tasks are created 30 minutes before a check is due; the interval in force is the one (day or night) that applied at the last check.
+
+## The care schedule (M4b, `src/care.ts`)
+
+| When | What |
+|---|---|
+| Wake time (07:30 for Dennis) | Morning personal care (with a cup of tea and a biscuit), then up to the chair: Raj by hoist with two staff, others walk; Dennis stays in bed |
+| 08:00–10:30 | Breakfast at the chair once they are up; 12:15 lunch; 17:30 supper. Raj is helped to eat (15 min), Peggy prompted (5), Dennis gets mouth care and sips; intake is charted for Peggy, Win and Dennis |
+| 10:30, 15:00, 20:00 | Drinks round: one carer takes tea and a biscuit to each resident in turn (2 min each); left by the bed or chair for anyone asleep or busy |
+| Every 2 hours awake | Peggy's prompted toileting: walked to the WC and back by a female carer |
+| Every 2 hours, day | Dennis turned by two staff, with a pad change, fluids and mouth care |
+| Bed time | Bedtime care with a warm drink, then into bed (Raj by hoist) |
+| Night rounds | See "Floating night carer" |
+
+**Wait-time rule** (spec decision 18): every request gets a deadline when it is made: 30 minutes by day; at night, if nobody on site can do it (two-person, or female-only with a male night carer), the next round + 20 minutes when the round is within 30 minutes, otherwise a call-out and 30 minutes. Scheduled care already under way with the resident takes over a waiting request. Overdue requests are an invariant violation (`request_wait`).
 
 ## Procedures (behaviour trees)
 
@@ -118,7 +132,9 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 
 - **Planned rounds** at 22:00, 00:00, 02:00, 04:00 and 06:00, aligned with Dennis's 2-hourly turns. Each round batches whatever is due: Dennis's turn (always), Raj's 4-hourly repositioning (22:00, 02:00, 06:00), and Peggy's personal care (pad change) if it is due, since Peggy has female carers only.
 - **Out-of-round call-outs** only for urgent two-person tasks (a hoist lift after a fall) or urgent same-sex tasks (Peggy's personal care that can't wait for the next round). She arrives within about 10 minutes.
-- Her arrivals and departures are logged (`second_carer.arrived`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and out-of-round call-outs are counted as a metric.
+- Her arrivals and departures are logged (`second_carer.arrived` with `planned`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and counted (`world.metrics.floatCallouts`).
+- While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks).
+- On seeds 1 to 8 over a week, the planned rounds cover all night work: 35 visits a week and no call-outs. A call-out is tested directly (a forced 23:00 request from Raj).
 
 ## Care rules (hard constraints)
 

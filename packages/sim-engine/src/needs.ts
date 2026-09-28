@@ -12,15 +12,15 @@ export const NEEDS: NeedName[] = ["hunger", "thirst", "toileting", "fatigue", "s
 
 /** Hours for a need to go from 0 to 1, awake and asleep. Fatigue falls while asleep. */
 const HOURS_TO_FULL: Record<NeedName, { awake: number; asleep: number }> = {
-  hunger: { awake: 5, asleep: 12 },
-  thirst: { awake: 3, asleep: 10 },
+  hunger: { awake: 6, asleep: 40 },
+  thirst: { awake: 4, asleep: 16 },
   toileting: { awake: 3, asleep: 6 },
   fatigue: { awake: 15, asleep: -7 },
   social: { awake: 6, asleep: Infinity },
 };
 
-/** A need at or above this is acted on (social needs more before someone asks). */
-export const ACT_THRESHOLD: Record<NeedName, number> = { hunger: 0.75, thirst: 0.75, toileting: 0.75, fatigue: 2, social: 0.85 };
+/** A need at or above this is acted on (people wait for meals, and ask for company less readily). */
+export const ACT_THRESHOLD: Record<NeedName, number> = { hunger: 0.85, thirst: 0.75, toileting: 0.75, fatigue: 2, social: 0.85 };
 /** Toileting this urgent wakes a sleeping resident. */
 const WAKE_FOR_TOILET = 0.9;
 const NAP_MINUTES = 45;
@@ -49,9 +49,7 @@ export function sleepTime(r: Resident, t: number): boolean {
   return false;
 }
 
-function hoursToFull(p: Person, need: NeedName, asleep: boolean): number {
-  const r = p.resident!.data;
-  if (need === "toileting" && !asleep && r.care.prompted_toileting_hours) return r.care.prompted_toileting_hours;
+function hoursToFull(need: NeedName, asleep: boolean): number {
   return asleep ? HOURS_TO_FULL[need].asleep : HOURS_TO_FULL[need].awake;
 }
 
@@ -72,7 +70,7 @@ function updateSleep(world: World, p: Person): void {
       res.asleep = false;
       emit(world, "resident.woke", [p.id], { residentId: p.id, reason: "routine" });
     }
-  } else if (sleepTime(res.data, world.t) && needsSettled && res.inBed && !res.busyTaskId) {
+  } else if (sleepTime(res.data, world.t) && needsSettled && (res.inBed || p.posture === "sitting") && !res.busyTaskId && !p.move) {
     res.asleep = true;
     emit(world, "resident.fell_asleep", [p.id], { residentId: p.id });
   }
@@ -82,9 +80,19 @@ function updateSleep(world: World, p: Person): void {
 function decay(p: Person): void {
   const res = p.resident!;
   for (const need of NEEDS) {
-    const hours = hoursToFull(p, need, res.asleep);
+    const hours = hoursToFull(need, res.asleep);
     res.needs[need] = Math.min(1, Math.max(0, res.needs[need] + 1 / (hours * 60)));
   }
+}
+
+/** A drink left by the bed or chair is drunk once the resident is awake and free. */
+function drinkWhatWasLeft(p: Person): void {
+  const res = p.resident!;
+  if (!res.drinkLeft || res.asleep || res.busyTaskId) return;
+  res.drinkLeft = false;
+  res.needs.thirst = Math.max(0, res.needs.thirst - 0.7);
+  res.needs.hunger = Math.max(0, res.needs.hunger - 0.2);
+  res.fluidsMlToday += 200;
 }
 
 function canSelfToilet(p: Person): boolean {
@@ -120,6 +128,7 @@ export function residentsMinute(world: World): void {
     if (!p.resident || !p.onMap) continue;
     decay(p);
     updateSleep(world, p);
+    drinkWhatWasLeft(p);
     act(world, p);
   }
 }

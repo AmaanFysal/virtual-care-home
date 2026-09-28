@@ -1,5 +1,6 @@
 // Headless run: prints the event log to the terminal.
-//   pnpm --filter @vch/sim-engine sim -- --seed 1 --hours 4 [--type shift.] [--at 07:00] [--fall res_peggy@06:40]
+//   pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--fall res_peggy@06:40] [--positions] [--report]
+// --report prints help requests per day by need, the longest wait per resident and call-outs.
 
 import { parseArgs } from "node:util";
 import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, type AnySimEvent } from "@vch/shared-types";
@@ -13,6 +14,7 @@ const { values } = parseArgs({
     type: { type: "string" },
     fall: { type: "string" },
     positions: { type: "boolean", default: false },
+    report: { type: "boolean", default: false },
   },
 });
 
@@ -35,11 +37,48 @@ const describe = (e: AnySimEvent): string => {
 
 const ticks = Math.round((Number(values.hours) * 3600) / 5);
 let count = 0;
+const all: AnySimEvent[] = [];
 for (let i = 0; i < ticks; i++) {
   for (const e of sim.step()) {
     count++;
-    if (!values.type || e.type.startsWith(values.type)) console.log(describe(e));
+    if (values.report) all.push(e);
+    else if (!values.type || e.type.startsWith(values.type)) console.log(describe(e));
   }
+}
+if (values.report) report(all, sim.t);
+
+function report(events: AnySimEvent[], endT: number): void {
+  const requests = events.filter((e) => e.type === "resident.requested_help") as Extract<AnySimEvent, { type: "resident.requested_help" }>[];
+  const waits = new Map<string, number>();
+  for (const e of events) if (e.type === "task.completed") waits.set(e.payload.taskId, e.payload.waitMins);
+  const needs = ["toileting", "thirst", "hunger", "social", "fatigue"] as const;
+  const byDay = new Map<string, Record<string, number>>();
+  for (const r of requests) {
+    const day = formatSimTime(r.t - 6 * 3600).slice(0, 10); // care days run 06:00 to 06:00
+    const row = byDay.get(day) ?? Object.fromEntries(needs.map((n) => [n, 0]));
+    row[r.payload.need] = (row[r.payload.need] ?? 0) + 1;
+    byDay.set(day, row);
+  }
+  console.log("Help requests per care day (06:00 to 06:00):");
+  console.log(`  ${"day".padEnd(11)} ${"total".padStart(5)} ${needs.map((n) => n.padStart(10)).join("")}`);
+  for (const [day, row] of byDay) {
+    const total = needs.reduce((s, n) => s + row[n]!, 0);
+    console.log(`  ${day.padEnd(11)} ${String(total).padStart(5)} ${needs.map((n) => String(row[n]).padStart(10)).join("")}`);
+  }
+  const days = byDay.size || 1;
+  console.log(`  average ${(requests.length / days).toFixed(1)} a day; ${needs.map((n) => `${n} ${((100 * requests.filter((r) => r.payload.need === n).length) / Math.max(1, requests.length)).toFixed(0)}%`).join(", ")}`);
+  console.log("\nLongest wait per resident (request to help starting):");
+  const worst = new Map<string, { mins: number; at: number; need: string }>();
+  for (const r of requests) {
+    const mins = waits.get(r.payload.taskId) ?? Math.round((endT - r.t) / 60);
+    const cur = worst.get(r.payload.residentId);
+    if (!cur || mins > cur.mins) worst.set(r.payload.residentId, { mins, at: r.t, need: r.payload.need });
+  }
+  for (const [id, w] of [...worst].sort()) console.log(`  ${id.padEnd(12)} ${String(w.mins).padStart(3)} min  (${w.need}, ${formatSimTime(w.at)})`);
+  const callouts = events.filter((e) => e.type === "second_carer.called").length;
+  const visits = events.filter((e) => e.type === "second_carer.arrived").length;
+  const violations = events.filter((e) => e.type === "invariant.violated").length;
+  console.log(`\nFloating night carer: ${visits} visits, ${callouts} out-of-round call-outs. Invariant violations: ${violations}.`);
 }
 if (values.positions) {
   console.log(`\nAt ${formatSimTime(sim.t)}:`);

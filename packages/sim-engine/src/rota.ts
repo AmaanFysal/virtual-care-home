@@ -16,6 +16,7 @@ import {
 import { emit } from "./emit.js";
 import { coveredWithout } from "./floor.js";
 import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
+import { floatArrived, floatDeparted } from "./float.js";
 import { createHandover, idleStaff } from "./tasks.js";
 import { depart, placeAt, walkTo } from "./world/movement.js";
 
@@ -276,6 +277,10 @@ function pruneShifts(world: World, before: number): void {
 export function rotaArrivals(world: World, spawned: string[], arrived: string[]): void {
   for (const id of spawned) {
     const person = world.people.get(id)!;
+    if (person.id === world.data.rota.night_float.id) {
+      floatArrived(world, person);
+      continue;
+    }
     const a = person.staff?.shift;
     if (a) walkTo(world, person, a.started ? postFor(a) : freeStaffRoomSeat(world));
   }
@@ -285,6 +290,7 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       depart(world, person);
       person.staff.duty = "off";
       person.staff.shift = null;
+      if (person.id === world.data.rota.night_float.id) floatDeparted(world, person);
     }
   }
 }

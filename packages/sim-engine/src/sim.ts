@@ -12,6 +12,8 @@ import {
 } from "@vch/shared-types";
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
+import { careMinute } from "./care.js";
+import { floatMinute } from "./float.js";
 import { checkInvariants } from "./invariants.js";
 import { initialNeeds, residentsMinute } from "./needs.js";
 import { createStreams, hashString } from "./rng.js";
@@ -71,6 +73,14 @@ function residentPerson(r: Resident, world: World): Person {
       requestId: null,
       busyTaskId: null,
       fluidsMlToday: 0,
+      drinkLeft: false,
+      // Night checks already on schedule at the start (spec decision 13).
+      lastCheckedT: world.startT - world.rng.needs.int(0, Math.floor(r.care.check_interval_mins.night / 2)) * 60,
+      lastToiletT: world.startT - 60 * 60,
+      lastTurnedT: world.startT,
+      morningDone: false,
+      bedtimeDone: false,
+      mealsServed: [],
     },
   };
 }
@@ -106,6 +116,8 @@ export function createSim(options: SimOptions): Sim {
     standClaims: new Map(),
     tasks: new Map(),
     taskSeq: 0,
+    float: { status: "off", arriveT: null, planned: false },
+    metrics: { floatCallouts: 0 },
     shiftLog: new Map(data.residents.map((r) => [r.id, { falls: 0, lateOrMissedDoses: 0, helpRequests: 0, checksDone: 0 }])),
     failing: new Set(),
     rnOnCall: true,
@@ -117,6 +129,10 @@ export function createSim(options: SimOptions): Sim {
 
   for (const r of data.residents) addPerson(world, residentPerson(r, world));
   for (const s of data.staff) addPerson(world, staffPerson(s));
+  const nf = data.rota.night_float;
+  const float = staffPerson({ id: nf.id, name: nf.name, gender: nf.gender, walk_speed_mps: 1.2, role: "care_assistant", competencies: ["moving_handling"] });
+  float.kind = "external";
+  addPerson(world, float);
   placeInitialStaff(world);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
 
@@ -150,6 +166,8 @@ export function createSim(options: SimOptions): Sim {
       if (world.t % 60 === 0) {
         rotaMinute(world);
         residentsMinute(world);
+        careMinute(world);
+        floatMinute(world);
         decideStaff(world);
         sendIdleToPosts(world);
       }
@@ -176,9 +194,9 @@ export function createSim(options: SimOptions): Sim {
 
 /** Logs a violation when a rule starts failing (not on every tick it stays failing). */
 function logInvariants(world: World): void {
-  const now = new Map(checkInvariants(world).map((v) => [v.rule, v]));
-  for (const [rule, v] of now) {
-    if (!world.failing.has(rule)) emit(world, "invariant.violated", [], { rule, details: v.details });
+  const now = new Map(checkInvariants(world).map((v) => [v.key ? `${v.rule}:${v.key}` : v.rule, v]));
+  for (const [key, v] of now) {
+    if (!world.failing.has(key)) emit(world, "invariant.violated", [], { rule: v.rule, details: v.details });
   }
   world.failing = new Set(now.keys());
 }

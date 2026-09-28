@@ -46,16 +46,20 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 14. **Determinism.** Event ids come from the event sequence number. No event carries wall-clock time. User inputs are logged with the tick they apply at, so replaying seed + inputs reproduces the run.
 15. **No equipment entities.** The hoist and the med trolley are implied by the procedure (badges only), not modelled as objects, per constitution rule 4.
 16. **Floating night carer.** A female carer from the main building (off the map) visits on planned rounds at 22:00, 00:00, 02:00, 04:00 and 06:00, aligned with Dennis's turns. Each round batches Dennis's turn, Raj's repositioning if due, and Peggy's personal care if due (female carers only; the male night carer still does her checks). Outside rounds she is called only for urgent two-person or same-sex tasks. Arrivals and departures are logged; out-of-round call-outs are a metric.
+17. **Drinks rounds** at 10:30, 15:00 and 20:00 (tea and a biscuit), plus a drink with every meal, on waking and at bedtime, so thirst is mostly met by rounds, not requests. A drink is left for anyone asleep or busy. Dennis gets fluids and mouth care at every check and turn.
+18. **Wait-time rule.** By day, help must start on every request within 30 minutes. At night, two-person and female-only requests are covered by the next floating-carer round if it is within 30 minutes (deadline: the round + 20 minutes); otherwise urgent ones (toileting, incontinence) trigger a call-out and must start within 30 minutes. Scheduled care already under way with the resident takes over a waiting request.
 
 ## Invariants (every tick, in tests; logged as `invariant.violated` at runtime)
 
 1. At least one on-duty care staff member on the floor (decision 4).
-2. No resident unchecked beyond their care-plan check interval.
+2. No resident unchecked beyond their care-plan check interval (a check is any time a carer sees them: an explicit check, any care with them, or working nearby in the same room).
 3. No two-person task (Raj's transfers, a hoist lift after a fall) carried out by one person.
 4. No visitor in the staff room.
 5. Only meds-trained staff (RN, senior carers, agency nurse) administer medication.
 6. No fallen resident moved before assessment.
 7. An RN is always reachable: on the map by day, on call off the map at night.
+8. No help request waits beyond its limit (decision 18).
+9. Two people never stand on the same cell while stationary.
 
 ## Acceptance: Phase 1 is done when
 

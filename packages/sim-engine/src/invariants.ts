@@ -1,13 +1,16 @@
 // Per-tick invariants (spec "Invariants", docs/11). The engine logs `invariant.violated` when a
-// rule starts failing; tests call `checkInvariants` directly every tick. Rules for meds, falls
-// and check intervals arrive with the procedures that need them (M4b, M5).
+// rule starts failing; tests call `checkInvariants` directly every tick. Rules for meds and
+// falls arrive with the procedures that need them (M5).
 
 import { cellAt } from "./world/grid.js";
 import { floorCovered } from "./floor.js";
+import { checkInterval } from "./nightcover.js";
 import { isNurse, onDuty, type World } from "./state.js";
 
 export interface Violation {
   rule: string;
+  /** Distinguishes separate failures of the same rule (a request id, a resident id). */
+  key?: string;
   details: string;
 }
 
@@ -43,6 +46,21 @@ export function checkInvariants(world: World): Violation[] {
 
   for (const p of people) {
     if (p.kind === "visitor" && p.onMap && p.roomId === "StaffRoom") out.push({ rule: "no_visitors_in_staff_room", details: p.id });
+  }
+
+  // Nobody goes unchecked beyond their care-plan interval (the interval in force at their last check).
+  for (const p of people) {
+    const res = p.resident;
+    if (!res || !p.onMap) continue;
+    const interval = checkInterval(res);
+    const overdue = world.t - res.lastCheckedT - interval * 60;
+    if (overdue > 0) out.push({ rule: "resident_check", key: p.id, details: `${p.id} unchecked for ${Math.round((world.t - res.lastCheckedT) / 60)} min (interval ${interval})` });
+  }
+
+  // The wait-time rule: help has started on every request by its deadline.
+  for (const task of world.tasks.values()) {
+    if (!task.request || task.startedT !== null || task.deadlineT === null || world.t <= task.deadlineT) continue;
+    out.push({ rule: "request_wait", key: task.id, details: `${task.label} waiting ${Math.round((world.t - task.createdT) / 60)} min` });
   }
   return out;
 }

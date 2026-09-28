@@ -2,29 +2,31 @@
 
 **Purpose:** the body layer: needs and utility AI, behaviour trees for care procedures, simple state machines, and movement.
 
-> Status: movement (M2) and needs, tasks, utility and the behaviour-tree runtime (M4a) built, 2026-09-28. Care routines (morning care, meals, night checks) come in M4b. Source: [plan-v2](research/plan-v2.md) (Agent architecture), [research v1](research/compass_artifact_wf-e32da241-4ccf-5101-9b32-ad9cb38f7579_text_markdown.md) §2.
+> Status: movement (M2), needs, tasks, utility and the behaviour-tree runtime (M4a) and the care schedule (M4b) built, 2026-09-28. Med rounds and falls come in M5. Source: [plan-v2](research/plan-v2.md) (Agent architecture), [research v1](research/compass_artifact_wf-e32da241-4ccf-5101-9b32-ad9cb38f7579_text_markdown.md) §2.
 
 ## Needs (`src/needs.ts`, once per sim minute)
 
-Residents have five needs from 0 (fine) to 1 (urgent): hunger, thirst, toileting, fatigue, social. Each rises at an hourly rate that is slower asleep; fatigue falls asleep. Peggy's toileting follows her 2-hourly prompted pattern while awake.
+Residents have five needs from 0 (fine) to 1 (urgent): hunger, thirst, toileting, fatigue, social. Each rises at an hourly rate that is slower asleep; fatigue falls asleep. Meals, drinks rounds and scheduled care meet most needs (docs/05); requests cover the rest.
 
 | Need | Hours 0→1 awake / asleep | Acted on at |
 |---|---|---|
-| Hunger | 5 / 12 | 0.75 |
-| Thirst | 3 / 10 | 0.75 |
+| Hunger | 6 / 40 | 0.85 |
+| Thirst | 4 / 16 | 0.75 |
 | Toileting | 3 / 6 | 0.75 (wakes a sleeper at 0.9) |
 | Fatigue | 15 / falls over 7 | (drives sleep only) |
 | Social | 6 / – | 0.85 |
 
-- **Sleep** follows each resident's routine (bed to wake time, plus a 45-minute nap). A resident falls asleep only in bed with every need settled; toileting at 0.9 wakes them (`resident.woke`, `resident.fell_asleep`).
+- **Sleep** follows each resident's routine (bed to wake time, plus a 45-minute nap). A resident dozes off in bed or sitting in their chair once every need is settled; toileting at 0.9 wakes them (`resident.woke`, `resident.fell_asleep`). A drink left by the bed is drunk on waking.
 - **Acting on a need:** the most pressing need over its threshold wins. Independent walkers (Win, Arthur, Stan) take themselves to the WC and back (`self_toilet` task). Everyone else who can ask raises a help request (`resident.requested_help` → an `assist` task). Dennis can't ask; his care is scheduled (M4b).
 - Needs start near their Tuesday 06:00 values with a little seeded variation.
 
 ## Tasks and utility (`src/tasks.ts`)
 
-- **Task kinds:** `assist` (help request), `self_toilet` (a resident's own trip), `handover`, `briefing`, `break`. Each has a behaviour tree and a status (open, active, paused, done).
+- **Task kinds:** `assist` (a help request, or Peggy's scheduled toilet prompt), `care` (scheduled bedside care: morning, bedtime, check, reposition, meal, pad change), `round` (drinks round), `self_toilet` (a resident's own trip), `handover`, `briefing`, `break`. Each has a behaviour tree (`trees.ts`) and a status (open, active, paused, done).
 - **Assist details** come from the care profile: toileting for someone in pads is a bedside pad change with `personal_care_staff` people (2 for Raj, with the hoist badge); for Peggy it is an escort to the WC and back (female carers only); drinks 3 min (+200 ml fluid), snacks 5, chats 10.
-- **Utility matching** (each minute): every free care worker is scored against every open assist: `100 × need + 1.5 × minutes waiting − 3 × metres away + 10 × resident's trust in them − 25 if an RN − 10 if on an interruptible break`. The best (task, staff) match is taken repeatedly until none is left. **Two-person tasks are only assigned when two eligible staff are free**, so one person never starts them alone; female-only tasks only go to women.
+- **Utility matching** (each minute): every free care worker is scored against every open task: `base priority + 1.5 × minutes waiting (+ 100 × need for requests) + 60 if within 15 minutes of its deadline − 3 × metres away + 10 × resident's trust in them − 25 if an RN − 10 if on an interruptible break`. Base priorities: toilet prompt 90, turn and pad change 85, meal 75, check and drinks round 70, morning and bedtime care 60, requests 40. The best (task, staff) match is taken repeatedly until none is left. A resident only has one thing done with them at a time.
+- **Two-person tasks** start only when two eligible staff are at the resident. By day, if one has waited 5 minutes and only one person is free, that person holds it at the bedside until a partner is free; **only one task may be held like this at a time** (two carers each holding a different one would wait for each other for ever). Female-only tasks only go to women.
+- **Absorbing requests:** when scheduled care starts with a resident who has a waiting request, the care takes it over: help counts as started, and the need is met when the care finishes.
 - **Handovers and briefings** claim their named members as soon as they are free. **Breaks** start when due if another *carer* (not the RN) covers the floor; a sole night carer's break is in the waiting area and is paused for any assist, then resumed.
 - **Idle staff** wait at their floor post (leads and night carer `Corridor.Mid`, CAs `Corridor.West`, RN `Corridor.East`); office and reception staff at their workplaces.
 - **Workload** is a rolling share of the last hour spent on work (shown in the inspector).

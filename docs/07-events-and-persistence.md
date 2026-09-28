@@ -51,7 +51,7 @@ Clock commands (pause, step, set_speed) and inspect requests are not inputs: the
 | Presence | `person.arrived`, `person.departed` (on/off the map via ExitDoor), `person.entered_room` {roomId}, `person.waited_at_door` {doorId} |
 | Rota | `shift.started`, `shift.ended` {staffId, shift}, `agency.spawned` {role, shift}, `break.started`, `break.ended`, `rn.on_call_started`, `rn.on_call_ended` |
 | Handover | `handover.started`, `handover.completed` {from, to, floorCover, summary} |
-| Needs and tasks | `resident.requested_help` {need}, `task.created`, `task.assigned`, `task.started`, `task.interrupted`, `task.resumed`, `task.completed` {taskId, kind, residentId?} |
+| Needs and tasks | `resident.requested_help` {need}, `task.created`, `task.assigned`, `task.started`, `task.interrupted`, `task.resumed`, `task.completed` {taskId, kind, residentId?, waitMins}. Scheduled care kinds are `care.morning`, `care.bedtime`, `care.check`, `care.reposition`, `care.meal`, `care.pad_change`; also `round`, `handover`, `briefing` |
 | Care | `resident.woke` {reason}, `resident.fell_asleep`, `care.personal_care_done`, `resident.got_up`, `resident.went_to_bed`, `resident.checked`, `resident.repositioned`, `resident.transferred` {staffIds, method} |
 | Meals | `meal.served` {meal}, `drink.served`, `intake.recorded` {mealPct?, fluidsMl?} |
 | Meds | `med_round.started`, `med_round.completed`, `med.administered`, `med.late`, `med.missed`, `med.prn_requested` |

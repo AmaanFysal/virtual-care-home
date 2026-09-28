@@ -70,9 +70,29 @@ export interface ResidentState {
   /** Task currently being done with or for this resident (assist, own trip to the WC). */
   busyTaskId: string | null;
   fluidsMlToday: number;
+  /** A drink left by their bed or chair while they were asleep or busy; drunk when they're free. */
+  drinkLeft: boolean;
+  /** Last time a member of staff saw them (a check or any care with them). */
+  lastCheckedT: number;
+  lastToiletT: number;
+  lastTurnedT: number;
+  /** Per care-day flags, reset at 04:00. */
+  morningDone: boolean;
+  bedtimeDone: boolean;
+  mealsServed: string[];
 }
 
-export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet";
+/** The floating night carer from the main building (spec decision 16). */
+export interface FloatState {
+  status: "off" | "coming" | "on_site" | "leaving";
+  arriveT: number | null;
+  planned: boolean;
+}
+
+export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round";
+
+/** Scheduled care done at the bedside (or chair). */
+export type CareKind = "morning" | "bedtime" | "check" | "reposition" | "meal" | "pad_change";
 
 export interface Task {
   id: string;
@@ -84,6 +104,12 @@ export interface Task {
   startedT: number | null;
   staffNeeded: 1 | 2;
   femaleOnly: boolean;
+  /** Base utility before urgency, waiting time and distance (docs/04). */
+  priority: number;
+  /** A resident's own help request (as opposed to scheduled care). */
+  request: boolean;
+  /** Help must have started by this time (spec: wait-time rule), or the scheduled time it is due. */
+  deadlineT: number | null;
   /** For handovers and briefings: the only people who may take this task. */
   members: string[] | null;
   assigned: string[];
@@ -155,6 +181,8 @@ export interface World {
   shiftLog: Map<string, ShiftLog>;
   rnOnCall: boolean;
   agencyCount: number;
+  float: FloatState;
+  metrics: { floatCallouts: number };
   /** Invariant rules currently failing, so violations are logged once when they start. */
   failing: Set<string>;
   inputs: SimInput[];
