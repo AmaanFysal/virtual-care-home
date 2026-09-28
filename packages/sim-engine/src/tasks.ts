@@ -11,6 +11,7 @@ import { coverableOnSite, isNight, requestDeadline } from "./nightcover.js";
 import { isCareStaff, isNurse, onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
 import type { Ctx } from "./trees.js";
 import { TREES } from "./treeset.js";
+import { startIdleActivity } from "./idle.js";
 import { walkTo } from "./world/movement.js";
 
 const NEED_LABEL: Record<NeedName, string> = { hunger: "Snack", thirst: "Drink", toileting: "Toilet", fatigue: "Rest", social: "Chat" };
@@ -169,7 +170,7 @@ export function finish(world: World, task: Task, status: Status): void {
     if (resident.resident.busyTaskId === task.id) resident.resident.busyTaskId = null;
     if (task.kind === "self_toilet") resident.task = null;
   }
-  if (task.kind !== "self_toilet" && task.kind !== "break") {
+  if (task.kind !== "self_toilet" && task.kind !== "break" && task.kind !== "idle") {
     const waitMins = Math.round(((task.startedT ?? world.t) - task.createdT) / 60);
     const actors = task.residentId ? [...task.assigned, task.residentId] : task.assigned;
     const kind = task.kind === "care" ? `care.${task.data.care}` : task.kind;
@@ -207,6 +208,10 @@ export function pullOff(world: World, p: Person, reason: string): void {
   p.staff!.taskId = null;
   p.badges = [];
   p.task = null;
+  if (task.kind === "idle") {
+    world.tasks.delete(task.id); // idle activities are simply dropped
+    return;
+  }
   task.assigned = task.assigned.filter((id) => id !== p.id);
   if (task.kind === "break") {
     task.status = "paused";
@@ -262,9 +267,9 @@ function assign(world: World, task: Task, people: Person[]): void {
       emit(world, "task.assigned", [...task.assigned, task.residentId], { taskId: task.id, kind: task.kind, staffIds: [...task.assigned] });
     }
   } else if (task.status === "open" && task.residentId) {
-    // Holding a two-person task for a partner: wait at the bedside.
-    const bed = world.people.get(task.residentId)!.resident!.data.room;
-    for (const p of people) walkTo(world, p, `${bed}.Side`);
+    // Holding a two-person task for a partner: wait in the corridor outside the room.
+    const room = world.people.get(task.residentId)!.resident!.data.room.split(".")[0];
+    for (const p of people) walkTo(world, p, room === "Room1" ? "Corridor.West" : "Corridor.Mid");
   }
 }
 
@@ -273,11 +278,16 @@ function coveringHandover(world: World, p: Person): boolean {
   return [...world.tasks.values()].some((t) => t.kind === "handover" && t.data.cover === p.id);
 }
 
+/** Doing an idle activity (or nothing): free for any real work. */
+export function idleOrFree(world: World, p: Person): boolean {
+  return !p.staff?.taskId || world.tasks.get(p.staff.taskId)?.kind === "idle";
+}
+
 /** Free for new work: on duty, shift under way, no task (or on an interruptible break). */
 function isFree(world: World, p: Person, allowBreak: boolean): boolean {
   if (!isCareStaff(p)) return false;
   if (p.staff!.duty !== "on_shift" && !(p.staff!.duty === "staying" && coveringHandover(world, p))) return false;
-  if (!p.staff!.taskId) return true;
+  if (idleOrFree(world, p)) return true;
   return allowBreak && breakInterruptible(world, p);
 }
 
@@ -305,18 +315,26 @@ function trust(world: World, staffId: string, residentId: string): number {
 }
 
 /**
- * A two-person turn falls due within 45 minutes and, without `p`, fewer than two care staff
- * would be left to do it (so `p` shouldn't go on a break yet).
+ * A two-person task is waiting, or a two-person turn falls due within 45 minutes, and without
+ * `p` fewer than two care staff would be left to do it (so `p` shouldn't go on a break yet).
  */
 function twoPersonTurnSoon(world: World, p: Person): boolean {
-  const soon = [...world.tasks.values()].some((t) => t.kind === "care" && t.data.care === "reposition" && t.deadlineT !== null && t.deadlineT - world.t <= 45 * 60);
-  const upcoming = world.order.some((id) => {
+  const dues: number[] = [];
+  for (const t of world.tasks.values()) {
+    if (t.kind === "care" && t.data.care === "reposition" && t.deadlineT !== null) dues.push(t.deadlineT);
+    else if (t.staffNeeded === 2 && t.status === "open" && (t.kind === "assist" || t.kind === "care")) dues.push(world.t); // waiting now
+  }
+  for (const id of world.order) {
     const res = world.people.get(id)!.resident;
     const every = res?.data.care.reposition_interval_mins.day;
-    return !!res && !!every && res.inBed && res.lastTurnedT + every * 60 - world.t <= 45 * 60;
-  });
-  if (!soon && !upcoming) return false;
-  const others = world.order.map((id) => world.people.get(id)!).filter((q) => q.id !== p.id && isCareStaff(q) && q.staff!.duty === "on_shift" && q.onMap && !breakInterruptible(world, q) && world.tasks.get(q.staff!.taskId ?? "")?.kind !== "break");
+    if (res && every && res.inBed) dues.push(res.lastTurnedT + every * 60);
+  }
+  const due = dues.filter((d) => d - world.t <= 45 * 60).sort((a, b) => a - b)[0];
+  if (due === undefined) return false;
+  // Others who will still be here and free of breaks when it's due.
+  const others = world.order
+    .map((id) => world.people.get(id)!)
+    .filter((q) => q.id !== p.id && isCareStaff(q) && q.staff!.duty === "on_shift" && q.onMap && (q.staff!.shift?.endT ?? Infinity) > due && world.tasks.get(q.staff!.taskId ?? "")?.kind !== "break");
   return others.length < 2;
 }
 
@@ -351,7 +369,7 @@ export function decideStaff(world: World): void {
 
   // 1. Handovers and briefings claim their members as soon as they are free, including outgoing
   //    staff whose shift has technically ended (they still owe the handover).
-  const memberFree = (p: Person) => isCareStaff(p) && !p.staff!.taskId && (p.staff!.duty === "on_shift" || p.staff!.duty === "staying");
+  const memberFree = (p: Person) => isCareStaff(p) && idleOrFree(world, p) && (p.staff!.duty === "on_shift" || p.staff!.duty === "staying");
   for (const task of tasks.filter((t) => t.members && t.status !== "done")) {
     if (task.kind === "briefing") {
       // Whoever is free first waits up to 5 minutes for the other; after an hour it's skipped and
@@ -389,7 +407,7 @@ export function decideStaff(world: World): void {
   for (const p of staff) {
     const s = p.staff!;
     // Office and reception staff take lunch too; they don't cover the floor, so no cover check.
-    if (s.duty !== "on_shift" || s.taskId || !s.shift?.started) continue;
+    if (s.duty !== "on_shift" || !idleOrFree(world, p) || !s.shift?.started) continue;
     if (s.pausedBreakId) {
       const paused = world.tasks.get(s.pausedBreakId)!;
       s.pausedBreakId = null;
@@ -445,10 +463,16 @@ export function decideStaff(world: World): void {
     if (best.task.status === "open") holding = true;
   }
 
-  // 4. Workload: rolling share of the last hour spent on work.
+  // 4. Anyone still free takes up a low-priority activity (not the handover's floor cover).
+  for (const p of staff) {
+    if (p.staff!.duty !== "on_shift" || p.staff!.taskId || !p.staff!.shift?.started || coveringHandover(world, p)) continue;
+    startIdleActivity(world, p);
+  }
+
+  // 5. Workload: rolling share of the last hour spent on work.
   for (const p of staff) {
     const task = p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined;
-    const busy = task && task.kind !== "break" ? 1 : 0;
+    const busy = task && task.kind !== "break" && task.kind !== "idle" ? 1 : 0;
     p.staff!.workload += (busy - p.staff!.workload) / 60;
   }
 }

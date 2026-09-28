@@ -35,6 +35,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done, plus the turning fi
 - Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
 - Floating night carer (spec decision 16) for Peggy's female-only care and night two-person tasks.
 - Checks: by day observation within 6 m counts; at night and always for Dennis only bedside checks (1.5 m), logged with `via`. Checks before handover at 06:40 and 20:55.
+- M7 (part 1): idle behaviour (care notes, tidying, restocking, sitting with residents who want company), interruptible, on the floor; holders wait in the corridor. Social requests down to ~0. Breaks guard waiting two-person tasks. Stress: no-fall 0/0, falls 0 hard / 3 service.
 - Visitor acceptance restated (user): weekday peak avg 2 to 4, Sunday avg 4 to 8, everyone but Arthur 2+ visits a week.
 - Repositioning is a service target (2 h, counted from the start of a turn). Evening turns due 20:00 to 21:00 move to 19:45; the floating carer's rounds follow Dennis's turns from 21:00 to 08:00 (she arrives 30 min early and batches Raj); day breaks wait for a nearly-due two-person turn; the handover floor cover keeps working past shift end. 8 no-fall weeks: 0 hard, 0 service.
 - M5 fixes found by the stress runs: late shift floor cover stays until its handover ends; a briefing no longer holds someone idle; a check can't absorb a two-person request; staff go to where the resident is (chair or floor), not always the bed; check lead capped at half the interval (post-fall checks); two-person morning care waits for the day shift.
@@ -65,3 +66,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done, plus the turning fi
 | 2026-09-28 | M5 review: on-call RN for serious night falls; hard invariants vs service targets | spec, 05, 07, 11, 12, PROGRESS |
 | 2026-09-28 | M6 visitors; overdue-turn escalation; visitor stats in report | 05, 06, 07, 11, PROGRESS |
 | 2026-09-28 | Turning as a service target; evening crunch and night rounds fixed; visitor target restated | spec, 05, 11, PROGRESS |
+| 2026-09-28 | M7 part 1: idle behaviour; break guard for waiting two-person tasks | 04, 11, PROGRESS |

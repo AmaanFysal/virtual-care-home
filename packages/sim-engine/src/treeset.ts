@@ -4,6 +4,7 @@
 import type { BtNode } from "./bt.js";
 import { fallTree } from "./falls.js";
 import { medRoundTree } from "./meds.js";
+import { idleTree } from "./idle.js";
 import { letInTree } from "./visitors.js";
 import type { TaskKind } from "./state.js";
 import { assistTree, breakTree, briefingTree, careTree, handoverTree, roundTree, selfToiletTree, type Ctx } from "./trees.js";
@@ -19,4 +20,5 @@ export const TREES: Record<TaskKind, BtNode<Ctx>> = {
   med_round: medRoundTree,
   fall: fallTree,
   let_in: letInTree,
+  idle: idleTree,
 };

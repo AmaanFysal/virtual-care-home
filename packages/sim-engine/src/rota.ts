@@ -19,7 +19,7 @@ import { isCareStaff, type Person, type ShiftAssignment, type World } from "./st
 import { ON_CALL_RN_ID, PARAMEDICS_ID, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
 import { floatArrived, floatDeparted } from "./float.js";
 import { coverableOnSite } from "./nightcover.js";
-import { createHandover, idleStaff } from "./tasks.js";
+import { createHandover, idleStaff, pullOff } from "./tasks.js";
 import { depart, placeAt, walkTo } from "./world/movement.js";
 
 /** Where each slot waits on the floor when there's nothing to do. */
@@ -241,7 +241,9 @@ export function rotaLeaving(world: World): void {
   for (const id of world.order) {
     const p = world.people.get(id)!;
     const s = p.staff;
-    if (!s || s.duty !== "staying" || s.taskId) continue;
+    if (!s || s.duty !== "staying") continue;
+    if (s.taskId && world.tasks.get(s.taskId)?.kind === "idle") pullOff(world, p, "end of shift");
+    if (s.taskId) continue;
     const handovers = [...world.tasks.values()].filter((t) => t.kind === "handover");
     // Still owed to a handover (as a member, or as its floor cover): stay until it's done.
     if (handovers.some((t) => (t.members!.includes(p.id) && !t.assigned.includes(p.id)) || t.data.cover === p.id)) continue;

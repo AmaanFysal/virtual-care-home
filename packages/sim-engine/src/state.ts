@@ -96,7 +96,7 @@ export interface FloatState {
   planned: boolean;
 }
 
-export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round" | "med_round" | "fall" | "let_in";
+export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round" | "med_round" | "fall" | "let_in" | "idle";
 
 /** A visitor's progress through a visit (docs/05 "Visiting"). */
 export interface VisitorState {
