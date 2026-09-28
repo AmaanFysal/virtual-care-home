@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TICK_SECONDS, type AnySimEvent, type EventPayloads, type SimEvent } from "@vch/shared-types";
 import { createSim, type Sim } from "../src/index.js";
+import { nextCoverT } from "../src/nightcover.js";
 import { createAssist } from "../src/tasks.js";
 import { markChecked } from "../src/trees.js";
 import { placeAt } from "../src/world/movement.js";
@@ -67,8 +68,8 @@ describe("the care day (seed 1, Tue 06:00 to Wed 06:00)", () => {
   it("turns Dennis every two hours, with fluids and mouth care", () => {
     const turns = ofType(events, "resident.repositioned").filter((e) => e.payload.residentId === "res_dennis");
     expect(turns.length).toBeGreaterThanOrEqual(11);
-    // Target every 2 hours; the evening crunch (bedtimes, drinks round, the door) can push one late.
-    for (let i = 1; i < turns.length; i++) expect(turns[i]!.t - turns[i - 1]!.t).toBeLessThanOrEqual(2.75 * 3600);
+    // Repositioning is a service target: never more than 2 hours between turns (counted from when each starts).
+    expect(ofType(events, "sla.breached").filter((e) => e.payload.target === "reposition")).toEqual([]);
     for (const t of turns) expect(t.payload.staffIds).toHaveLength(2);
     expect(sim.world.people.get("res_dennis")!.resident!.fluidsMlToday).toBeGreaterThan(0);
   });
@@ -78,16 +79,15 @@ describe("the care day (seed 1, Tue 06:00 to Wed 06:00)", () => {
     for (const id of ["res_peggy", "res_stan", "res_dennis"]) expect(night.some((e) => e.payload.residentId === id), id).toBe(true);
   });
 
-  it("sends the floating night carer on all five rounds, turning Raj at 22:00 and 02:00", () => {
+  it("brings the floating night carer for night turns, aligned with Dennis's, so nobody goes unturned", () => {
     const arrived = ofType(events, "second_carer.arrived");
-    expect(arrived.map((e) => hhmm(e.t).slice(0, 2))).toEqual(["22", "00", "02", "04", "06"]);
+    expect(arrived.length).toBeGreaterThanOrEqual(5);
     for (const a of arrived) expect(a.payload.planned).toBe(true);
-    expect(ofType(events, "second_carer.departed")).toHaveLength(4); // still on the 06:00 round when the day ends
-    const rajTurns = ofType(events, "resident.repositioned").filter((e) => e.payload.residentId === "res_raj").map((e) => hhmm(e.t).slice(0, 2));
-    expect(rajTurns).toEqual(["22", "02"]);
-    for (const t of ofType(events, "resident.repositioned").filter((e) => e.payload.residentId === "res_raj")) {
-      expect(t.payload.staffIds).toContain("ext_night_float");
-    }
+    expect(ofType(events, "second_carer.departed").length).toBeGreaterThanOrEqual(arrived.length - 1);
+    const nightTurns = ofType(events, "resident.repositioned").filter((e) => e.t >= START + 15 * 3600 && e.t < START + 24 * 3600);
+    expect(nightTurns.filter((e) => e.payload.residentId === "res_raj").length).toBeGreaterThanOrEqual(2);
+    for (const t of nightTurns) expect(t.payload.staffIds).toHaveLength(2);
+    expect(ofType(events, "sla.breached").filter((e) => e.payload.target === "reposition")).toEqual([]);
   });
 
   it("only lets women do Peggy's personal care, night and day", () => {
@@ -110,14 +110,22 @@ describe("the care day (seed 1, Tue 06:00 to Wed 06:00)", () => {
 });
 
 describe("out-of-round call-out", () => {
-  it("calls the floating carer for urgent two-person care when the next round is too far off", () => {
+  /** Steps a night until `ready` holds with the floating carer away, and returns the sim at that moment. */
+  function nightMomentWhere(ready: (sim: Sim) => boolean): Sim {
     const sim = createSim({ seed: "1", data });
-    run(sim, 17); // to 23:00, after the 22:00 round has gone
+    run(sim, 16.5); // 22:30
+    for (let i = 0; i < 8 * HOUR; i++) {
+      sim.step();
+      if (sim.t % 60 === 0 && sim.world.float.status === "off" && ready(sim)) return sim;
+    }
+    throw new Error("no such moment");
+  }
+
+  it("calls the floating carer for urgent two-person care when the next round is too far off", () => {
+    const sim = nightMomentWhere((s) => nextCoverT(s.world, s.t) - s.t > 45 * 60);
     const w = sim.world;
-    expect(w.float.status).toBe("off");
-    const raj = w.people.get("res_raj")!;
-    const task = createAssist(w, raj, "toileting");
-    expect(task.deadlineT! - task.createdT).toBe(30 * 60); // next round is an hour away: call-out
+    const task = createAssist(w, w.people.get("res_raj")!, "toileting");
+    expect(task.deadlineT! - task.createdT).toBe(30 * 60); // call-out
     const events = run(sim, 0.75);
     const called = ofType(events, "second_carer.called");
     expect(called).toHaveLength(1);
@@ -129,13 +137,15 @@ describe("out-of-round call-out", () => {
   });
 
   it("waits for the next round instead when it is within 30 minutes", () => {
-    const sim = createSim({ seed: "1", data });
-    run(sim, 17.75); // 23:45; the 00:00 round is 15 minutes away
+    const sim = nightMomentWhere((s) => nextCoverT(s.world, s.t) - s.t <= 25 * 60);
+    const cover = nextCoverT(sim.world, sim.t);
     const task = createAssist(sim.world, sim.world.people.get("res_raj")!, "toileting");
-    expect(task.deadlineT).toBe(START + 18 * 3600 + 20 * 60); // round + 20 min
-    const events = run(sim, 0.75);
+    expect(task.deadlineT).toBe(cover + 20 * 60); // the round + 20 minutes
+    const events = run(sim, 1);
     expect(ofType(events, "second_carer.called")).toEqual([]);
-    expect(ofType(events, "task.started").some((e) => e.payload.taskId === task.id)).toBe(true);
+    const started = ofType(events, "task.started").find((e) => e.payload.taskId === task.id);
+    expect(started, "started").toBeDefined();
+    expect(started!.t).toBeLessThanOrEqual(task.deadlineT!);
   });
 });
 

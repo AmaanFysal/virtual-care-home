@@ -139,9 +139,11 @@ describe("golden: night falls (on-call RN by phone)", () => {
     expect(rnArrived.t - called.t).toBeLessThanOrEqual(13 * 60);
     const paramedicsLeft = ofType(run.events, "person.departed").find((e) => e.actors[0] === "ext_paramedics")!;
     expect(ofType(run.events, "on_call_rn.departed")[0]!.t).toBeGreaterThanOrEqual(paramedicsLeft.t);
-    // While the night carer waits with them, the floating carer is on the wing checking everyone else.
-    const floatChecks = ofType(run.events, "resident.checked").filter((e) => e.payload.staffId === "ext_night_float" && e.t > called.t && e.t < conveyed.t && e.payload.residentId !== residentId);
-    expect(floatChecks.length).toBeGreaterThan(0);
+    // While one carer waits with them, someone else (the floating carer, the night carer or the
+    // on-call RN) keeps checking everyone else.
+    const staying = called.payload.staffId;
+    const otherChecks = ofType(run.events, "resident.checked").filter((e) => e.payload.staffId !== staying && e.t > called.t && e.t < conveyed.t && e.payload.residentId !== residentId);
+    expect(otherChecks.length).toBeGreaterThan(0);
     one(run, "cqc.notification_flagged");
   });
 });

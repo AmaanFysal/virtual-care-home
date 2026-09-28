@@ -268,9 +268,15 @@ function assign(world: World, task: Task, people: Person[]): void {
   }
 }
 
+/** Covering the floor for a handover that hasn't finished (still working, even past shift end). */
+function coveringHandover(world: World, p: Person): boolean {
+  return [...world.tasks.values()].some((t) => t.kind === "handover" && t.data.cover === p.id);
+}
+
 /** Free for new work: on duty, shift under way, no task (or on an interruptible break). */
 function isFree(world: World, p: Person, allowBreak: boolean): boolean {
-  if (!isCareStaff(p) || p.staff!.duty !== "on_shift") return false;
+  if (!isCareStaff(p)) return false;
+  if (p.staff!.duty !== "on_shift" && !(p.staff!.duty === "staying" && coveringHandover(world, p))) return false;
   if (!p.staff!.taskId) return true;
   return allowBreak && breakInterruptible(world, p);
 }
@@ -298,6 +304,22 @@ function trust(world: World, staffId: string, residentId: string): number {
   return r.staff_relationships.find((rel) => rel.staff === staffId)?.trust ?? 0.5;
 }
 
+/**
+ * A two-person turn falls due within 45 minutes and, without `p`, fewer than two care staff
+ * would be left to do it (so `p` shouldn't go on a break yet).
+ */
+function twoPersonTurnSoon(world: World, p: Person): boolean {
+  const soon = [...world.tasks.values()].some((t) => t.kind === "care" && t.data.care === "reposition" && t.deadlineT !== null && t.deadlineT - world.t <= 45 * 60);
+  const upcoming = world.order.some((id) => {
+    const res = world.people.get(id)!.resident;
+    const every = res?.data.care.reposition_interval_mins.day;
+    return !!res && !!every && res.inBed && res.lastTurnedT + every * 60 - world.t <= 45 * 60;
+  });
+  if (!soon && !upcoming) return false;
+  const others = world.order.map((id) => world.people.get(id)!).filter((q) => q.id !== p.id && isCareStaff(q) && q.staff!.duty === "on_shift" && q.onMap && !breakInterruptible(world, q) && world.tasks.get(q.staff!.taskId ?? "")?.kind !== "break");
+  return others.length < 2;
+}
+
 /** Utility of one staff member taking one task (docs/04). Higher is better. */
 export function taskScore(world: World, p: Person, task: Task): number {
   const resident = task.residentId ? world.people.get(task.residentId)! : null;
@@ -307,7 +329,7 @@ export function taskScore(world: World, p: Person, task: Task): number {
   // Deadlines: hard ones (checks, requests) press harder the closer they get; soft ones
   // (turns, pad changes) nudge a little.
   if (task.deadlineT !== null) {
-    const hard = task.request || (task.kind === "care" && task.data.care === "check");
+    const hard = task.request || (task.kind === "care" && (task.data.care === "check" || task.data.care === "reposition"));
     const window = hard ? 20 : 15;
     const left = (task.deadlineT - world.t) / 60;
     if (left < window) score += hard ? 60 + 6 * (window - Math.max(0, left)) : 30;
@@ -378,6 +400,9 @@ export function decideStaff(world: World): void {
     }
     if (s.breakTaken || s.breakDueT === null || world.t < s.breakDueT) continue;
     const sole = s.shift?.shift === "night";
+    // Day staff wait for a two-person turn that's nearly due; the lone night carer's break is in
+    // the wing and interruptible, and night turns are done with the floating carer.
+    if (isCareStaff(p) && !sole && twoPersonTurnSoon(world, p)) continue;
     if (!isCareStaff(p) || sole || coveredWithout(world, p, true)) assign(world, createBreak(world, sole), [p]);
   }
 
@@ -394,7 +419,8 @@ export function decideStaff(world: World): void {
       const resident = task.residentId ? world.people.get(task.residentId)!.resident! : null;
       if (resident?.busyTaskId && resident.busyTaskId !== task.id) continue; // one thing at a time
       const needed = task.staffNeeded - task.assigned.length;
-      const urgent = task.request && task.deadlineT !== null && task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60;
+      const targetTask = task.request || (task.kind === "care" && (task.data.care === "check" || task.data.care === "reposition"));
+      const urgent = targetTask && task.deadlineT !== null && task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60;
       const eligible = (p: Person) => !task.assigned.includes(p.id) && (!task.femaleOnly || p.gender === "female");
       // Someone whose shift has ended stays to do what only they can (e.g. the last woman on the wing).
       const current = (p: Person) => (p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined);
@@ -405,8 +431,10 @@ export function decideStaff(world: World): void {
       const candidates = pool
         .map((p) => ({ p, score: taskScore(world, p, task) }))
         .sort((a, b) => b.score - a.score || a.p.id.localeCompare(b.p.id));
-      // By day, hold a waiting two-person task with one person rather than let it starve.
-      const reserve = !night && !holding && needed === 2 && candidates.length === 1 && world.t - task.createdT >= 5 * 60;
+      // Hold a waiting two-person task with one person rather than let it starve: by day after
+      // 5 minutes, and at any time for a turn about to go over its interval.
+      const pressing = task.kind === "care" && task.data.care === "reposition" && task.deadlineT !== null && task.deadlineT - world.t <= 15 * 60;
+      const reserve = !holding && needed === 2 && candidates.length === 1 && ((!night && world.t - task.createdT >= 5 * 60) || pressing);
       if (candidates.length < needed && !reserve) continue;
       const chosen = candidates.slice(0, reserve ? 1 : needed);
       const score = chosen.reduce((sum, c) => sum + c.score, 0) / chosen.length;

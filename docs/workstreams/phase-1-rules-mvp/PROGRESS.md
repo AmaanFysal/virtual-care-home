@@ -4,7 +4,7 @@
 
 ## Status
 
-M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done. Next: M7 (follow, inspector, badges, event log panel, acceptance test).
+M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done, plus the turning fix. Next: M7 (idle behaviour, follow, inspector, event log panel, acceptance test).
 
 ## Done
 
@@ -35,7 +35,8 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done. Next: M7 (follow, i
 - Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
 - Floating night carer (spec decision 16) for Peggy's female-only care and night two-person tasks.
 - Checks: by day observation within 6 m counts; at night and always for Dennis only bedside checks (1.5 m), logged with `via`. Checks before handover at 06:40 and 20:55.
-- Overdue turns now climb in priority; Dennis's turns can run up to ~40 min late in the evening crunch (tested to 2 h 45 min).
+- Visitor acceptance restated (user): weekday peak avg 2 to 4, Sunday avg 4 to 8, everyone but Arthur 2+ visits a week.
+- Repositioning is a service target (2 h, counted from the start of a turn). Evening turns due 20:00 to 21:00 move to 19:45; the floating carer's rounds follow Dennis's turns from 21:00 to 08:00 (she arrives 30 min early and batches Raj); day breaks wait for a nearly-due two-person turn; the handover floor cover keeps working past shift end. 8 no-fall weeks: 0 hard, 0 service.
 - M5 fixes found by the stress runs: late shift floor cover stays until its handover ends; a briefing no longer holds someone idle; a check can't absorb a two-person request; staff go to where the resident is (chair or floor), not always the bed; check lead capped at half the interval (post-fall checks); two-person morning care waits for the day shift.
 - Handover fix: outgoing staff can still join their handover after shift end and don't leave owing it; handovers go ahead after 30 min with whoever is there.
 - Scheduled care takes over a waiting request; only one two-person task may be held by a lone carer at a time (deadlock fix).
@@ -47,7 +48,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done. Next: M7 (follow, i
 
 ## Blockers and open questions
 
-- **Visitor numbers:** mid-afternoon peaks are usually 2 to 3 on weekdays (4 to 7 on Sundays), below the acceptance "3 to 8". Tune the visit patterns, or restate the target? (docs/05)
+- None open.
 
 
 ## Session log
@@ -63,3 +64,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done. Next: M7 (follow, i
 | 2026-09-28 | M5 med rounds, falls, paramedics, golden tests; stress runs and fixes | spec, 04, 05, 07, 11, 12, PROGRESS |
 | 2026-09-28 | M5 review: on-call RN for serious night falls; hard invariants vs service targets | spec, 05, 07, 11, 12, PROGRESS |
 | 2026-09-28 | M6 visitors; overdue-turn escalation; visitor stats in report | 05, 06, 07, 11, PROGRESS |
+| 2026-09-28 | Turning as a service target; evening crunch and night rounds fixed; visitor target restated | spec, 05, 11, PROGRESS |

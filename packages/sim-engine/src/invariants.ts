@@ -8,7 +8,7 @@
 import { cellAt } from "./world/grid.js";
 import { floorCovered } from "./floor.js";
 import { isMedsTrained } from "./meds.js";
-import { checkInterval } from "./nightcover.js";
+import { checkInterval, isNight } from "./nightcover.js";
 import { isNurse, onDuty, type World } from "./state.js";
 
 export interface Violation {
@@ -56,7 +56,7 @@ export function checkInvariants(world: World): Violation[] {
 }
 
 export interface Breach {
-  target: "request_wait" | "resident_check";
+  target: "request_wait" | "resident_check" | "reposition";
   residentId: string;
   key: string;
   details: string;
@@ -73,6 +73,16 @@ export function checkServiceTargets(world: World): Breach[] {
       out.push({ target: "resident_check", residentId: p.id, key: p.id, details: `${p.id} unchecked for ${Math.round((world.t - res.lastCheckedT) / 60)} min (interval ${interval})` });
     }
   }
+  // Repositioning: bed-bound residents day and night; others (Raj) only when in bed at night.
+  for (const p of world.order.map((id) => world.people.get(id)!)) {
+    const res = p.resident;
+    if (!res || !p.onMap || !res.inBed) continue;
+    const care = res.data.care;
+    const interval = care.bed_bound ? (isNight(res.lastTurnedT) ? care.reposition_interval_mins.night : care.reposition_interval_mins.day) : isNight(world.t) ? care.reposition_interval_mins.night : null;
+    if (interval && world.t - res.lastTurnedT > interval * 60) {
+      out.push({ target: "reposition", residentId: p.id, key: p.id, details: `${p.id} not turned for ${Math.round((world.t - res.lastTurnedT) / 60)} min (interval ${interval})` });
+    }
+  }
   for (const task of world.tasks.values()) {
     if (!task.request || task.startedT !== null || task.deadlineT === null || world.t <= task.deadlineT) continue;
     out.push({ target: "request_wait", residentId: task.residentId!, key: task.id, details: `${task.label} waiting ${Math.round((world.t - task.createdT) / 60)} min` });
@@ -80,13 +90,15 @@ export function checkServiceTargets(world: World): Breach[] {
   return out;
 }
 
-/** Why a target was probably missed: a fall in progress, or one in the last two hours. */
+/** Why a target was probably missed: a fall in progress, one in the last two hours, or post-fall observations. */
 export function breachCause(world: World): string {
   const name = (id: string) => world.people.get(id)!.name.split(" ")[0];
   const ongoing = world.fallLog.find((f) => f.endT === null);
   if (ongoing) return `during ${ongoing.severity} fall (${name(ongoing.residentId)})`;
   const recent = world.fallLog.findLast((f) => f.endT !== null && world.t - f.endT < 2 * 3600);
   if (recent) return `after ${recent.severity} fall (${name(recent.residentId)})`;
+  const observing = world.order.find((id) => (world.people.get(id)!.resident?.postFallUntil ?? 0) > world.t);
+  if (observing) return `during post-fall observations (${name(observing)})`;
   return "no emergency";
 }
 

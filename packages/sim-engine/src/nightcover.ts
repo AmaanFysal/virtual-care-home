@@ -25,13 +25,24 @@ export function checkInterval(res: ResidentState): number {
   return isNight(res.lastCheckedT) ? res.data.care.check_interval_mins.night : res.data.care.check_interval_mins.day;
 }
 
-/** Start of the next floating-carer round strictly after `t`. */
+/**
+ * When the floating carer next comes on a planned round: 10 minutes before the next night turn
+ * of a bed-bound resident falls due (rounds are aligned with Dennis's turns). Falls back to the
+ * nominal round times in the rota if nobody needs turning.
+ */
 export function nextRoundT(world: World, t: number): number {
-  const day = Math.floor(t / SECONDS_PER_DAY);
-  const times = world.data.rota.night_float.rounds.map(clockToSeconds);
   let best = Infinity;
+  for (const id of world.order) {
+    const res = world.people.get(id)!.resident;
+    const every = res?.data.care.reposition_interval_mins.night;
+    if (!res || !res.data.care.bed_bound || !res.inBed || !every) continue;
+    const arrive = res.lastTurnedT + every * 60 - 10 * 60;
+    if (arrive > t && isNight(arrive)) best = Math.min(best, arrive);
+  }
+  if (best < Infinity) return best;
+  const day = Math.floor(t / SECONDS_PER_DAY);
   for (const d of [day, day + 1]) {
-    for (const tod of times) {
+    for (const tod of world.data.rota.night_float.rounds.map(clockToSeconds)) {
       const at = d * SECONDS_PER_DAY + tod;
       if (at > t && isNight(at) && at < best) best = at;
     }

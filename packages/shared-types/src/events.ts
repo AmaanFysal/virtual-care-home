@@ -99,7 +99,7 @@ export interface EventPayloads {
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
   /** A service target was missed: reported, not a failure (docs/11). */
-  "sla.breached": { target: "request_wait" | "resident_check"; residentId: string; details: string; cause: string };
+  "sla.breached": { target: "request_wait" | "resident_check" | "reposition"; residentId: string; details: string; cause: string };
 }
 
 export type EventType = keyof EventPayloads;

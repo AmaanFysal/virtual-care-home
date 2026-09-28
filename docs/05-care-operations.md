@@ -112,10 +112,17 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 | 08:00–10:30 | Breakfast at the chair once they are up; 12:15 lunch; 17:30 supper. Raj is helped to eat (15 min), Peggy prompted (5), Dennis gets mouth care and sips; intake is charted for Peggy, Win and Dennis |
 | 10:30, 15:00, 20:00 | Drinks round: one carer takes tea and a biscuit to each resident in turn (2 min each); left by the bed or chair for anyone asleep or busy |
 | Every 2 hours awake | Peggy's prompted toileting: walked to the WC and back by a female carer |
-| Every 2 hours, day | Dennis turned by two staff, with a pad change, fluids and mouth care |
+| Every 2 hours, day and night | Dennis turned by two staff, with a pad change, fluids and mouth care (see "Turning" below) |
 | Bed time | Bedtime care with a warm drink, then into bed (Raj by hoist) |
 | 06:40, 20:55 | Checks before handover for anyone due before 08:00 / 22:15 |
 | Night rounds | See "Floating night carer" |
+
+**Turning** (service target `reposition`, after the M6 review):
+- A turn counts from when it starts; personal care in bed also turns Dennis; being put to bed starts Raj's night clock.
+- **By day** turns are scheduled from when each is due (created 20 minutes before, with deadline pressure). A turn that would fall due in the evening crunch (20:00 to 21:00: Raj's bedtime, the drinks round, then the 21:00 med round) is brought forward to 19:45.
+- **From 21:00 to 08:00** the floating carer's rounds cover turns: she comes 30 minutes before the next night turn is due (so rounds follow Dennis's turns, roughly every 2 hours) and batches anyone else due within 70 minutes (Raj's 4-hourly turn). She stays until the round's turns are done.
+- A carer won't start a day break if a two-person turn is due within 45 minutes and fewer than two others would be free; the floor cover for a handover keeps working past their shift end until the handover is done.
+- Result: zero turning breaches over 8 no-fall weeks (seeds 1 to 8).
 
 **Wait-time rule** (spec decision 18): every request gets a deadline when it is made: 30 minutes by day; at night, if nobody on site can do it (two-person, or female-only with a male night carer), the next round + 20 minutes when the round is within 30 minutes, otherwise a call-out and 30 minutes. Scheduled care already under way with the resident takes over a waiting request. Overdue requests are an invariant violation (`request_wait`).
 
@@ -141,7 +148,7 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 - Her arrivals and departures are logged (`second_carer.arrived` with `planned`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and counted (`world.metrics.floatCallouts`).
 - While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks).
 - On seeds 1 to 8 over a week, the planned rounds cover all night work: 35 visits a week and no call-outs. A call-out is tested directly (a forced 23:00 request from Raj).
-- **Time on site:** about 2 hours a night (17 to 28% of the 570-minute night) across seeds 1 to 8; no night over 50%. `--report` prints it per night and flags any night over 50%.
+- **Time on site:** 24 to 35% of the 570-minute night across seeds 1 to 8 (up from about 25% with fixed rounds); no night over 50%. `--report` prints it per night and flags any night over 50%.
 
 ## Care rules (hard constraints)
 
@@ -159,7 +166,7 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 - **Soft friction:** during protected lunch (12:15 to 13:30), while personal care is going on with the resident (morning or bedtime care, a pad change, a turn, help to the toilet), or while the resident is on the floor after a fall, visitors wait in the waiting area and go back afterwards. A visitor who helps at meals (`may_help_at_meals`: Kuldip with Raj) stays; when she's there, staff only bring Raj's tray (2 minutes instead of 15).
 - **Leaving:** when the visit time is up (`visit.ended`), visitors sign out at the desk (`visitor.signed_out`; with the visitors' book out of hours) and leave by the exit.
 - **Hospital:** nobody comes to see a resident who is in hospital, and anyone visiting leaves.
-- **Numbers (seeds 1 to 8, a week each):** 32 to 40 visits a week, 10 to 21 bells out of hours. Mid-afternoon (14:30 to 16:30) peaks are usually 2 or 3 on weekdays and 4 to 7 on Sundays, **below the plan's "3 to 8"**: calibration question open with the user.
+- **Numbers (seeds 1 to 8, a week each):** 32 to 40 visits a week, 10 to 21 bells out of hours. Mid-afternoon (14:30 to 16:30) peaks are usually 2 or 3 on weekdays and 4 to 7 on Sundays. **Acceptance target (user decision, M6 review):** across seeds 1 to 8, the weekday mid-afternoon peak averages 2 to 4, the Sunday peak averages 4 to 8, and every resident except Arthur gets at least 2 visits a week; the visitor data stays as written.
 - No moods, conflicts or off-screen family life yet (Phase 4).
 
 ## Notifications and safeguarding

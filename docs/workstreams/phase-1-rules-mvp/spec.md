@@ -64,6 +64,7 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 **Service targets** (reported, not failures; logged as `sla.breached` with the likely cause, e.g. "during serious fall (Stan)", and summarised by `--report`):
 
 - `request_wait`: help starts on every request within its limit (decision 18).
+- `reposition`: nobody goes more than their repositioning interval without a turn (Dennis 2-hourly day and night; Raj 4-hourly while in bed at night), counted from when each turn starts.
 - `resident_check`: nobody unchecked beyond their care-plan interval. By day a check is any time a carer sees them (an explicit check, any care, or working within 6 m in the same room); at night, and always for Dennis, only a bedside check (within 1.5 m) counts and it is logged.
 
 ## Acceptance: Phase 1 is done when
@@ -74,7 +75,7 @@ One sim day (Tue 06:00 → Wed 06:00), run headless and unpaced on seed 1:
 - four med rounds complete, and a meds-trained carer does the 21:00 round;
 - three meals are served and every resident gets morning personal care;
 - Raj's transfers always use two staff;
-- 3 to 8 visitors are on site in mid-afternoon (14:30 to 16:30);
+- visitors (across seeds 1 to 8, a week each, visitor data as written): the weekday mid-afternoon (14:30 to 16:30) peak averages 2 to 4 visitors, the Sunday peak averages 4 to 8, and every resident except Arthur gets at least 2 visits a week;
 - night checks happen at each resident's interval;
 - zero hard safety violations in every run (including fall runs), and zero service breaches on days without a fall; fall runs may breach service targets but must report them;
 - the fall golden tests pass (06:40 and 02:00, minor and serious);

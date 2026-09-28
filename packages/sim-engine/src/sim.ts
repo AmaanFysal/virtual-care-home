@@ -84,7 +84,7 @@ function residentPerson(r: Resident, world: World): Person {
       // Night checks already on schedule at the start (spec decision 13).
       lastCheckedT: world.startT - world.rng.needs.int(0, Math.floor(r.care.check_interval_mins.night / 2)) * 60,
       lastToiletT: world.startT - 60 * 60,
-      lastTurnedT: world.startT,
+      lastTurnedT: world.startT - 10 * 60, // turned on the last night round
       morningDone: false,
       bedtimeDone: false,
       mealsServed: [],

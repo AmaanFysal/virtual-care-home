@@ -2,7 +2,8 @@
 // visits on planned rounds, aligned with Dennis's turns, and is called out between rounds only
 // for urgent two-person or same-sex personal care.
 
-import { clockToSeconds, timeOfDay } from "@vch/shared-types";
+import { timeOfDay } from "@vch/shared-types";
+import { FLOAT_TURNS } from "./care.js";
 import { emit } from "./emit.js";
 import { coverableOnSite, isNight, nextCoverT } from "./nightcover.js";
 import type { Person, Task, World } from "./state.js";
@@ -12,6 +13,10 @@ import { walkTo } from "./world/movement.js";
 const IDLE_POST = "Corridor.East";
 /** Only call her out if the next round (or the day shift) is further away than this. */
 const CALL_OUT_IF_COVER_AFTER_MINS = 30;
+/** She arrives this long before a turn is due so it starts on time. */
+const ARRIVE_EARLY_MINS = 30;
+/** On a round she also turns anyone due within this long (Raj's 4-hourly turn). */
+const BATCH_TURNS_WITHIN_MINS = 70;
 /** While on site she also helps with anything due within this many minutes. */
 const PRESSING_MINS = 20;
 /** Peggy's pad is changed on a round if toileting has reached this. */
@@ -31,18 +36,36 @@ function needsHer(world: World, task: Task): boolean {
   return (task.kind === "assist" || task.kind === "care") && !coverableOnSite(world, task);
 }
 
-/** The work batched on a planned round (docs/05 "Floating night carer"). */
-function roundWork(world: World, hour: number): void {
+/** In the floating carer's cover window (turns due from 21:50 to 07:30). */
+function floatCovers(due: number): boolean {
+  const tod = timeOfDay(due);
+  return tod >= FLOAT_TURNS.from || tod < FLOAT_TURNS.until;
+}
+
+/** Next night turn due for each in-bed resident who needs turning at night. */
+function nightTurnsDue(world: World): { p: Person; due: number }[] {
+  const out: { p: Person; due: number }[] = [];
   for (const id of world.order) {
     const p = world.people.get(id)!;
     const res = p.resident;
-    if (!res || !p.onMap) continue;
-    const every = res.data.care.reposition_interval_mins.night;
-    // Turns anchored to the 22:00 round: Dennis every round, Raj every other.
-    if (every && ((hour - 22 + 24) % 24) % (every / 60) === 0 && res.inBed && !hasCare(world, p.id, "reposition")) {
-      createCare(world, p, "reposition", { dueT: world.t + 30 * 60 });
-    }
-    if (res.data.care.female_carers_only && res.inBed && res.needs.toileting >= PAD_CHANGE_DUE && !hasCare(world, p.id, "pad_change") && !res.requestId) {
+    const every = res?.data.care.reposition_interval_mins.night;
+    if (!res || !p.onMap || !res.inBed || !every) continue;
+    const due = res.lastTurnedT + every * 60;
+    if (floatCovers(due)) out.push({ p, due });
+  }
+  return out;
+}
+
+/** The work batched on a round (docs/05 "Floating night carer"). */
+function roundWork(world: World): void {
+  for (const { p, due } of nightTurnsDue(world)) {
+    // Turn anyone due within the batching window: Dennis on every round, Raj on the round before his 4 hours are up.
+    if (due - world.t <= BATCH_TURNS_WITHIN_MINS * 60 && !hasCare(world, p.id, "reposition")) createCare(world, p, "reposition", { dueT: due });
+  }
+  for (const id of world.order) {
+    const p = world.people.get(id)!;
+    const res = p.resident;
+    if (res?.data.care.female_carers_only && p.onMap && res.inBed && res.needs.toileting >= PAD_CHANGE_DUE && !hasCare(world, p.id, "pad_change") && !res.requestId) {
       createCare(world, p, "pad_change", { dueT: world.t + 30 * 60 });
     }
   }
@@ -57,10 +80,13 @@ export function floatMinute(world: World): void {
   const t = world.t;
   const tod = timeOfDay(t);
 
-  // Planned rounds.
-  if (isNight(t) && world.data.rota.night_float.rounds.some((r) => clockToSeconds(r) === tod)) {
-    roundWork(world, Math.floor(tod / 3600));
-    if (world.float.status === "off") comeIn(world, true, 0);
+  // Planned rounds, aligned with Dennis's turns: she comes just before the next night turn is due.
+  const due = nightTurnsDue(world).filter((d) => t >= d.due - ARRIVE_EARLY_MINS * 60 && !hasCare(world, d.p.id, "reposition"));
+  if (due.length > 0 && world.float.status === "off") {
+    roundWork(world);
+    comeIn(world, true, 0);
+  } else if (due.length > 0 && world.float.status !== "off") {
+    roundWork(world); // still here (or on her way): pick up the next turns
   }
 
   // Out-of-round call-outs for urgent care nobody on site can do.
@@ -84,7 +110,9 @@ export function floatMinute(world: World): void {
   if (f.status === "on_site" && me.onMap && me.staff!.duty === "on_shift" && !me.staff!.taskId) {
     const pressing = (task: Task) => task.status === "open" && (task.request || (task.deadlineT !== null && task.deadlineT - t <= PRESSING_MINS * 60));
     // A fall in progress keeps her here: the night carer may be tied up with it.
-    const stillNeeded = [...world.tasks.values()].some((task) => (needsHer(world, task) && task.status !== "done") || pressing(task) || task.kind === "fall");
+    // She stays for the round's turns, and while a fall is in progress.
+    const roundTurn = (task: Task) => task.kind === "care" && task.data.care === "reposition" && floatCovers(task.deadlineT ?? 0);
+    const stillNeeded = [...world.tasks.values()].some((task) => (needsHer(world, task) && task.status !== "done") || pressing(task) || roundTurn(task) || task.kind === "fall");
     if (!stillNeeded) {
       f.status = "leaving";
       me.staff!.duty = "leaving";

@@ -31,7 +31,22 @@ const HANDOVER_ROUNDS = [
 const DEFAULT_WAKE = "07:30";
 /** Checks are created this long before they are due, so someone can get there in time. */
 const CHECK_LEAD_MINS = 30;
-const TURN_LEAD_MINS = 10;
+const TURN_LEAD_MINS = 20;
+
+/** Turns the floating carer covers: due from 21:00 until the morning rush has settled at 08:00. */
+export const FLOAT_TURNS = { from: clockToSeconds("21:00"), until: clockToSeconds("08:00") };
+/** Evening crunch: Raj's bedtime and the drinks round at 20:00, then the 21:00 med round. */
+const EVENING_CRUNCH = { from: clockToSeconds("20:00"), until: FLOAT_TURNS.from };
+/** A turn due in the crunch is brought forward to here, before Raj's bedtime and the drinks round. */
+const EVENING_TURN = clockToSeconds("19:45");
+
+/** When a turn due at `due` is done by day staff, or null if the floating carer's rounds cover it. */
+export function dayTurnTime(due: number): number | null {
+  const tod = timeOfDay(due);
+  if (tod >= FLOAT_TURNS.from || tod < FLOAT_TURNS.until) return null;
+  if (tod >= EVENING_CRUNCH.from) return due - tod + EVENING_TURN;
+  return due;
+}
 
 function openTask(world: World, residentId: string): boolean {
   for (const t of world.tasks.values()) if (t.residentId === residentId && (t.kind === "assist" || t.kind === "self_toilet")) return true;
@@ -85,10 +100,11 @@ function scheduleResident(world: World, p: Person): void {
     createCare(world, p, "check", { dueT: round ? Math.min(due, dayStart + round.dueBy) : due });
   }
 
-  // Daytime turns (Dennis); night turns are on the floating carer's rounds.
+  // Daytime turns (Dennis), from when each is due; the floating carer's rounds cover the night.
   const turnEvery = r.care.reposition_interval_mins.day;
-  if (turnEvery && !isNight(world.t) && world.t >= res.lastTurnedT + (turnEvery - TURN_LEAD_MINS) * 60 && !hasCare(world, p.id, "reposition")) {
-    createCare(world, p, "reposition", { dueT: res.lastTurnedT + turnEvery * 60 });
+  if (turnEvery && res.inBed && !hasCare(world, p.id, "reposition")) {
+    const at = dayTurnTime(res.lastTurnedT + turnEvery * 60);
+    if (at !== null && world.t >= at - TURN_LEAD_MINS * 60) createCare(world, p, "reposition", { dueT: at });
   }
 }
 

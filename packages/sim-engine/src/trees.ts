@@ -259,7 +259,6 @@ function careEffects(c: Ctx): void {
     case "reposition":
       toileted(world, r); // turns include a pad change
       sipsAndMouthCare(r);
-      res.lastTurnedT = world.t;
       emit(world, "resident.repositioned", [r.id, ...staffIds], { residentId: r.id, staffIds });
       break;
     case "pad_change":
@@ -318,6 +317,7 @@ const settleResident: BtNode<Ctx> = leaf("settle the resident", (c, mem) => {
       getIntoBed(c.world, r);
     }
     emit(c.world, "resident.went_to_bed", [r.id], { residentId: r.id });
+    res.lastTurnedT = c.world.t; // settled in bed: the night repositioning clock starts
   }
   return "success";
 });
@@ -366,6 +366,9 @@ const careTree: BtNode<Ctx> = seq(
     begin(c, careBadge(c));
     // The check counts the moment a carer is at the bedside; mouth care and so on follow.
     markChecked(c.world, c.resident!, c.staff, careKind(c) === "check");
+    // A turn counts from when it starts; personal care in bed turns a bed-bound resident too.
+    const res = c.resident!.resident!;
+    if (careKind(c) === "reposition" || (res.data.care.bed_bound && (careKind(c) === "morning" || careKind(c) === "bedtime"))) res.lastTurnedT = c.world.t;
     absorbRequest(c);
   }),
   waitMins("care", careMinutes),
@@ -523,7 +526,10 @@ const breakTree: BtNode<Ctx> = seq(
   goTo("go to break spot", (c) => c.staff, (c) => [String(c.task.data.point)]),
   act("start", (c) => {
     setBadges(c.staff, ["break"], "Break");
-    if (c.task.data.resumed !== 1) emit(c.world, "break.started", [c.staff[0]!.id], { staffId: c.staff[0]!.id, pointId: String(c.task.data.point) });
+    if (c.task.data.startLogged !== 1) {
+      c.task.data.startLogged = 1;
+      emit(c.world, "break.started", [c.staff[0]!.id], { staffId: c.staff[0]!.id, pointId: String(c.task.data.point) });
+    }
   }),
   leaf("rest", (c) => {
     if (c.world.t % 60 === 0) c.task.data.remainingMins = Number(c.task.data.remainingMins) - 1;

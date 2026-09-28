@@ -166,12 +166,12 @@ const secondPairOfHands: BtNode<Ctx> = leaf("get a second pair of hands", (c) =>
   const { world, task } = c;
   const float = floatPerson(world);
   if (task.assigned.length < 2) {
-    if (!isNight(world.t)) {
-      const other = nearestCarers(world, c.resident!, task.assigned).find((p) => p.id !== float.id);
-      if (other) join(world, task.id, other);
-    } else if (float.onMap && float.staff!.duty === "on_shift") {
-      join(world, task.id, float);
-    } else if (world.float.status === "off") {
+    // The nearest other carer on the wing (the floating carer counts if she's here); at night,
+    // with nobody else, call her out.
+    const others = nearestCarers(world, c.resident!, task.assigned).filter((p) => p.staff!.duty === "on_shift" && !isNurse(p));
+    const other = isNight(world.t) ? (others.find((p) => p.id === float.id) ?? others[0]) : others.find((p) => p.id !== float.id) ?? others[0];
+    if (other) join(world, task.id, other);
+    else if (world.float.status === "off") {
       world.metrics.floatCallouts += 1;
       emit(world, "second_carer.called", [float.id], { reason: "help to lift after a fall", residentIds: [c.resident!.id], outOfRound: true });
       comeIn(world, false, world.rng.falls.int(8, 12));

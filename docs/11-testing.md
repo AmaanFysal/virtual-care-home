@@ -30,7 +30,7 @@ Tooling: Vitest (`pnpm test`), TypeScript (`pnpm typecheck`).
 ## Invariants and service targets (`packages/sim-engine/src/invariants.ts`)
 
 - **Hard safety invariants** (`checkInvariants`, event `invariant.violated`): `floor_cover`, `standing_spot`, `two_person`, `rn_reachable`, `no_visitors_in_staff_room`, `meds_trained`, `fall_moved_before_assessment`. Must be zero in every run, including fall runs.
-- **Service targets** (`checkServiceTargets`, event `sla.breached` with a cause from `breachCause`: "during/after <severity> fall (<name>)" or "no emergency"): `request_wait`, `resident_check`. Must be zero on days without a fall; fall runs may breach them but every breach is reported.
+- **Service targets** (`checkServiceTargets`, event `sla.breached` with a cause from `breachCause`: "during/after <severity> fall (<name>)", "during post-fall observations (<name>)" or "no emergency"): `request_wait`, `resident_check`, `reposition`. Must be zero on days without a fall; fall runs may breach them but every breach is reported.
 
 The headless CLI's `--report` prints help requests per care day by need, the longest wait per resident, floating-carer time on site per night, hard violations, and service breaches grouped by target and cause.
 
@@ -44,4 +44,6 @@ The headless CLI's `--report` prints help requests per care day by need, the lon
 | 8 no-fall weeks | 0 | 0 |
 
 With the on-call RN coming over for serious night falls, the four night-time request waits seen after M5 no longer happen. Re-run with visitors (M6): the same result, 0 hard and 1 service breach in fall runs, 0 and 0 in no-fall weeks.
+
+After making repositioning a service target and fixing the evening crunch (M6 review): 8 no-fall weeks 0 hard / 0 service; 65 fall runs 0 hard / 5 service (4 turns delayed during a serious fall or post-fall observations, 1 post-fall check 20 seconds late after Arthur's evening fall).
 
