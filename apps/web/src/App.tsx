@@ -1,6 +1,7 @@
 import { WingCanvas } from "./canvas/WingCanvas";
-import { send } from "./net";
 import { ClockBar } from "./components/ClockBar";
+import { EventLog } from "./components/EventLog";
+import { Inspector } from "./components/Inspector";
 import { useView } from "./store";
 
 const LEGEND = [
@@ -8,15 +9,15 @@ const LEGEND = [
   ["resident", "Resident"],
   ["visitor", "Visitor"],
   ["agency", "Agency"],
+  ["external", "Main building"],
 ] as const;
 
 export function App() {
   const status = useView((s) => s.status);
   const error = useView((s) => s.error);
-  const selected = useView((s) => (s.selectedId ? s.people[s.selectedId] : undefined));
   return (
     <div className="app">
-      <header>
+      <header className="top">
         <h1>Virtual Care Home</h1>
         <ClockBar />
         <ul className="legend">
@@ -28,23 +29,15 @@ export function App() {
           ))}
         </ul>
         <span className={`status ${status}`}>{status}</span>
+        {error && <span className="error">{error}</span>}
       </header>
       <main>
         <WingCanvas />
       </main>
-      <footer>
-        {selected
-          ? [selected.name, selected.posture.replace("_", " "), selected.roomId ?? "off the map", selected.task].filter(Boolean).join(" · ")
-          : "Click a person to select them."}
-        {selected?.kind === "resident" && selected.onMap && selected.posture !== "on_floor" && (
-          <span className="inject">
-            Inject a fall:
-            <button onClick={() => send({ type: "inject_fall", residentId: selected.id, severity: "minor" })}>minor</button>
-            <button onClick={() => send({ type: "inject_fall", residentId: selected.id, severity: "serious" })}>serious</button>
-          </span>
-        )}
-        {error && <span className="error"> · {error}</span>}
-      </footer>
+      <aside>
+        <Inspector />
+        <EventLog />
+      </aside>
     </div>
   );
 }

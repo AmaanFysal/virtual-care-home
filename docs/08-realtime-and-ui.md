@@ -2,7 +2,7 @@
 
 **Purpose:** the WebSocket protocol between server and browser, and the browser: 2D canvas plus React control dashboard.
 
-> Status: protocol, canvas and clock controls built (M3, 2026-09-28). Follow, inspector, badges and the event log panel come in M7. Source: [plan-v2](research/plan-v2.md) (Visualisation: simple 2D in the browser). Types: `packages/shared-types/src/protocol.ts`.
+> Status: built (M3 canvas and clock; M7 follow, inspector and event log), 2026-09-28. Source: [plan-v2](research/plan-v2.md) (Visualisation: simple 2D in the browser). Types: `packages/shared-types/src/protocol.ts`.
 
 ## Server (`apps/server`)
 
@@ -33,9 +33,13 @@
   - People are circles with initials: staff blue, residents green, visitors orange, agency grey, off-map responders purple. Residents in bed are slightly faded; `on_floor` gets a red ring; the selected person gets a black ring; badges are small text above the head (`zz`, `meds`, `meal`, ...).
   - **Smooth movement:** each position update is interpolated from where the circle is now to the new position over the real time until the next update is expected (`5000 / speed` ms, at least 100 ms). No position is invented beyond the server's.
   - **Night:** a navy overlay (up to 45% opacity) from 22:00 to 06:00, ramping 20:00–22:00 and 06:00–07:30, with warm night lights along the corridor.
-- **Clock bar:** sim date and time, Play/Pause, Step (enabled while paused), 1x/10x/60x/360x, tick counter, connection status. Clicking a person selects them (footer shows name, posture and room); the full inspector is M7.
+- **Clock bar:** sim date and time, Play/Pause, Step (enabled while paused), 1x/10x/60x/360x, tick counter, connection status.
+- **Layout (M7):** the canvas on the left; a sidebar with the inspector above the event log. On narrow screens the sidebar goes below the canvas.
+- **Selecting and following:** click a person to select them (black ring); click empty floor to clear. **Follow** zooms the camera to 2.2x and keeps them centred, easing in and out; text is rendered at high resolution so it stays sharp. `?select=<id>&follow=1` in the URL opens on someone (demos, links).
+- **Inspector:** name and kind; posture, room (or "In hospital"), current task and behaviour-tree step; needs bars for residents and a workload bar for staff (green, amber over 0.5, red over 0.75); key persona facts (age, conditions, mobility, personal-care rules, check intervals, likes; role and competencies; who a visitor visits and when); today's schedule with past items struck through; for residents on the map, **inject a fall** (minor or serious); their last ten events. Refreshed from the server every second while open.
+- **Event log:** the latest 200 matching events, newest first, filtered by category (All, Care, Meds, Falls, Staff, Visitors, Alerts, Movement; "All" hides movement), free-text search over the description and names, and "selected" (only the selected person). Rows are colour-coded by category; hard violations and service breaches are highlighted as alerts; non-engine sources (e.g. `user` for an injected fall) are tagged. Clicking a person chip selects them.
 - Reconnects automatically with backoff if the server restarts.
 
-## To be decided (M7)
+## To be decided
 
-- Follow camera behaviour (pan vs. keep centred), inspector layout, event log filters, thoughts toggle (Phase 2).
+- Thoughts toggle and LLM prompt/response tab (Phase 2); scenario injector and timeline scrubber (Phase 3/4).

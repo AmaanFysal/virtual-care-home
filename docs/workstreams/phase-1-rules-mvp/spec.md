@@ -3,7 +3,7 @@
 **Goal:** a believable wing running on rules alone, with coloured circles, that you can watch and control. No LLM. If the world isn't believable with rules, no prompt will save it.
 
 Source: [plan-v2](../../research/plan-v2.md) (Revised roadmap, What to do first). Constraints: [00-constitution](../../00-constitution.md).
-Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
+Status: **agreed 2026-09-28; built (M0 to M7)**. Tasks are in [plan.md](plan.md). Acceptance is `packages/sim-engine/test/acceptance.test.ts`.
 
 ## Phase 0: Design
 

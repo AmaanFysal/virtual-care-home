@@ -13,6 +13,8 @@ export interface ViewState {
   events: AnySimEvent[];
   selectedId: string | null;
   detail: PersonDetail | null;
+  /** Camera follows the selected person. */
+  following: boolean;
   error: string | null;
 }
 
@@ -24,6 +26,7 @@ export const initialState: ViewState = {
   events: [],
   selectedId: null,
   detail: null,
+  following: false,
   error: null,
 };
 
@@ -47,7 +50,8 @@ export function reduce(state: ViewState, message: ServerMessage): Partial<ViewSt
     case "clock":
       return { clock: message.clock };
     case "detail":
-      return { detail: message.detail };
+      // Ignore a late reply for someone who is no longer selected.
+      return message.detail.person.id === state.selectedId ? { detail: message.detail } : {};
     case "error":
       return { error: message.message };
   }

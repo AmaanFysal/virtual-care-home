@@ -20,7 +20,7 @@ Tooling defaults: hand-written A* on a 0.5 m grid (stable tie-breaks; easystar's
 | M4b | Morning personal care (Raj: 2 staff + hoist), meal service, night checks and repositioning | 04, 05 | A headless day shows care, meals and checks on schedule |
 | M5 | Interruptible med round with errors; `inject_fall`; day and night fall response; paramedics and hospital; golden tests | 04, 05, 11 | Golden fall tests pass |
 | M6 | Visitors: daily sampling, reception sign-in, doorbell out of hours, visits and leaving | 05, 06 | 3 to 8 visitors on site mid-afternoon on seed 1 |
-| M7 | Follow, inspector, badges, filtered event log panel; full invariant suite; watch-a-day acceptance test; `pre-pr`; PROGRESS | 08, 11 | Acceptance criteria in spec.md pass |
+| M7 | Idle behaviour; follow, inspector, filtered event log panel; watch-a-day acceptance test; `pre-pr`; PROGRESS | 04, 08, 11 | Acceptance criteria in spec.md pass (one visitor criterion awaiting a decision) |
 
 ## Risks and dependencies
 

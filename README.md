@@ -2,11 +2,11 @@
 
 A live multi-agent simulation of one UK care home wing: a deterministic TypeScript simulation of residents, staff and visitors, drawn as simple 2D shapes in the browser, with LLM-driven minds and a scenario director to come.
 
-> Status: repository scaffold only. No simulation code yet.
+> Status: Phase 1 (rules-only MVP) built. Run `pnpm dev` and open http://localhost:5173.
 
 ## Requirements
 
-- Node.js 22+
+- Node.js 22.13+
 - pnpm 9
 
 ## Getting started
@@ -15,6 +15,8 @@ A live multi-agent simulation of one UK care home wing: a deterministic TypeScri
 pnpm install
 pnpm typecheck
 pnpm test
+pnpm dev        # sim server on :8787 and the browser app on http://localhost:5173
+pnpm --filter @vch/sim-engine sim --seed 1 --hours 168 --report   # headless week with a report
 ```
 
 ## Repository

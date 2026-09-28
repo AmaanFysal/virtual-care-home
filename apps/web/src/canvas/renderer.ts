@@ -36,6 +36,9 @@ const BADGE_TEXT: Record<Badge, string> = {
 };
 
 const PERSON_RADIUS_M = 0.3;
+const FOLLOW_ZOOM = 2.2;
+/** Render text at a higher resolution so it stays sharp when the camera zooms in. */
+const TEXT_RESOLUTION = Math.max(2, (typeof window === "undefined" ? 1 : window.devicePixelRatio) * FOLLOW_ZOOM);
 const WALL_M = 0.12;
 const NIGHT_LIGHTS_X = [2, 6, 10, 14, 18];
 
@@ -69,6 +72,10 @@ export class WingRenderer {
   private nightLights = new Graphics();
   /** "In hospital" labels on the beds of residents who are away. */
   private awayLayer = new Container();
+  /** Everything in the wing, moved and scaled to follow someone. */
+  private camera = new Container();
+  private following = false;
+  private cameraScale = 1;
   private sprites = new Map<string, PersonSprite>();
   private plan: FloorPlan | null = null;
   private clock: ClockView | null = null;
@@ -78,7 +85,11 @@ export class WingRenderer {
   private destroyed = false;
   private initialised = false;
 
-  constructor(private onSelect: (id: string) => void) {}
+  constructor(private onSelect: (id: string | null) => void) {}
+
+  setFollowing(on: boolean): void {
+    this.following = on;
+  }
 
   async init(host: HTMLElement): Promise<void> {
     await this.app.init({ resizeTo: host, background: 0xe7e3da, antialias: true, autoDensity: true, resolution: window.devicePixelRatio || 1 });
@@ -88,7 +99,12 @@ export class WingRenderer {
     }
     this.initialised = true;
     host.appendChild(this.app.canvas);
-    this.app.stage.addChild(this.floor, this.awayLayer, this.peopleLayer, this.night, this.nightLights);
+    this.camera.addChild(this.floor, this.awayLayer, this.peopleLayer, this.night, this.nightLights);
+    this.app.stage.addChild(this.camera);
+    // Clicking empty floor clears the selection.
+    this.app.stage.eventMode = "static";
+    this.app.stage.hitArea = this.app.screen;
+    this.app.stage.on("pointertap", () => this.onSelect(null));
     this.app.ticker.add(() => this.frame());
     this.app.renderer.on("resize", () => this.layout());
     this.layout();
@@ -145,6 +161,7 @@ export class WingRenderer {
       const bed = this.plan.points.find((pt) => pt.id === p.bedId);
       if (!bed) continue;
       const label = new Text({
+        resolution: TEXT_RESOLUTION,
         text: `${p.initials}\nIN HOSPITAL`,
         style: { fontFamily: "system-ui, sans-serif", fontSize: Math.max(8, this.ppm * 0.2), fontWeight: "700", fill: 0xb23b3b, align: "center" },
       });
@@ -158,12 +175,15 @@ export class WingRenderer {
     const root = new Container();
     root.eventMode = "static";
     root.cursor = "pointer";
-    root.on("pointertap", () => this.onSelect(view.id));
+    root.on("pointertap", (e) => {
+      e.stopPropagation();
+      this.onSelect(view.id);
+    });
     const ring = new Graphics();
     const body = new Graphics();
-    const label = new Text({ text: view.initials, style: { fontFamily: "system-ui, sans-serif", fontWeight: "700", fill: 0xffffff, fontSize: 12 } });
+    const label = new Text({ resolution: TEXT_RESOLUTION, text: view.initials, style: { fontFamily: "system-ui, sans-serif", fontWeight: "700", fill: 0xffffff, fontSize: 12 } });
     label.anchor.set(0.5);
-    const badge = new Text({ text: "", style: { fontFamily: "system-ui, sans-serif", fontWeight: "600", fill: 0x333333, fontSize: 10 } });
+    const badge = new Text({ resolution: TEXT_RESOLUTION, text: "", style: { fontFamily: "system-ui, sans-serif", fontWeight: "600", fill: 0x333333, fontSize: 10 } });
     badge.anchor.set(0.5, 1);
     root.addChild(ring, body, label, badge);
     this.peopleLayer.addChild(root);
@@ -198,6 +218,28 @@ export class WingRenderer {
       sprite.root.position.set(this.offset.x + pos.x * this.ppm, this.offset.y + pos.y * this.ppm);
     }
     this.drawNight();
+    this.moveCamera();
+  }
+
+  /** Eases the camera towards the followed person (zoomed in), or back to the whole wing. */
+  private moveCamera(): void {
+    const target = this.selectedId ? this.sprites.get(this.selectedId) : undefined;
+    const follow = this.following && target && target.view.onMap;
+    const scale = follow ? FOLLOW_ZOOM : 1;
+    this.cameraScale += (scale - this.cameraScale) * 0.12;
+    const { width, height } = this.app.screen;
+    let x = 0;
+    let y = 0;
+    if (follow) {
+      x = width / 2 - target.root.x * this.cameraScale;
+      y = height / 2 - target.root.y * this.cameraScale;
+    } else {
+      // Keep the wing centred while zooming back out.
+      x = (width / 2) * (1 - this.cameraScale);
+      y = (height / 2) * (1 - this.cameraScale);
+    }
+    this.camera.scale.set(this.cameraScale);
+    this.camera.position.set(this.camera.x + (x - this.camera.x) * 0.2, this.camera.y + (y - this.camera.y) * 0.2);
   }
 
   private drawNight(): void {
@@ -266,7 +308,7 @@ export class WingRenderer {
     g.stroke({ width: Math.max(2, px(WALL_M)), color: 0x3b3a36, cap: "square" });
 
     const text = (s: string, x: number, y: number, size: number, colour = 0x6b675f, weight: "400" | "600" = "600") => {
-      const t = new Text({ text: s, style: { fontFamily: "system-ui, sans-serif", fontSize: size, fill: colour, fontWeight: weight } });
+      const t = new Text({ resolution: TEXT_RESOLUTION, text: s, style: { fontFamily: "system-ui, sans-serif", fontSize: size, fill: colour, fontWeight: weight } });
       t.position.set(x, y);
       this.floor.addChild(t);
       return t;
