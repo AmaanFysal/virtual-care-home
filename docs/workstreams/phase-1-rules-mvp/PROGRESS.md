@@ -4,7 +4,7 @@
 
 ## Status
 
-M0 and M1 done on branch `phase-1-rules-mvp`. **Paused for the user to review the six resident cards before M2.**
+M0 and M1 done on branch `phase-1-rules-mvp`. Resident cards approved; history cleaned of AI attribution. Working on M2.
 
 ## Done
 
@@ -13,7 +13,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Paused for the user to review th
 
 ## In progress
 
-- User review of `data/personas/residents.json`.
+- M2 engine core.
 
 ## Next
 
@@ -23,12 +23,13 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Paused for the user to review th
 
 - All agreed decisions are listed in [spec.md](spec.md); [ADR-0001](../../adr/0001-five-second-tick.md), [ADR-0002](../../adr/0002-sqlite-event-log-phase-1.md).
 - En-suite WCs are named points inside each bedroom, not separate rooms (keeps the six agreed spaces).
-- Two-person tasks at night (Dennis's and Raj's repositioning) use the off-map second carer.
+- Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
 - Rota rebalanced so nobody works a late then an early (11 hours' rest); Kasia is a meds-trained CA so she can lead lates.
 
 ## Blockers and open questions
 
-- Peggy has female carers only for personal care, but the night carer on Sun–Wed (Florin) is male. Proposed: at night her personal care (pad changes) uses the off-map second carer, who is female. To confirm with the user.
+- None.
+
 
 ## Session log
 

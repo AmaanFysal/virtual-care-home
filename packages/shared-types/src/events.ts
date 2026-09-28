@@ -78,8 +78,8 @@ export interface EventPayloads {
   "incident.recorded": { residentId: string; kind: "fall"; severity: FallSeverity };
   "cqc.notification_flagged": { residentId: string; regulation: string; reason: string };
 
-  "second_carer.called": { reason: string; residentIds: string[] };
-  "second_carer.arrived": { personId: string };
+  "second_carer.called": { reason: string; residentIds: string[]; outOfRound: boolean };
+  "second_carer.arrived": { personId: string; planned: boolean };
   "second_carer.departed": { personId: string };
 
   "visit.planned": { visitorId: string; residentId: string; arriveT: number; durationMins: number };

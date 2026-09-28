@@ -12,7 +12,7 @@ Not a clinical tool: behaviour here is plausible, not authoritative. A registere
 |---|---|---|
 | `early` | 07:00–14:30 | Lead (senior carer or experienced CA) + CA |
 | `late` | 14:00–21:30 | Lead (meds-trained: does the 21:00 round) + CA |
-| `night` | 21:15–07:15 (next day) | One waking night CA. The RN and a second carer are on call off the map |
+| `night` | 21:15–07:15 (next day) | One waking night CA. The RN is on call off the map; a floating night carer (female) visits from the main building |
 | `rn_day` | 07:00–19:30 | The day RN (Maria Tue–Thu, an agency nurse otherwise) |
 | `office` | 09:00–17:00 Mon–Fri | Joanne (manager); Bev (activities) Mon–Thu |
 | `reception` | 08:30–16:30 Mon–Fri | Sanjay |
@@ -98,16 +98,24 @@ Full node-level trees are in [04](04-agents-and-behaviour.md). The care content 
 3. **Meal service.** At meal times a carer takes a tray (badge) to each resident at their chair, or in bed for Dennis. Raj needs a carer with him for about 15 minutes to eat. Peggy needs prompting. Dennis gets mouth care and sips only. Intake is recorded for Peggy, Win and Dennis.
 4. **Fall response.**
    - **Day:** the first staff member to arrive stays with the resident and calls the RN (on the map). The RN assesses (10 minutes). Nobody moves the resident before assessment. Then two staff lift with the hoist and return the resident to bed or chair.
-   - **Night:** the night carer does a first check and calls the on-call RN; the phone call is the assessment (3 to 5 minutes). If cleared, the off-map second carer arrives within about 10 minutes and the two lift. If "wait for ambulance", the carer keeps the resident comfortable on the floor and stays with them; paramedics arrive after a seeded 30 to 90 minutes.
+   - **Night:** the night carer does a first check and calls the on-call RN; the phone call is the assessment (3 to 5 minutes). If cleared, the floating night carer is called out and arrives within about 10 minutes, and the two lift. If "wait for ambulance", the carer keeps the resident comfortable on the floor and stays with them; paramedics arrive after a seeded 30 to 90 minutes.
    - **Afterwards (any time):** severity `minor` means back to bed or chair and post-fall checks every 30 minutes for 4 hours. Severity `serious` means 999, paramedics, conveyance to hospital and `cqc.notification_flagged` (Regulation 18, serious injury). The family (the resident's next of kin) is phoned after every fall (`family.informed`). An incident is always recorded.
-5. **Night checks.** The night carer visits each resident when their interval is due, with a short check (1 minute) or repositioning. **Two-person tasks at night** (Dennis's 2-hourly and Raj's 4-hourly repositioning) use the off-map second carer, who is called in and does both residents in one visit where the timings allow.
+5. **Night checks.** The night carer visits each resident when their interval is due, with a short check (1 minute) or repositioning. The night carer does all of Peggy's checks.
+
+### Floating night carer
+
+Lorna Mitchell (`ext_night_float`, female) covers the night from the main building and is off the map except when visiting.
+
+- **Planned rounds** at 22:00, 00:00, 02:00, 04:00 and 06:00, aligned with Dennis's 2-hourly turns. Each round batches whatever is due: Dennis's turn (always), Raj's 4-hourly repositioning (22:00, 02:00, 06:00), and Peggy's personal care (pad change) if it is due, since Peggy has female carers only.
+- **Out-of-round call-outs** only for urgent two-person tasks (a hoist lift after a fall) or urgent same-sex tasks (Peggy's personal care that can't wait for the next round). She arrives within about 10 minutes.
+- Her arrivals and departures are logged (`second_carer.arrived`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and out-of-round call-outs are counted as a metric.
 
 ## Care rules (hard constraints)
 
 - Raj: two staff for every transfer and for personal care. Dennis: two staff for repositioning and personal care.
 - A fallen resident is not moved before assessment.
 - Only meds-trained staff administer medication (the RN, senior carers Blessing and Dave, Kasia, and the agency nurse).
-- Peggy has female carers only for personal care.
+- Peggy has female carers only for personal care. At night, when the night carer is male, the floating night carer does it (on a planned round, or an out-of-round call-out if urgent).
 - Visitors never enter the staff room.
 
 ## Visiting (Regulation 9A, open visiting)

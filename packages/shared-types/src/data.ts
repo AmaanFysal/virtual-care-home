@@ -268,6 +268,8 @@ export interface Rota {
   shifts: Record<ShiftName, { start: ClockTime; end: ClockTime }>;
   week: Record<Weekday, RotaDay>;
   agency_pool: { carer: AgencyWorker[]; nurse: AgencyWorker[] };
+  /** Female carer from the main building who visits at night on planned rounds (docs/05). */
+  night_float: { id: string; name: string; gender: Gender; rounds: ClockTime[] };
 }
 
 // ---------------------------------------------------------------- bundle

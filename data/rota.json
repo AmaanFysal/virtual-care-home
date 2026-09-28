@@ -231,5 +231,17 @@
         "gender": "male"
       }
     ]
+  },
+  "night_float": {
+    "id": "ext_night_float",
+    "name": "Lorna Mitchell",
+    "gender": "female",
+    "rounds": [
+      "22:00",
+      "00:00",
+      "02:00",
+      "04:00",
+      "06:00"
+    ]
   }
 }

@@ -35,7 +35,7 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 7. **Rota.** A hand-written 7-day rota (`data/rota.json`). Slots the 10 staff can't cover are filled by generated agency carers (grey, no resident knowledge, not meds-trained).
 8. **Falls.** Falls happen only through a user `inject_fall` input {resident, severity: minor | serious}.
    - **Day:** the RN attends and assesses before anyone moves the resident.
-   - **Night:** the night carer does a first check, then calls the on-call RN (the call counts as the assessment and takes a few sim minutes). If the RN clears the resident to be moved, an off-map second carer arrives within about 10 minutes and the two lift together. If the RN says to wait for an ambulance, the carer keeps the resident comfortable on the floor (pillow, blanket) and stays with them; paramedics arrive after a seeded delay.
+   - **Night:** the night carer does a first check, then calls the on-call RN (the call counts as the assessment and takes a few sim minutes). If the RN clears the resident to be moved, the floating night carer is called out (decision 16), arrives within about 10 minutes, and the two lift together. If the RN says to wait for an ambulance, the carer keeps the resident comfortable on the floor (pillow, blanket) and stays with them; paramedics arrive after a seeded delay.
    - **Outcome:** a minor fall ends with the resident back in bed or their chair. A serious fall means 999, paramedics, conveyance to hospital (the resident leaves the map and the bed shows "in hospital") and a `cqc.notification_flagged` event. The family is phoned after every fall.
    - Off-map arrivals and departures are logged as events.
 9. **Med rounds.** 08:00, 13:00 and 17:00 are done by the RN; 21:00 by the late senior before handover. Rounds can be interrupted and resume where they stopped. Each interruption raises the seeded chance of a late or missed dose, which is logged. There are no routine meds at night; a night PRN request goes through the on-call RN.
@@ -45,6 +45,7 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 13. **Initial state (Tue 06:00).** Florin is on night duty, residents are asleep in bed, and night checks are already on schedule (last-check times seeded within each resident's interval).
 14. **Determinism.** Event ids come from the event sequence number. No event carries wall-clock time. User inputs are logged with the tick they apply at, so replaying seed + inputs reproduces the run.
 15. **No equipment entities.** The hoist and the med trolley are implied by the procedure (badges only), not modelled as objects, per constitution rule 4.
+16. **Floating night carer.** A female carer from the main building (off the map) visits on planned rounds at 22:00, 00:00, 02:00, 04:00 and 06:00, aligned with Dennis's turns. Each round batches Dennis's turn, Raj's repositioning if due, and Peggy's personal care if due (female carers only; the male night carer still does her checks). Outside rounds she is called only for urgent two-person or same-sex tasks. Arrivals and departures are logged; out-of-round call-outs are a metric.
 
 ## Invariants (every tick, in tests; logged as `invariant.violated` at runtime)
 
