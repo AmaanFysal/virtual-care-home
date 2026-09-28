@@ -8,7 +8,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 
 ## Commands
 
-- `pnpm install`: install workspace dependencies (Node 22+, pnpm 9)
+- `pnpm install`: install workspace dependencies (Node 22.13+, pnpm 9)
 - `pnpm typecheck`: typecheck every package
 - `pnpm test`: run Vitest across the repo
 - `pnpm --filter @vch/sim-engine <script>`: run a script in one package
@@ -21,6 +21,12 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `apps/web`: React + 2D canvas; renders server state only
 - `data/`: floor plan and persona JSON
 - `docs/`: numbered design docs, ADRs, workstreams, research
+
+## Key facts
+
+- Engine tick = 5 sim seconds; needs, rota and decisions run once a sim minute (ADR-0001).
+- Sim time = integer seconds since Mon 2026-11-02 00:00; runs start Tue 06:00 (t = 108000).
+- Phase 1 event log is SQLite via `node:sqlite`, owned by `apps/server` (ADR-0002).
 
 ## Non-negotiables (full text: docs/00-constitution.md)
 
