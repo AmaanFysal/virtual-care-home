@@ -62,6 +62,11 @@ function residentPerson(r: Resident, world: World): Person {
   };
 }
 
+/** Short hash identifying the data a run was built from. */
+export function dataVersion(data: WorldData): string {
+  return hashString(JSON.stringify(data));
+}
+
 export function createSim(options: SimOptions): Sim {
   const { seed, data } = options;
   const startT = options.startT ?? DEFAULT_START_T;
@@ -95,7 +100,7 @@ export function createSim(options: SimOptions): Sim {
   for (const r of data.residents) addPerson(world, residentPerson(r, world));
   for (const s of data.staff) addPerson(world, staffPerson(s));
   placeInitialStaff(world);
-  emit(world, "sim.started", [], { seed, startT, dataVersion: hashString(JSON.stringify(data)) });
+  emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
 
   const applyInputs = () => {
     while (world.inputs.length > 0 && world.inputs[0]!.applyTick <= world.tick) {

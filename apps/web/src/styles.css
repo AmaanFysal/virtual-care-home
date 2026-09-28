@@ -1,0 +1,40 @@
+:root {
+  --bg: #f5f3ee;
+  --panel: #ffffff;
+  --ink: #23221f;
+  --muted: #6b675f;
+  --line: #dcd7cc;
+  --accent: #2f6fdb;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+.app { display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
+header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+h1 { font-size: 16px; margin: 0; font-weight: 700; }
+.clock { display: flex; align-items: center; gap: 6px; }
+.clock .time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 130px; }
+.clock .tick { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.speeds { display: inline-flex; margin-left: 6px; }
+button { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+.speeds button { border-radius: 0; margin-left: -1px; }
+.speeds button:first-child { border-radius: 6px 0 0 6px; }
+.speeds button:last-child { border-radius: 0 6px 6px 0; }
+.speeds button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.legend { display: flex; gap: 12px; list-style: none; margin: 0 0 0 auto; padding: 0; font-size: 12px; color: var(--muted); }
+.legend li { display: flex; align-items: center; gap: 4px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.staff { background: #2f6fdb; }
+.dot.resident { background: #2e9d5b; }
+.dot.visitor { background: #e8862a; }
+.dot.agency { background: #8a8f98; }
+.status { font-size: 12px; color: var(--muted); }
+.status.closed { color: #c0392b; }
+main { position: relative; min-height: 0; }
+.canvas-host { position: absolute; inset: 0; }
+footer { padding: 6px 16px; font-size: 13px; color: var(--muted); background: var(--panel); border-top: 1px solid var(--line); }
+footer .error { color: #c0392b; }

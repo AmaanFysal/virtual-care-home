@@ -8,6 +8,7 @@
   },
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
+    "dev": "pnpm --parallel --filter @vch/server --filter @vch/web run dev",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run --passWithNoTests"
   },

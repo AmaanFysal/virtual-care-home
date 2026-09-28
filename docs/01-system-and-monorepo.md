@@ -11,7 +11,8 @@ Current packages: `shared-types` ← `sim-engine` ← `server`; `web` depends on
 - Node >= 22.13 (for `node:sqlite`), pnpm 9. Packages are consumed as TypeScript source; no build step for `shared-types` or `sim-engine`.
 - Server: Fastify + `@fastify/websocket`. Web: Vite + React + `pixi.js` v8 (`@pixi/react`) + Zustand.
 - Storage: SQLite via `node:sqlite`, only in `apps/server` ([ADR-0002](adr/0002-sqlite-event-log-phase-1.md)).
-- Local dev: a single `pnpm dev` runs the server and the web app; no database service needed.
+- Local dev: a single `pnpm dev` runs the server (`tsx watch`, port 8787) and the web app (Vite, port 5173, proxying `/ws`); no database service needed. Run logs go to `runs/*.sqlite` (git-ignored).
+- Web uses plain `pixi.js` from a React ref rather than `@pixi/react` (see [08](08-realtime-and-ui.md)).
 
 ## To be decided
 

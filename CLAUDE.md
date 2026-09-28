@@ -11,6 +11,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm install`: install workspace dependencies (Node 22.13+, pnpm 9)
 - `pnpm typecheck`: typecheck every package
 - `pnpm test`: run Vitest across the repo
+- `pnpm dev`: run the sim server (:8787) and the web app (http://localhost:5173) together
 - `pnpm --filter @vch/sim-engine <script>`: run a script in one package
 - `pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--positions]`: headless run printing the event log
 
