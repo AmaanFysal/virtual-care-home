@@ -67,6 +67,8 @@ export class WingRenderer {
   private peopleLayer = new Container();
   private night = new Graphics();
   private nightLights = new Graphics();
+  /** "In hospital" labels on the beds of residents who are away. */
+  private awayLayer = new Container();
   private sprites = new Map<string, PersonSprite>();
   private plan: FloorPlan | null = null;
   private clock: ClockView | null = null;
@@ -86,7 +88,7 @@ export class WingRenderer {
     }
     this.initialised = true;
     host.appendChild(this.app.canvas);
-    this.app.stage.addChild(this.floor, this.peopleLayer, this.night, this.nightLights);
+    this.app.stage.addChild(this.floor, this.awayLayer, this.peopleLayer, this.night, this.nightLights);
     this.app.ticker.add(() => this.frame());
     this.app.renderer.on("resize", () => this.layout());
     this.layout();
@@ -130,6 +132,25 @@ export class WingRenderer {
         sprite.durationMs = snap ? 0 : duration;
       }
       this.drawPerson(sprite);
+    }
+    this.drawAway(people);
+  }
+
+  /** Labels the bed of any resident who is away from the wing (e.g. taken to hospital). */
+  private drawAway(people: Record<string, PersonView>): void {
+    for (const child of this.awayLayer.removeChildren()) child.destroy();
+    if (!this.plan) return;
+    for (const p of Object.values(people)) {
+      if (p.onMap || !p.away || !p.bedId) continue;
+      const bed = this.plan.points.find((pt) => pt.id === p.bedId);
+      if (!bed) continue;
+      const label = new Text({
+        text: `${p.initials}\nIN HOSPITAL`,
+        style: { fontFamily: "system-ui, sans-serif", fontSize: Math.max(8, this.ppm * 0.2), fontWeight: "700", fill: 0xb23b3b, align: "center" },
+      });
+      label.anchor.set(0.5);
+      label.position.set(this.offset.x + bed.x * this.ppm, this.offset.y + bed.y * this.ppm);
+      this.awayLayer.addChild(label);
     }
   }
 

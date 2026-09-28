@@ -48,7 +48,7 @@ function roundWork(world: World, hour: number): void {
   }
 }
 
-function comeIn(world: World, planned: boolean, delayMins: number): void {
+export function comeIn(world: World, planned: boolean, delayMins: number): void {
   world.float = { status: "coming", arriveT: world.t + delayMins * 60, planned };
 }
 
@@ -83,7 +83,8 @@ export function floatMinute(world: World): void {
   // She goes back to the main building once nothing here needs her and nothing is pressing.
   if (f.status === "on_site" && me.onMap && me.staff!.duty === "on_shift" && !me.staff!.taskId) {
     const pressing = (task: Task) => task.status === "open" && (task.request || (task.deadlineT !== null && task.deadlineT - t <= PRESSING_MINS * 60));
-    const stillNeeded = [...world.tasks.values()].some((task) => (needsHer(world, task) && task.status !== "done") || pressing(task));
+    // A fall in progress keeps her here: the night carer may be tied up with it.
+    const stillNeeded = [...world.tasks.values()].some((task) => (needsHer(world, task) && task.status !== "done") || pressing(task) || task.kind === "fall");
     if (!stillNeeded) {
       f.status = "leaving";
       me.staff!.duty = "leaving";

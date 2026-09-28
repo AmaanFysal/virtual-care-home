@@ -47,8 +47,11 @@ function scheduleResident(world: World, p: Person): void {
   const r = res.data;
   const tod = timeOfDay(world.t);
 
-  // Morning personal care, from the resident's wake time.
-  if (!res.morningDone && tod >= clockToSeconds(r.routine.wake ?? DEFAULT_WAKE) && tod < clockToSeconds("12:00") && !hasCare(world, p.id, "morning")) {
+  // Morning personal care, from the resident's wake time. Night staff get early risers up only
+  // if one person can do it; two-person morning care waits for the day shift at 07:00.
+  const wake = clockToSeconds(r.routine.wake ?? DEFAULT_WAKE);
+  const from = r.care.personal_care_staff === 2 ? Math.max(wake, clockToSeconds("07:00")) : wake;
+  if (!res.morningDone && tod >= from && tod < clockToSeconds("12:00") && !hasCare(world, p.id, "morning")) {
     createCare(world, p, "morning");
   }
 
@@ -72,10 +75,13 @@ function scheduleResident(world: World, p: Person): void {
   }
 
   // Checks at the care-plan interval; any care with the resident counts as a check.
-  const due = res.lastCheckedT + checkInterval(res) * 60;
+  const interval = checkInterval(res);
+  const due = res.lastCheckedT + interval * 60;
   const dayStart = world.t - tod;
   const round = HANDOVER_ROUNDS.find((h) => h.at === tod && due < dayStart + h.coversUntil);
-  if ((world.t >= due - CHECK_LEAD_MINS * 60 || round) && !res.busyTaskId && !hasCare(world, p.id, "check")) {
+  // Created ahead of time, but never more than halfway through the interval (post-fall checks are every 30 minutes).
+  const lead = Math.min(CHECK_LEAD_MINS, interval / 2);
+  if ((world.t >= due - lead * 60 || round) && !res.busyTaskId && !hasCare(world, p.id, "check")) {
     createCare(world, p, "check", { dueT: round ? Math.min(due, dayStart + round.dueBy) : due });
   }
 

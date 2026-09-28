@@ -1,5 +1,5 @@
 // Headless run: prints the event log to the terminal.
-//   pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--fall res_peggy@06:40] [--positions] [--report]
+//   pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--fall res_peggy@06:40[:serious]] [--positions] [--report]
 // --report prints help requests per day by need, the longest wait per resident and call-outs.
 
 import { parseArgs } from "node:util";
@@ -20,10 +20,13 @@ const { values } = parseArgs({
 
 const sim = createSim({ seed: values.seed!, data: loadWorldData() });
 if (values.fall) {
-  const [residentId, at] = values.fall.split("@");
-  const target = dayIndex(DEFAULT_START_T) * 86400 + clockToSeconds(at!);
+  // --fall res_peggy@06:40 or res_stan@02:00:serious (the first such time after the start)
+  const [residentId, when] = values.fall.split("@");
+  const [hh, mm, sev] = when!.split(":");
+  const target = dayIndex(DEFAULT_START_T) * 86400 + clockToSeconds(`${hh}:${mm}`);
   const applyT = target > DEFAULT_START_T ? target : target + 86400;
-  sim.enqueue({ seq: 1, applyTick: (applyT - DEFAULT_START_T) / 5, type: "inject_fall", payload: { residentId: residentId!, severity: "minor" }, source: "user" });
+  const severity = sev === "serious" ? "serious" : "minor";
+  sim.enqueue({ seq: 1, applyTick: (applyT - DEFAULT_START_T) / 5, type: "inject_fall", payload: { residentId: residentId!, severity }, source: "user" });
 }
 
 const describe = (e: AnySimEvent): string => {

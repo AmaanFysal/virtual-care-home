@@ -18,3 +18,11 @@
 
 - Register format (table with likelihood, impact, mitigation, owner?).
 - How deliberate debt is logged and when it must be paid down.
+
+## Findings from the simulation (Phase 1)
+
+- **Night emergencies need three pairs of hands.** With a serious night fall, the night carer stays with the resident until the ambulance (30 to 90 minutes) and the floating carer covers the wing; a two-person request (Raj's pad change) then has only one person free and waits past the 30-minute limit. This is logged as a `request_wait` violation, not hidden. Options for the user: the on-call RN comes over from the main building for emergencies; or accept and report the delay.
+- **A serious fall in the morning rush** can delay an hourly bedside check by a few minutes (Dennis). Logged, not hidden.
+- **Tuned parameters.** Need rates, priorities and deadline pressure were tuned against these runs (docs/04). They are not measured values.
+- **Not generated yet:** PRN (as-needed) medication requests; return from hospital (Phase 3).
+

@@ -23,6 +23,9 @@ export interface PersonView {
   badges: Badge[];
   /** Short label of the current task, for the inspector and tooltips. */
   task: string | null;
+  /** Residents: their bed point, and where they are if off the wing. */
+  bedId?: string;
+  away?: "hospital" | null;
 }
 
 export interface ClockView {

@@ -13,6 +13,8 @@ import {
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
+import { PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.js";
+import { medsMinute } from "./meds.js";
 import { floatMinute } from "./float.js";
 import { checkInvariants } from "./invariants.js";
 import { initialNeeds, residentsMinute } from "./needs.js";
@@ -74,6 +76,9 @@ function residentPerson(r: Resident, world: World): Person {
       busyTaskId: null,
       fluidsMlToday: 0,
       drinkLeft: false,
+      fall: null,
+      postFallUntil: 0,
+      away: null,
       // Night checks already on schedule at the start (spec decision 13).
       lastCheckedT: world.startT - world.rng.needs.int(0, Math.floor(r.care.check_interval_mins.night / 2)) * 60,
       lastToiletT: world.startT - 60 * 60,
@@ -117,7 +122,8 @@ export function createSim(options: SimOptions): Sim {
     tasks: new Map(),
     taskSeq: 0,
     float: { status: "off", arriveT: null, planned: false },
-    metrics: { floatCallouts: 0 },
+    paramedics: null,
+    metrics: { floatCallouts: 0, medInterruptions: 0 },
     shiftLog: new Map(data.residents.map((r) => [r.id, { falls: 0, lateOrMissedDoses: 0, helpRequests: 0, checksDone: 0 }])),
     failing: new Set(),
     rnOnCall: true,
@@ -133,6 +139,10 @@ export function createSim(options: SimOptions): Sim {
   const float = staffPerson({ id: nf.id, name: nf.name, gender: nf.gender, walk_speed_mps: 1.2, role: "care_assistant", competencies: ["moving_handling"] });
   float.kind = "external";
   addPerson(world, float);
+  const paramedics = staffPerson({ id: PARAMEDICS_ID, name: "Paramedic Crew", gender: "female", walk_speed_mps: 1.3, role: "care_assistant", competencies: [] });
+  paramedics.kind = "external";
+  paramedics.staff!.role = "paramedic";
+  addPerson(world, paramedics);
   placeInitialStaff(world);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
 
@@ -141,12 +151,7 @@ export function createSim(options: SimOptions): Sim {
       const input = world.inputs.shift()!;
       if (input.type === "inject_fall") {
         const { residentId, severity } = (input as SimInput<"inject_fall">).payload;
-        const resident = world.people.get(residentId);
-        if (!resident || resident.kind !== "resident" || !resident.onMap) continue;
-        // Phase 1 M2: the fall is recorded; the response procedure arrives in M5.
-        resident.posture = "on_floor";
-        resident.badges = ["alert"];
-        emit(world, "resident.fell", [residentId], { residentId, severity, roomId: resident.roomId ?? "" }, input.source);
+        injectFall(world, residentId, severity, input.source);
       }
     }
   };
@@ -167,7 +172,9 @@ export function createSim(options: SimOptions): Sim {
         rotaMinute(world);
         residentsMinute(world);
         careMinute(world);
+        medsMinute(world);
         floatMinute(world);
+        fallsMinute(world);
         decideStaff(world);
         sendIdleToPosts(world);
       }
@@ -214,5 +221,6 @@ export function toView(p: Person): PersonView {
     posture: p.posture,
     badges: [...p.badges],
     task: p.task,
+    ...(p.resident ? { bedId: p.resident.data.room, away: p.resident.away } : {}),
   };
 }

@@ -7,9 +7,10 @@ import type { DrinkRound, MealName, NeedName } from "@vch/shared-types";
 import { newBtState, tickTree, type Status } from "./bt.js";
 import { emit } from "./emit.js";
 import { breakInterruptible, coveredWithout } from "./floor.js";
-import { isNight, requestDeadline } from "./nightcover.js";
+import { coverableOnSite, isNight, requestDeadline } from "./nightcover.js";
 import { isCareStaff, isNurse, onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
-import { TREES, type Ctx } from "./trees.js";
+import type { Ctx } from "./trees.js";
+import { TREES } from "./treeset.js";
 import { walkTo } from "./world/movement.js";
 
 const NEED_LABEL: Record<NeedName, string> = { hunger: "Snack", thirst: "Drink", toileting: "Toilet", fatigue: "Rest", social: "Chat" };
@@ -98,7 +99,8 @@ export function createCare(world: World, resident: Person, care: CareKind, extra
     residentId: resident.id,
     staffNeeded: twoPerson ? 2 : 1,
     femaleOnly: personal && c.female_carers_only,
-    priority: PRIORITY[care],
+    // Post-fall observations come before routine care.
+    priority: care === "check" && resident.resident!.postFallUntil > world.t ? 95 : PRIORITY[care],
     deadlineT: extra.dueT ?? null,
     data: { care, meal: extra.meal ?? null },
   });
@@ -192,18 +194,63 @@ export function runTasks(world: World): void {
   }
 }
 
+// ---------------------------------------------------------------- interruptions
+
+/**
+ * Takes someone off what they are doing (for a fall, or an urgent request). Breaks and
+ * medication rounds are paused and resumed later; a med round's interruption raises the chance
+ * of a missed dose. Other work goes back on the queue for someone else.
+ */
+export function pullOff(world: World, p: Person, reason: string): void {
+  const task = p.staff?.taskId ? world.tasks.get(p.staff.taskId) : undefined;
+  if (!task) return;
+  p.staff!.taskId = null;
+  p.badges = [];
+  p.task = null;
+  task.assigned = task.assigned.filter((id) => id !== p.id);
+  if (task.kind === "break") {
+    task.status = "paused";
+    task.bt = newBtState();
+    task.data.resumed = 1;
+    p.staff!.pausedBreakId = task.id;
+    return;
+  }
+  if (task.kind === "med_round") {
+    task.status = "paused";
+    task.bt = newBtState();
+    task.data.interruptions = Number(task.data.interruptions) + 1;
+    task.data.phase = 0; // the current resident's dose starts again when the round resumes
+    world.metrics.medInterruptions += 1;
+    emit(world, "task.interrupted", [p.id], { taskId: task.id, kind: task.kind, reason });
+    return;
+  }
+  if (task.members) return; // handovers and briefings carry on; they'll rejoin when free
+  if (task.status === "open") return; // was only holding it for a partner
+  resetTask(world, task, reason);
+}
+
+/** Puts a task back on the queue (its people are freed; a request keeps its start time). */
+export function resetTask(world: World, task: Task, reason: string): void {
+  for (const id of task.assigned) {
+    const q = world.people.get(id)!;
+    if (q.staff?.taskId === task.id) q.staff.taskId = null;
+    q.badges = [];
+    q.task = null;
+  }
+  const res = task.residentId ? world.people.get(task.residentId)!.resident : null;
+  if (res?.busyTaskId === task.id) res.busyTaskId = null;
+  task.assigned = [];
+  task.status = "open";
+  task.bt = newBtState();
+  task.data.phase = null;
+  emit(world, "task.interrupted", task.residentId ? [task.residentId] : [], { taskId: task.id, kind: task.kind, reason });
+}
+
 // ---------------------------------------------------------------- assignment
 
 function assign(world: World, task: Task, people: Person[]): void {
   for (const p of people) {
-    const current = p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined;
-    if (current?.kind === "break") {
-      // Only a sole night carer's break is interruptible: pause it and come back to it.
-      current.status = "paused";
-      current.bt = newBtState();
-      current.data.resumed = 1;
-      p.staff!.pausedBreakId = current.id;
-    }
+    pullOff(world, p, `called to ${task.label}`);
     p.staff!.taskId = task.id;
     task.assigned.push(p.id);
   }
@@ -228,6 +275,24 @@ function isFree(world: World, p: Person, allowBreak: boolean): boolean {
   return allowBreak && breakInterruptible(world, p);
 }
 
+/**
+ * Can be called away for a request about to go over its limit: on a medication round, or
+ * holding a two-person task at the bedside while waiting for a partner.
+ */
+function interruptibleForUrgent(world: World, p: Person): boolean {
+  const task = p.staff?.taskId ? world.tasks.get(p.staff.taskId) : undefined;
+  if (!task || (p.staff!.duty !== "on_shift" && p.staff!.duty !== "staying")) return false;
+  return (task.kind === "med_round" && p.staff!.duty === "on_shift") || isHeld(task);
+}
+
+/** A two-person task held by one person waiting for a partner. */
+function isHeld(task: Task): boolean {
+  return task.status === "open" && task.assigned.length > 0 && task.assigned.length < task.staffNeeded;
+}
+
+/** A request this close to its deadline may interrupt a medication round. */
+const INTERRUPT_MEDS_WITHIN_MINS = 10;
+
 function trust(world: World, staffId: string, residentId: string): number {
   const r = world.people.get(residentId)!.resident!.data;
   return r.staff_relationships.find((rel) => rel.staff === staffId)?.trust ?? 0.5;
@@ -236,15 +301,23 @@ function trust(world: World, staffId: string, residentId: string): number {
 /** Utility of one staff member taking one task (docs/04). Higher is better. */
 export function taskScore(world: World, p: Person, task: Task): number {
   const resident = task.residentId ? world.people.get(task.residentId)! : null;
-  let score = task.priority + 1.5 * ((world.t - task.createdT) / 60);
+  // Waiting raises a task's claim, but only so far: a long-waiting routine task shouldn't beat a check that's due.
+  let score = task.priority + Math.min(60, 1.5 * ((world.t - task.createdT) / 60));
   if (task.request && resident) score += 100 * resident.resident!.needs[task.need!];
-  if (task.deadlineT !== null && task.deadlineT - world.t < 15 * 60) score += 60;
+  // Deadlines: hard ones (checks, requests) press harder the closer they get; soft ones
+  // (turns, pad changes) nudge a little.
+  if (task.deadlineT !== null) {
+    const hard = task.request || (task.kind === "care" && task.data.care === "check");
+    const window = hard ? 20 : 15;
+    const left = (task.deadlineT - world.t) / 60;
+    if (left < window) score += hard ? 60 + 6 * (window - Math.max(0, left)) : 30;
+  }
   if (resident) {
     score -= 3 * Math.hypot(p.x - resident.x, p.y - resident.y);
     score += 10 * trust(world, p.id, resident.id);
   }
   if (isNurse(p)) score -= 25; // nurses help, but carers go first
-  if (p.staff!.taskId) score -= 10; // on an interruptible break
+  if (p.staff!.taskId) score -= 10; // on an interruptible break or a medication round
   return score;
 }
 
@@ -254,10 +327,37 @@ export function decideStaff(world: World): void {
 
   // 1. Handovers and briefings claim their members as soon as they are free, including outgoing
   //    staff whose shift has technically ended (they still owe the handover).
+  const memberFree = (p: Person) => isCareStaff(p) && !p.staff!.taskId && (p.staff!.duty === "on_shift" || p.staff!.duty === "staying");
   for (const task of tasks.filter((t) => t.members && t.status !== "done")) {
+    if (task.kind === "briefing") {
+      // Whoever is free first waits up to 5 minutes for the other; after an hour it's skipped and
+      // the written handover notes stand in.
+      const waiting = task.assigned.length === 1 && task.startedT === null;
+      if (task.assigned.length < 2 && world.t - task.createdT > 60 * 60) {
+        resetTask(world, task, "briefing skipped: handover notes instead");
+        world.tasks.delete(task.id);
+        continue;
+      }
+      if (waiting && world.t - Number(task.data.heldSince) > 5 * 60) {
+        resetTask(world, task, "partner still busy");
+        continue;
+      }
+      for (const p of task.members!.map((id) => world.people.get(id)!)) {
+        if (!task.assigned.includes(p.id) && p.onMap && memberFree(p)) {
+          if (task.assigned.length === 0) task.data.heldSince = world.t;
+          assign(world, task, [p]);
+        }
+      }
+      continue;
+    }
     for (const p of staff) {
-      const free = isCareStaff(p) && !p.staff!.taskId && (p.staff!.duty === "on_shift" || p.staff!.duty === "staying");
-      if (task.members!.includes(p.id) && !task.assigned.includes(p.id) && free) assign(world, task, [p]);
+      const free = memberFree(p);
+      if (!task.members!.includes(p.id) || task.assigned.includes(p.id) || !free) continue;
+      if (task.status === "paused") {
+        task.status = "open"; // a medication round picks up where it stopped
+        emit(world, "task.resumed", [p.id], { taskId: task.id, kind: task.kind });
+      }
+      assign(world, task, [p]);
     }
   }
 
@@ -292,8 +392,15 @@ export function decideStaff(world: World): void {
       const resident = task.residentId ? world.people.get(task.residentId)!.resident! : null;
       if (resident?.busyTaskId && resident.busyTaskId !== task.id) continue; // one thing at a time
       const needed = task.staffNeeded - task.assigned.length;
-      const candidates = staff
-        .filter((p) => !task.assigned.includes(p.id) && isFree(world, p, true) && (!task.femaleOnly || p.gender === "female"))
+      const urgent = task.request && task.deadlineT !== null && task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60;
+      const eligible = (p: Person) => !task.assigned.includes(p.id) && (!task.femaleOnly || p.gender === "female");
+      // Someone whose shift has ended stays to do what only they can (e.g. the last woman on the wing).
+      const current = (p: Person) => (p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined);
+      const onlyThem = (p: Person) =>
+        task.request && p.staff!.duty === "staying" && isCareStaff(p) && (!current(p) || isHeld(current(p)!)) && !coverableOnSite(world, task);
+      let pool = staff.filter((p) => eligible(p) && (isFree(world, p, true) || onlyThem(p)));
+      if (urgent && pool.length < needed) pool = [...pool, ...staff.filter((p) => eligible(p) && isCareStaff(p) && interruptibleForUrgent(world, p))];
+      const candidates = pool
         .map((p) => ({ p, score: taskScore(world, p, task) }))
         .sort((a, b) => b.score - a.score || a.p.id.localeCompare(b.p.id));
       // By day, hold a waiting two-person task with one person rather than let it starve.

@@ -3,7 +3,7 @@
 import type { Badge, DrinkRound, MealName, NeedName } from "@vch/shared-types";
 import { act, leaf, sel, seq, until, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
-import { onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
+import { onDuty, type CareKind, type Person, type Task, type World } from "./state.js";
 import { onFloor } from "./floor.js";
 import { isNight } from "./nightcover.js";
 import { createBriefing, finish } from "./tasks.js";
@@ -25,7 +25,7 @@ const CHARTED = new Set(["res_peggy", "res_win", "res_dennis"]);
 
 // ---------------------------------------------------------------- helpers
 
-function waitMins(name: string, mins: (ctx: Ctx) => number): BtNode<Ctx> {
+export function waitMins(name: string, mins: (ctx: Ctx) => number): BtNode<Ctx> {
   return leaf(name, (ctx, mem) => {
     if (mem.start === undefined) mem.start = ctx.world.t;
     return ctx.world.t - mem.start! >= mins(ctx) * 60 ? "success" : "running";
@@ -33,7 +33,7 @@ function waitMins(name: string, mins: (ctx: Ctx) => number): BtNode<Ctx> {
 }
 
 /** Sends each person to their point once, then runs until all have arrived. */
-function goTo(name: string, who: (ctx: Ctx) => Person[], points: (ctx: Ctx) => string[]): BtNode<Ctx> {
+export function goTo(name: string, who: (ctx: Ctx) => Person[], points: (ctx: Ctx) => string[]): BtNode<Ctx> {
   return leaf(name, (ctx) => {
     const people = who(ctx);
     const targets = points(ctx);
@@ -51,27 +51,34 @@ function goTo(name: string, who: (ctx: Ctx) => Person[], points: (ctx: Ctx) => s
   });
 }
 
-function setBadges(people: Person[], badges: Badge[], label: string | null): void {
+export function setBadges(people: Person[], badges: Badge[], label: string | null): void {
   for (const p of people) {
     p.badges = [...p.badges.filter((b) => b === "asleep"), ...badges];
     if (p.staff) p.task = label;
   }
 }
 
-function bedsides(resident: Person): string[] {
+export function bedsides(resident: Person): string[] {
   const bed = resident.resident!.data.room;
   return [`${bed}.Side`, `${bed}.Side2`];
+}
+
+/** Where staff stand to be with a resident: their bedsides if in bed, otherwise next to them. */
+export function besideThem(resident: Person): string[] {
+  const res = resident.resident!;
+  if (res.inBed || !resident.atPoint || resident.atPoint === res.data.room) return bedsides(resident);
+  return [resident.atPoint, resident.atPoint];
 }
 
 function wcFor(resident: Person): string {
   return `${resident.resident!.data.room.split(".")[0]}.WC`;
 }
 
-function chairFor(resident: Person): string {
+export function chairFor(resident: Person): string {
   return `${resident.resident!.data.room}.Chair`;
 }
 
-function lower(res: Person, need: NeedName, by: number): void {
+export function lower(res: Person, need: NeedName, by: number): void {
   const needs = res.resident!.needs;
   needs[need] = Math.max(0, needs[need] - by);
 }
@@ -108,7 +115,7 @@ function toileted(world: World, resident: Person): void {
   resident.resident!.lastToiletT = world.t;
 }
 
-function begin(c: Ctx, badges: Badge[]): void {
+export function begin(c: Ctx, badges: Badge[]): void {
   c.task.startedT = c.world.t;
   emit(c.world, "task.started", c.task.residentId ? [...c.task.assigned, c.task.residentId] : c.task.assigned, { taskId: c.task.id, kind: c.task.kind });
   setBadges(c.staff, badges, c.task.label);
@@ -137,7 +144,7 @@ function returnPoint(c: Ctx): string {
 
 const assistTree: BtNode<Ctx> = seq(
   "assist",
-  goTo("go to resident", (c) => c.staff, (c) => bedsides(c.resident!)),
+  goTo("go to resident", (c) => c.staff, (c) => besideThem(c.resident!)),
   act("begin", (c) => {
     begin(c, [c.task.staffNeeded === 2 ? "hoist" : NEED_BADGE[c.task.need!]]);
     markChecked(c.world, c.resident!, c.staff, false); // seen as soon as someone is at the bedside
@@ -311,11 +318,27 @@ const settleResident: BtNode<Ctx> = leaf("settle the resident", (c, mem) => {
   return "success";
 });
 
-/** A waiting help request is dealt with by whoever is doing scheduled care with the resident. */
+/** Which waiting requests each kind of scheduled care can meet. */
+const MEETS: Record<CareKind, NeedName[]> = {
+  morning: ["toileting", "thirst", "hunger", "social"],
+  bedtime: ["toileting", "thirst", "hunger", "social"],
+  reposition: ["toileting", "thirst", "social"],
+  pad_change: ["toileting", "thirst", "social"],
+  meal: ["hunger", "thirst", "social"],
+  check: ["thirst", "social"],
+};
+
+/**
+ * A waiting help request is dealt with by whoever is doing scheduled care with the resident, if
+ * that care can meet it with the people there (a one-person check can't do a two-person change).
+ */
 function absorbRequest(c: Ctx): void {
   const requestId = c.resident!.resident!.requestId;
   const request = requestId ? c.world.tasks.get(requestId) : undefined;
   if (!request || request.status !== "open" || request.startedT !== null) return;
+  if (!MEETS[careKind(c)].includes(request.need!)) return;
+  if (c.staff.length < request.staffNeeded) return;
+  if (request.femaleOnly && c.staff.some((s) => s.gender !== "female")) return;
   request.startedT = c.world.t;
   request.data.absorbedBy = c.task.id;
   c.task.data.absorbed = request.id;
@@ -334,7 +357,7 @@ function meetAbsorbedRequest(c: Ctx): void {
 
 const careTree: BtNode<Ctx> = seq(
   "care",
-  goTo("go to resident", (c) => c.staff, (c) => bedsides(c.resident!)),
+  goTo("go to resident", (c) => c.staff, (c) => besideThem(c.resident!)),
   act("begin", (c) => {
     begin(c, careBadge(c));
     // The check counts the moment a carer is at the bedside; mouth care and so on follow.
@@ -370,7 +393,7 @@ const roundTree: BtNode<Ctx> = seq(
         continue;
       }
       if (!mem.phase) {
-        const spot = `${res.data.room}.Side`;
+        const spot = besideThem(r)[0]!;
         if (staff.atPoint !== spot) {
           if (staff.move?.destPointId !== spot) walkTo(c.world, staff, spot);
           return "running";
@@ -508,12 +531,4 @@ const breakTree: BtNode<Ctx> = seq(
   }),
 );
 
-export const TREES: Record<TaskKind, BtNode<Ctx>> = {
-  assist: assistTree,
-  self_toilet: selfToiletTree,
-  care: careTree,
-  round: roundTree,
-  handover: handoverTree,
-  briefing: briefingTree,
-  break: breakTree,
-};
+export { assistTree, selfToiletTree, careTree, roundTree, handoverTree, briefingTree, breakTree };

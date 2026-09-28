@@ -45,7 +45,7 @@ export interface ShiftAssignment {
 }
 
 export interface StaffState {
-  role: StaffRole | "agency_carer" | "agency_nurse";
+  role: StaffRole | "agency_carer" | "agency_nurse" | "paramedic";
   competencies: Competency[];
   /** "staying" means the shift has ended but they can't leave yet (task or floor cover). */
   duty: "off" | "arriving" | "on_shift" | "staying" | "leaving";
@@ -72,6 +72,12 @@ export interface ResidentState {
   fluidsMlToday: number;
   /** A drink left by their bed or chair while they were asleep or busy; drunk when they're free. */
   drinkLeft: boolean;
+  /** A fall in progress: the resident stays on the floor until it has been assessed. */
+  fall: { t: number; severity: "minor" | "serious"; assessed: boolean; taskId: string } | null;
+  /** Post-fall observations: checks every 30 minutes until this time. */
+  postFallUntil: number;
+  /** Off the wing (conveyed to hospital); the bed is kept. */
+  away: "hospital" | null;
   /** Last time a member of staff saw them (a check or any care with them). */
   lastCheckedT: number;
   lastToiletT: number;
@@ -89,7 +95,7 @@ export interface FloatState {
   planned: boolean;
 }
 
-export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round";
+export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round" | "med_round" | "fall";
 
 /** Scheduled care done at the bedside (or chair). */
 export type CareKind = "morning" | "bedtime" | "check" | "reposition" | "meal" | "pad_change";
@@ -182,7 +188,9 @@ export interface World {
   rnOnCall: boolean;
   agencyCount: number;
   float: FloatState;
-  metrics: { floatCallouts: number };
+  /** Paramedics on their way to a fall (off-map until due). */
+  paramedics: { taskId: string; dueT: number } | null;
+  metrics: { floatCallouts: number; medInterruptions: number };
   /** Invariant rules currently failing, so violations are logged once when they start. */
   failing: Set<string>;
   inputs: SimInput[];

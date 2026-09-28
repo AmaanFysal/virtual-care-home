@@ -55,7 +55,7 @@ Clock commands (pause, step, set_speed) and inspect requests are not inputs: the
 | Care | `resident.woke` {reason}, `resident.fell_asleep`, `care.personal_care_done`, `resident.got_up`, `resident.went_to_bed`, `resident.checked`, `resident.repositioned`, `resident.transferred` {staffIds, method} |
 | Meals | `meal.served` {meal}, `drink.served`, `intake.recorded` {mealPct?, fluidsMl?} |
 | Meds | `med_round.started`, `med_round.completed`, `med.administered`, `med.late`, `med.missed`, `med.prn_requested` |
-| Falls | `resident.fell` {severity}, `fall.found`, `fall.rn_called`, `fall.assessed` {outcome}, `fall.lifted`, `ambulance.called`, `paramedics.arrived`, `resident.conveyed_to_hospital`, `family.informed`, `incident.recorded`, `cqc.notification_flagged` {regulation, reason} |
+| Falls | `resident.fell` {severity} (source of the input, `user` in Phase 1), `fall.found`, `fall.rn_called`, `fall.assessed` {outcome}, `fall.lifted`, `ambulance.called`, `paramedics.arrived`, `resident.conveyed_to_hospital`, `family.informed`, `incident.recorded`, `cqc.notification_flagged` {regulation, reason} |
 | Off-map help | `second_carer.called` {reason, residentIds, outOfRound}, `second_carer.arrived` {personId, planned}, `second_carer.departed` (the floating night carer) |
 | Visitors | `visit.planned` {visitorId, residentId, arriveT, durationMins}, `visitor.rang_bell`, `visitor.let_in`, `visitor.signed_in`, `visit.started`, `visit.ended`, `visitor.signed_out` |
 | Checks | `invariant.violated` {rule, details} (server-side runtime check) |

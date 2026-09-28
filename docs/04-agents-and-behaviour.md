@@ -2,7 +2,7 @@
 
 **Purpose:** the body layer: needs and utility AI, behaviour trees for care procedures, simple state machines, and movement.
 
-> Status: movement (M2), needs, tasks, utility and the behaviour-tree runtime (M4a) and the care schedule (M4b) built, 2026-09-28. Med rounds and falls come in M5. Source: [plan-v2](research/plan-v2.md) (Agent architecture), [research v1](research/compass_artifact_wf-e32da241-4ccf-5101-9b32-ad9cb38f7579_text_markdown.md) §2.
+> Status: movement (M2), needs, tasks, utility and the behaviour-tree runtime (M4a), the care schedule (M4b), and med rounds and falls (M5) built, 2026-09-28. Source: [plan-v2](research/plan-v2.md) (Agent architecture), [research v1](research/compass_artifact_wf-e32da241-4ccf-5101-9b32-ad9cb38f7579_text_markdown.md) §2.
 
 ## Needs (`src/needs.ts`, once per sim minute)
 
@@ -42,7 +42,11 @@ Result over a week on seeds 1 to 8: about 13 requests a day; toileting 45 to 50%
 - **Assist details** come from the care profile: toileting for someone in pads is a bedside pad change with `personal_care_staff` people (2 for Raj, with the hoist badge); for Peggy it is an escort to the WC and back (female carers only); drinks 3 min (+200 ml fluid), snacks 5, chats 10.
 - **Utility matching** (each minute): every free care worker is scored against every open task: `base priority + 1.5 × minutes waiting (+ 100 × need for requests) + 60 if within 15 minutes of its deadline − 3 × metres away + 10 × resident's trust in them − 25 if an RN − 10 if on an interruptible break`. Base priorities: toilet prompt 90, turn and pad change 85, meal 75, check and drinks round 70, morning and bedtime care 60, requests 40. The best (task, staff) match is taken repeatedly until none is left. A resident only has one thing done with them at a time.
 - **Two-person tasks** start only when two eligible staff are at the resident. By day, if one has waited 5 minutes and only one person is free, that person holds it at the bedside until a partner is free; **only one task may be held like this at a time** (two carers each holding a different one would wait for each other for ever). Female-only tasks only go to women.
-- **Absorbing requests:** when scheduled care starts with a resident who has a waiting request, the care takes it over: help counts as started, and the need is met when the care finishes.
+- **Deadline pressure:** hard deadlines (checks, requests) add `60 + 6 × (20 − minutes left)` in their last 20 minutes; soft ones (turns, pad changes) add 30 in their last 15. Waiting time adds at most 60, so a long-queued routine task never beats a check that's due. Post-fall checks have priority 95.
+- **Interruptions:** a fall pulls the nearest carer and the RN off whatever they are doing (`pullOff`): breaks and med rounds are paused and resumed later; other work goes back on the queue. A request within 10 minutes of its limit can call someone off a med round or off a two-person task they're holding. Someone whose shift has ended stays on for a request only they can do (e.g. female-only care when they're the last woman on shift).
+- **Briefings** wait at most 5 minutes for the second person, then retry; after an hour they're skipped (logged) and the written notes stand in.
+- **Absorbing requests:** when scheduled care starts with a resident who has a waiting request it can meet (right kind of care, enough staff, female-only respected), the care takes it over: help counts as started, and the need is met when the care finishes. A one-minute check can meet a drink or a chat, but not a two-person pad change.
+- **Where staff stand:** at the bedsides if the resident is in bed, otherwise next to wherever they are (chair, floor).
 - **Handovers and briefings** claim their named members as soon as they are free. **Breaks** start when due if another *carer* (not the RN) covers the floor; a sole night carer's break is in the waiting area and is paused for any assist, then resumed.
 - **Idle staff** wait at their floor post (leads and night carer `Corridor.Mid`, CAs `Corridor.West`, RN `Corridor.East`); office and reception staff at their workplaces.
 - **Workload** is a rolling share of the last hour spent on work (shown in the inspector).

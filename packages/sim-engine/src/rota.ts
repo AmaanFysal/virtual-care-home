@@ -16,7 +16,9 @@ import {
 import { emit } from "./emit.js";
 import { coveredWithout } from "./floor.js";
 import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
+import { PARAMEDICS_ID, paramedicsArrived } from "./falls.js";
 import { floatArrived, floatDeparted } from "./float.js";
+import { coverableOnSite } from "./nightcover.js";
 import { createHandover, idleStaff } from "./tasks.js";
 import { depart, placeAt, walkTo } from "./world/movement.js";
 
@@ -239,9 +241,17 @@ export function rotaLeaving(world: World): void {
     const p = world.people.get(id)!;
     const s = p.staff;
     if (!s || s.duty !== "staying" || s.taskId) continue;
-    if (isCareStaff(p) && !coveredWithout(world, p)) continue;
-    const owesHandover = [...world.tasks.values()].some((t) => t.members?.includes(p.id) && !t.assigned.includes(p.id));
-    if (owesHandover) continue;
+    const handovers = [...world.tasks.values()].filter((t) => t.kind === "handover");
+    // Still owed to a handover (as a member, or as its floor cover): stay until it's done.
+    if (handovers.some((t) => (t.members!.includes(p.id) && !t.assigned.includes(p.id)) || t.data.cover === p.id)) continue;
+    // An open task only they can do (e.g. female-only care, and they're the last woman on shift).
+    const onlyThem = [...world.tasks.values()].some(
+      (t) => t.status === "open" && t.request && (!t.femaleOnly || p.gender === "female") && isCareStaff(p) && !coverableOnSite(world, t),
+    );
+    if (onlyThem) continue;
+    // Covered by someone who isn't about to go into a handover.
+    const inHandover = new Set(handovers.flatMap((t) => t.members!));
+    if (isCareStaff(p) && !coveredWithout(world, p, false, inHandover)) continue;
     if (s.pausedBreakId) world.tasks.delete(s.pausedBreakId);
     s.pausedBreakId = null;
     s.duty = "leaving";
@@ -281,6 +291,10 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
     const person = world.people.get(id)!;
     if (person.id === world.data.rota.night_float.id) {
       floatArrived(world, person);
+      continue;
+    }
+    if (person.id === PARAMEDICS_ID) {
+      paramedicsArrived(world, person);
       continue;
     }
     const a = person.staff?.shift;

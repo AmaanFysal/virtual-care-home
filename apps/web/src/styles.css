@@ -38,3 +38,6 @@ main { position: relative; min-height: 0; }
 .canvas-host { position: absolute; inset: 0; }
 footer { padding: 6px 16px; font-size: 13px; color: var(--muted); background: var(--panel); border-top: 1px solid var(--line); }
 footer .error { color: #c0392b; }
+footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+footer .inject { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+footer .inject button { padding: 2px 8px; font-size: 12px; }

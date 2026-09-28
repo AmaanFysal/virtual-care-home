@@ -1,9 +1,9 @@
 // Per-tick invariants (spec "Invariants", docs/11). The engine logs `invariant.violated` when a
-// rule starts failing; tests call `checkInvariants` directly every tick. Rules for meds and
-// falls arrive with the procedures that need them (M5).
+// rule starts failing; tests call `checkInvariants` directly every tick.
 
 import { cellAt } from "./world/grid.js";
 import { floorCovered } from "./floor.js";
+import { isMedsTrained } from "./meds.js";
 import { checkInterval } from "./nightcover.js";
 import { isNurse, onDuty, type World } from "./state.js";
 
@@ -55,6 +55,20 @@ export function checkInvariants(world: World): Violation[] {
     const interval = checkInterval(res);
     const overdue = world.t - res.lastCheckedT - interval * 60;
     if (overdue > 0) out.push({ rule: "resident_check", key: p.id, details: `${p.id} unchecked for ${Math.round((world.t - res.lastCheckedT) / 60)} min (interval ${interval})` });
+  }
+
+  // Only meds-trained staff give medication.
+  for (const task of world.tasks.values()) {
+    if (task.kind !== "med_round" || task.status !== "active") continue;
+    for (const id of task.assigned) {
+      if (!isMedsTrained(world.people.get(id)!)) out.push({ rule: "meds_trained", key: task.id, details: `${id} on ${task.label}` });
+    }
+  }
+
+  // Nobody moves a fallen resident before they have been assessed.
+  for (const p of people) {
+    const fall = p.resident?.fall;
+    if (fall && !fall.assessed && (p.posture !== "on_floor" || p.move)) out.push({ rule: "fall_moved_before_assessment", key: p.id, details: `${p.id} moved before assessment` });
   }
 
   // The wait-time rule: help has started on every request by its deadline.

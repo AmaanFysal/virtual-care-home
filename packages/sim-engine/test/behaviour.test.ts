@@ -99,12 +99,17 @@ describe("a week on the wing (seed 1)", () => {
   it("hands over three times a day, with the floor covered", () => {
     const done = ofType(events, "handover.completed");
     expect(done).toHaveLength(21);
-    const tuesday = done.slice(0, 3).map((e) => [clock(e.t), e.payload.from, e.payload.to, e.payload.floorCover]);
+    const tuesday = done.slice(0, 3).map((e) => [e.payload.from, e.payload.to, e.payload.floorCover]);
     expect(tuesday).toEqual([
-      ["07:15", ["stf_florin"], ["stf_blessing", "stf_maria"], "stf_tom"],
-      ["14:20", ["stf_blessing"], ["stf_dave", "stf_aisha"], "stf_tom"],
-      ["21:30", ["stf_dave"], ["stf_florin"], "stf_aisha"],
+      [["stf_florin"], ["stf_blessing", "stf_maria"], "stf_tom"],
+      [["stf_blessing"], ["stf_dave", "stf_aisha"], "stf_tom"],
+      [["stf_dave"], ["stf_florin"], "stf_aisha"],
     ]);
+    // Each finishes within its overlap, or soon after if someone was finishing a task (e.g. the 21:00 med round).
+    const windows = [["07:15", "07:45"], ["14:20", "14:45"], ["21:30", "22:00"]];
+    done.slice(0, 3).forEach((e, i) => {
+      expect(clock(e.t) >= windows[i]![0]! && clock(e.t) <= windows[i]![1]!, clock(e.t)).toBe(true);
+    });
     expect(done[0]!.payload.summary).toHaveLength(6);
     const briefings = ofType(events, "task.completed").filter((e) => e.payload.kind === "briefing");
     expect(briefings).toHaveLength(7); // after every 07:00 handover

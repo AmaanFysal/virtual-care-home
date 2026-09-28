@@ -108,7 +108,7 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 
 | When | What |
 |---|---|
-| Wake time (07:30 for Dennis) | Morning personal care (with a cup of tea and a biscuit), then up to the chair: Raj by hoist with two staff, others walk; Dennis stays in bed |
+| Wake time (07:30 for Dennis) | Morning personal care (two-person care for Raj and Dennis waits for the day shift at 07:00) (with a cup of tea and a biscuit), then up to the chair: Raj by hoist with two staff, others walk; Dennis stays in bed |
 | 08:00–10:30 | Breakfast at the chair once they are up; 12:15 lunch; 17:30 supper. Raj is helped to eat (15 min), Peggy prompted (5), Dennis gets mouth care and sips; intake is charted for Peggy, Win and Dennis |
 | 10:30, 15:00, 20:00 | Drinks round: one carer takes tea and a biscuit to each resident in turn (2 min each); left by the bed or chair for anyone asleep or busy |
 | Every 2 hours awake | Peggy's prompted toileting: walked to the WC and back by a female carer |
@@ -124,12 +124,12 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 Full node-level trees are in [04](04-agents-and-behaviour.md). The care content they must follow:
 
 1. **Morning personal care.** In wake-time order, a carer goes to the bedside, helps with washing and dressing (20 minutes; 25 for Raj with two staff and the hoist; 30 for Dennis in bed with two staff), then helps the resident to their chair (Raj via the hoist). Peggy gets female carers only. Arthur is prompted and only helped on his shower day (Monday).
-2. **Medication round.** The meds-trained giver goes bed to bed in a fixed order, about 3 minutes per resident. The round can be interrupted (help request, fall): it pauses, the giver deals with the interruption, then resumes at the next resident not yet given. Each interruption adds 5 percentage points to the chance that each remaining dose is late (> 60 minutes after the round time) or missed, capped at 40%. Late and missed doses are logged.
+2. **Medication round** (M5, `src/meds.ts`). The meds-trained giver (the day RN at 08:00, 13:00 and 17:00; the late lead at 21:00) goes bed to bed in a fixed order, 3 minutes per resident; anyone busy is visited at the end. A fall, or a help request within 10 minutes of its limit that nobody else can take, pauses the round; it resumes where it stopped (`task.interrupted`, `task.resumed`). Each interruption adds 5 percentage points to the chance each remaining dose is **missed** (capped at 40%); a dose given more than 60 minutes after the round time is **late**. Both are logged (`med.missed`, `med.late`) and counted in the handover summary. The 21:15 handover waits for the 21:00 round to finish. Night PRN requests (`med.prn_requested`) are defined but not generated in Phase 1: nothing yet causes pain.
 3. **Meal service.** At meal times a carer takes a tray (badge) to each resident at their chair, or in bed for Dennis. Raj needs a carer with him for about 15 minutes to eat. Peggy needs prompting. Dennis gets mouth care and sips only. Intake is recorded for Peggy, Win and Dennis.
-4. **Fall response.**
-   - **Day:** the first staff member to arrive stays with the resident and calls the RN (on the map). The RN assesses (10 minutes). Nobody moves the resident before assessment. Then two staff lift with the hoist and return the resident to bed or chair.
-   - **Night:** the night carer does a first check and calls the on-call RN; the phone call is the assessment (3 to 5 minutes). If cleared, the floating night carer is called out and arrives within about 10 minutes, and the two lift. If "wait for ambulance", the carer keeps the resident comfortable on the floor and stays with them; paramedics arrive after a seeded 30 to 90 minutes.
-   - **Afterwards (any time):** severity `minor` means back to bed or chair and post-fall checks every 30 minutes for 4 hours. Severity `serious` means 999, paramedics, conveyance to hospital and `cqc.notification_flagged` (Regulation 18, serious injury). The family (the resident's next of kin) is phoned after every fall (`family.informed`). An incident is always recorded.
+4. **Fall response** (M5, `src/falls.ts`; falls come only from `inject_fall`).
+   - **Day (an RN on the wing):** the nearest carer (not in a handover) is pulled off whatever they were doing, finds the resident and stays; the RN is pulled in (pausing a med round) and assesses (10 minutes). Nobody moves the resident before assessment. For a minor fall the nearest other carer joins and two staff lift with the hoist, back to bed or chair.
+   - **Night, or evening once the RN is on call:** the carer finds them and phones the on-call RN; the call is the assessment (3 to 5 minutes, seeded). If cleared, the floating night carer is called out (or joins if on site) and the two lift. If "wait for ambulance", the carer keeps the resident comfortable on the floor and stays with them; the floating carer is called out to cover the rest of the wing; paramedics arrive after a seeded 30 to 90 minutes.
+   - **Afterwards:** severity `minor` means back to bed or chair and post-fall checks every 30 minutes for 4 hours (priority above routine care). Severity `serious` means 999, the paramedics (a purple "PM" circle) arrive, spend 10 minutes with the resident, and take them to hospital: the resident leaves the map and their bed shows "in hospital"; `cqc.notification_flagged` (Registration Regulations 2009, Regulation 18, serious injury). The family (next of kin) is phoned after every fall (`family.informed`) and an incident recorded. Return from hospital is Phase 3.
 5. **Night checks.** The night carer visits each resident when their interval is due, with a short check (1 minute) or repositioning. The night carer does all of Peggy's checks.
 
 ### Floating night carer
@@ -146,8 +146,8 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 ## Care rules (hard constraints)
 
 - Raj: two staff for every transfer and for personal care. Dennis: two staff for repositioning and personal care.
-- A fallen resident is not moved before assessment.
-- Only meds-trained staff administer medication (the RN, senior carers Blessing and Dave, Kasia, and the agency nurse).
+- A fallen resident is not moved before assessment (invariant `fall_moved_before_assessment`).
+- Only meds-trained staff administer medication (the RN, senior carers Blessing and Dave, Kasia, and the agency nurse; invariant `meds_trained`).
 - Peggy has female carers only for personal care. At night, when the night carer is male, the floating night carer does it (on a planned round, or an out-of-round call-out if urgent).
 - Visitors never enter the staff room.
 

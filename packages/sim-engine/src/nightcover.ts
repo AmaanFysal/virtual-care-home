@@ -21,6 +21,7 @@ export function isNight(t: number): boolean {
 
 /** Minutes allowed between checks: the day or night interval in force at the last check. */
 export function checkInterval(res: ResidentState): number {
+  if (res.lastCheckedT < res.postFallUntil) return 30; // post-fall observations
   return isNight(res.lastCheckedT) ? res.data.care.check_interval_mins.night : res.data.care.check_interval_mins.day;
 }
 
@@ -49,7 +50,7 @@ export function nextCoverT(world: World, t: number): number {
 export function coverableOnSite(world: World, task: Task): boolean {
   const staff = world.order
     .map((id) => world.people.get(id)!)
-    .filter((p) => isCareStaff(p) && onDuty(p) && p.id !== world.data.rota.night_float.id && (!task.femaleOnly || p.gender === "female"));
+    .filter((p) => isCareStaff(p) && onDuty(p) && p.staff!.duty === "on_shift" && p.id !== world.data.rota.night_float.id && (!task.femaleOnly || p.gender === "female"));
   return staff.length >= task.staffNeeded;
 }
 
