@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { TICK_SECONDS, type AnySimEvent, type EventPayloads, type SimEvent } from "@vch/shared-types";
 import { createSim, type Sim } from "../src/index.js";
 import { createAssist } from "../src/tasks.js";
+import { markChecked } from "../src/trees.js";
+import { placeAt } from "../src/world/movement.js";
 import { loadWorldData } from "../tools/load-data.js";
 
 const data = loadWorldData();
@@ -140,5 +142,32 @@ describe("no deadlocks or rule breaks across seeds", () => {
   it.each(["2", "3", "4"])("seed %s runs a week with no invariant violations", (seed) => {
     const events = run(createSim({ seed, data }), 24 * 7);
     expect(ofType(events, "invariant.violated").map((e) => `${hhmm(e.t)} ${e.payload.rule} ${e.payload.details}`)).toEqual([]);
+  });
+});
+
+describe("checks (bedside at night and for Dennis; observation by day)", () => {
+  it("logs night checks and Dennis's checks as bedside checks", () => {
+    const events = run(createSim({ seed: "1", data }), 24);
+    const checks = ofType(events, "resident.checked");
+    const night = checks.filter((e) => e.t >= START + 15.5 * 3600); // from 21:30
+    for (const id of residents) expect(night.some((e) => e.payload.residentId === id), id).toBe(true);
+    // Dennis is only ever checked at the bedside, so every hour of the day has one logged.
+    const dennis = checks.filter((e) => e.payload.residentId === "res_dennis").map((e) => e.t).sort((a, b) => a - b);
+    for (let i = 1; i < dennis.length; i++) expect(dennis[i]! - dennis[i - 1]!).toBeLessThanOrEqual(3600);
+  });
+
+  it("doesn't count a carer across the room at night, or watching Dennis from across the room by day", () => {
+    const sim = createSim({ seed: "1", data });
+    const w = sim.world;
+    const dennis = w.people.get("res_dennis")!;
+    const stan = w.people.get("res_stan")!;
+    const florin = w.people.get("stf_florin")!;
+    run(sim, 17); // 23:00
+    placeAt(w, florin, "Room2.BedC.Side"); // at Stan's bed, 2.5 m from Dennis
+    const before = dennis.resident!.lastCheckedT;
+    markChecked(w, dennis, [florin], true);
+    expect(dennis.resident!.lastCheckedT).toBe(before); // too far at night
+    markChecked(w, stan, [florin], true);
+    expect(stan.resident!.lastCheckedT).toBe(w.t); // at the bedside
   });
 });

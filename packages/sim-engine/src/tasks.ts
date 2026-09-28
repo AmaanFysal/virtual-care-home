@@ -252,10 +252,12 @@ export function decideStaff(world: World): void {
   const staff = world.order.map((id) => world.people.get(id)!).filter((p) => p.onMap && p.staff && onDuty(p));
   const tasks = [...world.tasks.values()];
 
-  // 1. Handovers and briefings claim their members as soon as they are free.
+  // 1. Handovers and briefings claim their members as soon as they are free, including outgoing
+  //    staff whose shift has technically ended (they still owe the handover).
   for (const task of tasks.filter((t) => t.members && t.status !== "done")) {
     for (const p of staff) {
-      if (task.members!.includes(p.id) && !task.assigned.includes(p.id) && isFree(world, p, false)) assign(world, task, [p]);
+      const free = isCareStaff(p) && !p.staff!.taskId && (p.staff!.duty === "on_shift" || p.staff!.duty === "staying");
+      if (task.members!.includes(p.id) && !task.assigned.includes(p.id) && free) assign(world, task, [p]);
     }
   }
 

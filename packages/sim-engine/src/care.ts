@@ -20,6 +20,14 @@ const DRINKS_ROUNDS: { round: DrinkRound; at: string }[] = [
   { round: "late_drink", at: "20:00" },
 ];
 const DAY_RESET = clockToSeconds("04:00");
+/**
+ * Rounds before the two handovers that change who is on the floor at night: whoever is on duty
+ * checks anyone who would otherwise fall due during the handover and the busy spell after it.
+ */
+const HANDOVER_ROUNDS = [
+  { at: clockToSeconds("06:40"), coversUntil: clockToSeconds("08:00"), dueBy: clockToSeconds("07:00") },
+  { at: clockToSeconds("20:55"), coversUntil: clockToSeconds("22:15"), dueBy: clockToSeconds("21:15") },
+];
 const DEFAULT_WAKE = "07:30";
 /** Checks are created this long before they are due, so someone can get there in time. */
 const CHECK_LEAD_MINS = 30;
@@ -65,8 +73,10 @@ function scheduleResident(world: World, p: Person): void {
 
   // Checks at the care-plan interval; any care with the resident counts as a check.
   const due = res.lastCheckedT + checkInterval(res) * 60;
-  if (world.t >= due - CHECK_LEAD_MINS * 60 && !res.busyTaskId && !hasCare(world, p.id, "check")) {
-    createCare(world, p, "check", { dueT: due });
+  const dayStart = world.t - tod;
+  const round = HANDOVER_ROUNDS.find((h) => h.at === tod && due < dayStart + h.coversUntil);
+  if ((world.t >= due - CHECK_LEAD_MINS * 60 || round) && !res.busyTaskId && !hasCare(world, p.id, "check")) {
+    createCare(world, p, "check", { dueT: round ? Math.min(due, dayStart + round.dueBy) : due });
   }
 
   // Daytime turns (Dennis); night turns are on the floating carer's rounds.
@@ -80,12 +90,15 @@ function scheduleResident(world: World, p: Person): void {
 const OBSERVE_METRES = 6;
 
 /**
- * Observation counts as a check: a carer at work nearby in the same room sees the resident
- * (docs/05 "Checks"). Silent; explicit checks are logged as `resident.checked`.
+ * By day, observation counts as a check: a carer at work nearby in the same room sees the
+ * resident (docs/05 "Checks"). Silent. At night, and always for bed-bound residents (Dennis),
+ * only a bedside check counts.
  */
 function observe(world: World, residents: Person[]): void {
+  if (isNight(world.t)) return;
   const carers = world.order.map((id) => world.people.get(id)!).filter((s) => isCareStaff(s) && onDuty(s) && !s.move && !onBreak(world, s));
   for (const r of residents) {
+    if (r.resident!.data.care.bed_bound) continue;
     if (carers.some((s) => s.roomId === r.roomId && Math.hypot(s.x - r.x, s.y - r.y) <= OBSERVE_METRES)) r.resident!.lastCheckedT = world.t;
   }
 }

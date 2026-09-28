@@ -53,7 +53,7 @@ Handovers happen in the staff room during shift overlaps. **One carer always sta
 
 The RN's evening handover to the on-call RN at 19:30 happens off the map (event `rn.on_call_started`).
 
-**How handovers run (M4a):** the handover is created at 07:00, 14:00 and 21:15 with its members. It waits until the floor cover is out on the floor, gathers the members in the staff room (going ahead after 20 minutes with whoever is there if someone never turns up), runs for 15, 20 or 15 minutes, then logs `handover.completed`. After the 07:00 handover the early lead briefs the early CA for 5 minutes in the corridor. Staff whose shift ends stay on (`staying`) until their task is done and someone else covers the floor, so a late handover never leaves the wing empty.
+**How handovers run (M4a):** the handover is created at 07:00, 14:00 and 21:15 with its members. Outgoing staff can still be assigned to it after their shift has ended, and don't leave while they owe it. It waits until the floor cover is out on the floor, gathers the members in the staff room (going ahead after 20 minutes if both sides are there, and after 30 with whoever is), runs for 15, 20 or 15 minutes, then logs `handover.completed`. After the 07:00 handover the early lead briefs the early CA for 5 minutes in the corridor. Staff whose shift ends stay on (`staying`) until their task is done and someone else covers the floor, so a late handover never leaves the wing empty.
 
 **Phase 1 handover content** is a rules-generated summary in the `handover.completed` event. For each resident it lists falls, late or missed doses, help requests, whether fluids are below target, and night checks done. The LLM layer (Phase 2) will turn this into dialogue and allow information to be lost.
 
@@ -97,7 +97,12 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 
 Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/s (Bernard and Pat 0.6), children 1.1 m/s.
 
-A resident counts as **checked** whenever a carer sees them: an explicit check (`resident.checked`), any care with them, or a carer at work in the same room within 6 metres (observation, not logged). Check tasks are created 30 minutes before a check is due; the interval in force is the one (day or night) that applied at the last check.
+**Checks** (updated after M4b review):
+- **By day** (07:00 to 21:30), a resident counts as checked whenever a carer sees them: an explicit check, any care with them, or a carer at work in the same room within 6 metres (observation, not logged).
+- **At night** (21:30 to 07:00), and **always for Dennis** (bed-bound), a check only counts at the bedside: a carer within 1.5 metres. It is logged as `resident.checked` with `via: "check"` (a check visit) or `via: "care"` (a turn, pad change or other bedside care). Observation doesn't count.
+- A check counts the moment the carer is at the bedside; mouth care and so on follow.
+- Check tasks are created 30 minutes before a check is due; the interval in force is the one (day or night) that applied at the last check.
+- **Rounds before handover:** at 06:40 the night carer, and at 20:55 the late shift, check anyone who would otherwise fall due during the next handover and the busy spell after it (until 08:00 and 22:15).
 
 ## The care schedule (M4b, `src/care.ts`)
 
@@ -109,6 +114,7 @@ A resident counts as **checked** whenever a carer sees them: an explicit check (
 | Every 2 hours awake | Peggy's prompted toileting: walked to the WC and back by a female carer |
 | Every 2 hours, day | Dennis turned by two staff, with a pad change, fluids and mouth care |
 | Bed time | Bedtime care with a warm drink, then into bed (Raj by hoist) |
+| 06:40, 20:55 | Checks before handover for anyone due before 08:00 / 22:15 |
 | Night rounds | See "Floating night carer" |
 
 **Wait-time rule** (spec decision 18): every request gets a deadline when it is made: 30 minutes by day; at night, if nobody on site can do it (two-person, or female-only with a male night carer), the next round + 20 minutes when the round is within 30 minutes, otherwise a call-out and 30 minutes. Scheduled care already under way with the resident takes over a waiting request. Overdue requests are an invariant violation (`request_wait`).
@@ -135,6 +141,7 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 - Her arrivals and departures are logged (`second_carer.arrived` with `planned`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and counted (`world.metrics.floatCallouts`).
 - While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks).
 - On seeds 1 to 8 over a week, the planned rounds cover all night work: 35 visits a week and no call-outs. A call-out is tested directly (a forced 23:00 request from Raj).
+- **Time on site:** about 2 hours a night (17 to 28% of the 570-minute night) across seeds 1 to 8; no night over 50%. `--report` prints it per night and flags any night over 50%.
 
 ## Care rules (hard constraints)
 

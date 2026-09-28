@@ -240,6 +240,8 @@ export function rotaLeaving(world: World): void {
     const s = p.staff;
     if (!s || s.duty !== "staying" || s.taskId) continue;
     if (isCareStaff(p) && !coveredWithout(world, p)) continue;
+    const owesHandover = [...world.tasks.values()].some((t) => t.members?.includes(p.id) && !t.assigned.includes(p.id));
+    if (owesHandover) continue;
     if (s.pausedBreakId) world.tasks.delete(s.pausedBreakId);
     s.pausedBreakId = null;
     s.duty = "leaving";

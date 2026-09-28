@@ -31,7 +31,8 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M4b done. Next: M5 (interrup
 - En-suite WCs are named points inside each bedroom, not separate rooms (keeps the six agreed spaces).
 - Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
 - Floating night carer (spec decision 16) for Peggy's female-only care and night two-person tasks.
-- A check is any time a carer sees a resident (explicit check, care, or working within 6 m in the same room).
+- Checks: by day observation within 6 m counts; at night and always for Dennis only bedside checks (1.5 m), logged with `via`. Checks before handover at 06:40 and 20:55.
+- Handover fix: outgoing staff can still join their handover after shift end and don't leave owing it; handovers go ahead after 30 min with whoever is there.
 - Scheduled care takes over a waiting request; only one two-person task may be held by a lone carer at a time (deadlock fix).
 - Carer breaks need another carer (not the RN) on the floor.
 - Bank carers cover recurring gaps; the rota also fixes Friday late having no female carer.
@@ -53,3 +54,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M4b done. Next: M5 (interrup
 | 2026-09-28 | Reception office, rota rebalance (one agency night), M3 server and canvas | 01, 02, 03, 05, 08, CLAUDE.md, PROGRESS |
 | 2026-09-28 | Bank carers; M4a needs, tasks, BT runtime, handovers, breaks, standing spots, invariants, throughput test | 04, 05, 06, 07, 11, spec, PROGRESS |
 | 2026-09-28 | M4b care schedule, drinks rounds, floating night carer, wait-time rule, check invariant, request report | spec, 04, 05, 07, 11, CLAUDE.md, PROGRESS |
+| 2026-09-28 | M4b review: bedside-only checks at night and for Dennis, handover rounds, handover deadlock fix, need-rate tuning record, float time-on-site report | spec, 04, 05, PROGRESS |

@@ -16,6 +16,22 @@ Residents have five needs from 0 (fine) to 1 (urgent): hunger, thirst, toileting
 | Fatigue | 15 / falls over 7 | (drives sleep only) |
 | Social | 6 / – | 0.85 |
 
+### Tuning record (M4b, 2026-09-28)
+
+The rates above were tuned so that a normal day is carried by the care schedule, with residents asking for help only for what the schedule doesn't cover. Target: well under 100 requests a day, mostly toileting (agreed with the user after M4a produced about 100 a day).
+
+| Change | From | To | Why |
+|---|---|---|---|
+| Thirst, awake | 3 h | 4 h | With drinks at breakfast (≈08:30), 10:30, lunch (≈12:30), 15:00, supper (≈17:45) and 20:00, the longest daytime gap is about 2.5 h. At 4 h a resident reaches the 0.75 threshold after 3 h, so rounds and meals keep ahead of thirst. At 3 h the 12:30 to 15:00 gap alone produced requests. |
+| Thirst, asleep | 10 h | 16 h | Late sleepers (Arthur 22:30, Stan 22:00) woke with thirst over the threshold and asked before breakfast. Thirst builds much more slowly asleep. A warm drink at bedtime and a drink left for anyone asleep on a round cover the rest. |
+| Hunger, awake | 5 h | 6 h | Breakfast to lunch is about 4 h and lunch to supper about 5 h; at 5 h residents asked for a snack before every main meal. A biscuit on the 10:30 and 15:00 rounds bridges the gap. |
+| Hunger, asleep | 12 h | 40 h | Overnight hunger drove 06:30 to 08:00 snack requests from early risers. Appetite builds slowly overnight; tea and a biscuit come with morning care. |
+| Hunger threshold | 0.75 | 0.85 | Residents wait for a meal that's due rather than asking; they ask only when a meal is well overdue. |
+| Peggy's toileting | 2 h rate | 3 h rate + prompt every 2 h | Her prompted toileting is now *scheduled* care (a toilet prompt every 2 hours awake), as in her care plan, rather than a faster need that made her ask. The prompt keeps her below the threshold. |
+| Relief amounts | thirst 0.6 | drink 0.7, meal drink 0.6, bedtime drink 0.5, sips 0.3 | Sized so one drink resets thirst for a full gap between rounds. |
+
+Result over a week on seeds 1 to 8: about 13 requests a day; toileting 45 to 50% (mostly Raj, who is in pads and asks), social about 25% (Arthur most; he is lonely), thirst and hunger about 13% each. Longest single wait: 21 minutes. These are tunable parameters, not measured values (docs/12).
+
 - **Sleep** follows each resident's routine (bed to wake time, plus a 45-minute nap). A resident dozes off in bed or sitting in their chair once every need is settled; toileting at 0.9 wakes them (`resident.woke`, `resident.fell_asleep`). A drink left by the bed is drunk on waking.
 - **Acting on a need:** the most pressing need over its threshold wins. Independent walkers (Win, Arthur, Stan) take themselves to the WC and back (`self_toilet` task). Everyone else who can ask raises a help request (`resident.requested_help` → an `assist` task). Dennis can't ask; his care is scheduled (M4b).
 - Needs start near their Tuesday 06:00 values with a little seeded variation.

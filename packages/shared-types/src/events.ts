@@ -53,7 +53,7 @@ export interface EventPayloads {
   "resident.fell_asleep": { residentId: string };
   "resident.got_up": { residentId: string; to: string };
   "resident.went_to_bed": { residentId: string };
-  "resident.checked": { residentId: string; staffId: string; sinceLastMins: number };
+  "resident.checked": { residentId: string; staffId: string; sinceLastMins: number; via: "check" | "care" };
   "resident.repositioned": { residentId: string; staffIds: string[] };
   "resident.transferred": { residentId: string; staffIds: string[]; method: "hoist" | "standby" | "assist"; from: string; to: string };
 

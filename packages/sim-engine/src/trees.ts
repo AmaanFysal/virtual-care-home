@@ -5,6 +5,7 @@ import { act, leaf, sel, seq, until, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
 import { onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
 import { onFloor } from "./floor.js";
+import { isNight } from "./nightcover.js";
 import { createBriefing, finish } from "./tasks.js";
 import { getIntoBed, getOutOfBed, placeAt, walkTo } from "./world/movement.js";
 
@@ -75,15 +76,31 @@ function lower(res: Person, need: NeedName, by: number): void {
   needs[need] = Math.max(0, needs[need] - by);
 }
 
-/** Staff saw the resident. Explicit checks are logged; other care counts silently. */
-export function markChecked(world: World, resident: Person, staffId: string | null, explicit: boolean): void {
+/** How close a carer must be for a bedside check. */
+export const BEDSIDE_M = 1.5;
+
+/** At night, and always for bed-bound residents (Dennis), only a bedside check counts (docs/05 "Checks"). */
+export function bedsideOnly(world: World, resident: Person): boolean {
+  return isNight(world.t) || resident.resident!.data.care.bed_bound;
+}
+
+/**
+ * Staff have been with the resident. An explicit check, or any care where bedside checks are
+ * required, is logged as `resident.checked`; daytime care for others counts silently. Where a
+ * bedside check is required, it only counts if a carer is within BEDSIDE_M.
+ */
+export function markChecked(world: World, resident: Person, staff: Person[], explicit: boolean): void {
   const res = resident.resident!;
-  if (explicit && staffId) {
-    emit(world, "resident.checked", [resident.id, staffId], { residentId: resident.id, staffId, sinceLastMins: Math.round((world.t - res.lastCheckedT) / 60) });
+  lower(resident, "social", 0.15); // any contact helps a little
+  const strict = bedsideOnly(world, resident);
+  const near = staff.find((s) => Math.hypot(s.x - resident.x, s.y - resident.y) <= BEDSIDE_M);
+  if (strict && !near) return;
+  if (explicit || strict) {
+    const by = (near ?? staff[0])!;
+    emit(world, "resident.checked", [resident.id, by.id], { residentId: resident.id, staffId: by.id, sinceLastMins: Math.round((world.t - res.lastCheckedT) / 60), via: explicit ? "check" : "care" });
     world.shiftLog.get(resident.id)!.checksDone += 1;
   }
   res.lastCheckedT = world.t;
-  lower(resident, "social", 0.15); // any contact helps a little
 }
 
 function toileted(world: World, resident: Person): void {
@@ -107,7 +124,6 @@ function relieve(c: Ctx): void {
   if (need === "toileting") toileted(c.world, r);
   else lower(r, need, relief[need]);
   if (need === "thirst") r.resident!.fluidsMlToday += 200;
-  markChecked(c.world, r, null, false);
 }
 
 function methodIs(method: string): BtNode<Ctx> {
@@ -122,7 +138,10 @@ function returnPoint(c: Ctx): string {
 const assistTree: BtNode<Ctx> = seq(
   "assist",
   goTo("go to resident", (c) => c.staff, (c) => bedsides(c.resident!)),
-  act("begin", (c) => begin(c, [c.task.staffNeeded === 2 ? "hoist" : NEED_BADGE[c.task.need!]])),
+  act("begin", (c) => {
+    begin(c, [c.task.staffNeeded === 2 ? "hoist" : NEED_BADGE[c.task.need!]]);
+    markChecked(c.world, c.resident!, c.staff, false); // seen as soon as someone is at the bedside
+  }),
   sel(
     "method",
     seq(
@@ -225,7 +244,6 @@ function careEffects(c: Ctx): void {
       break;
     case "check":
       sipsAndMouthCare(r);
-      markChecked(world, r, staffIds[0]!, true);
       return;
     case "reposition":
       toileted(world, r); // turns include a pad change
@@ -251,7 +269,6 @@ function careEffects(c: Ctx): void {
       break;
     }
   }
-  markChecked(world, r, null, false);
 }
 
 /** After morning care residents get up to their chair; at bedtime they go to bed. */
@@ -320,6 +337,8 @@ const careTree: BtNode<Ctx> = seq(
   goTo("go to resident", (c) => c.staff, (c) => bedsides(c.resident!)),
   act("begin", (c) => {
     begin(c, careBadge(c));
+    // The check counts the moment a carer is at the bedside; mouth care and so on follow.
+    markChecked(c.world, c.resident!, c.staff, careKind(c) === "check");
     absorbRequest(c);
   }),
   waitMins("care", careMinutes),
@@ -358,6 +377,7 @@ const roundTree: BtNode<Ctx> = seq(
         }
         mem.phase = 1;
         mem.start = c.world.t;
+        markChecked(c.world, r, [staff], false);
       }
       if (c.world.t - mem.start! < ROUND_MINUTES_EACH * 60) return "running";
       const mouthCare = res.data.care.eating_support === "mouth_care_only";
@@ -369,7 +389,6 @@ const roundTree: BtNode<Ctx> = seq(
         res.fluidsMlToday += mouthCare ? 50 : 200;
       }
       emit(c.world, "drink.served", [r.id, staff.id], { residentId: r.id, round: c.task.data.round as DrinkRound, staffId: staff.id });
-      markChecked(c.world, r, null, false);
       mem.i = i + 1;
       mem.phase = 0;
     }
@@ -402,10 +421,13 @@ function handoverMembersPresent(c: Ctx): boolean {
     return !!p && c.task.assigned.includes(id) && p.roomId === "StaffRoom" && !p.move;
   };
   if (members.every(present)) return true;
-  // Don't wait for ever for someone who hasn't turned up: go ahead after 20 minutes.
+  // Don't wait for ever for someone who hasn't turned up: go ahead after 20 minutes if both sides
+  // are there, and after 30 with whoever is (the written notes stand in for anyone missing).
   const from = c.task.data.from as string[];
   const to = c.task.data.to as string[];
-  return c.world.t - c.task.createdT >= 20 * 60 && from.some(present) && to.some(present);
+  const waited = c.world.t - c.task.createdT;
+  if (waited >= 20 * 60 && from.some(present) && to.some(present)) return true;
+  return waited >= 30 * 60 && members.some(present);
 }
 
 function handoverSummary(world: World) {

@@ -75,6 +75,27 @@ function report(events: AnySimEvent[], endT: number): void {
     if (!cur || mins > cur.mins) worst.set(r.payload.residentId, { mins, at: r.t, need: r.payload.need });
   }
   for (const [id, w] of [...worst].sort()) console.log(`  ${id.padEnd(12)} ${String(w.mins).padStart(3)} min  (${w.need}, ${formatSimTime(w.at)})`);
+  // Floating carer's time on site per night (21:30 to 07:00 = 570 minutes).
+  const NIGHT_MINS = 570;
+  const onSite = new Map<string, { mins: number; visits: number }>();
+  let arrivedAt: number | null = null;
+  for (const e of events) {
+    if (e.type === "second_carer.arrived") arrivedAt = e.t;
+    if (e.type === "second_carer.departed" && arrivedAt !== null) {
+      const night = formatSimTime(arrivedAt - 12 * 3600).slice(0, 10); // nights are named by their evening
+      const row = onSite.get(night) ?? { mins: 0, visits: 0 };
+      row.mins += (e.t - arrivedAt) / 60;
+      row.visits += 1;
+      onSite.set(night, row);
+      arrivedAt = null;
+    }
+  }
+  console.log("\nFloating night carer on site per night (of 570 minutes, 21:30 to 07:00):");
+  for (const [night, row] of onSite) {
+    const pct = (100 * row.mins) / NIGHT_MINS;
+    console.log(`  ${night.padEnd(11)} ${String(Math.round(row.mins)).padStart(4)} min  ${pct.toFixed(0).padStart(3)}%  ${row.visits} visits${pct > 50 ? "  <-- OVER 50%" : ""}`);
+  }
+  if (arrivedAt !== null) console.log(`  (still on site at the end of the run, since ${formatSimTime(arrivedAt)})`);
   const callouts = events.filter((e) => e.type === "second_carer.called").length;
   const visits = events.filter((e) => e.type === "second_carer.arrived").length;
   const violations = events.filter((e) => e.type === "invariant.violated").length;

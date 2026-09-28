@@ -52,7 +52,7 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 ## Invariants (every tick, in tests; logged as `invariant.violated` at runtime)
 
 1. At least one on-duty care staff member on the floor (decision 4).
-2. No resident unchecked beyond their care-plan check interval (a check is any time a carer sees them: an explicit check, any care with them, or working nearby in the same room).
+2. No resident unchecked beyond their care-plan check interval. By day a check is any time a carer sees them (an explicit check, any care, or working within 6 m in the same room); at night, and always for Dennis, only a bedside check (within 1.5 m) counts and it is logged.
 3. No two-person task (Raj's transfers, a hoist lift after a fall) carried out by one person.
 4. No visitor in the staff room.
 5. Only meds-trained staff (RN, senior carers, agency nurse) administer medication.
