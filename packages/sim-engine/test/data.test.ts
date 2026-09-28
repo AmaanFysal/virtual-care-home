@@ -15,6 +15,11 @@ describe("data/ files", () => {
     expect(data.visitors).toHaveLength(25);
   });
 
+  it("have at most one lone agency night a week", () => {
+    const agencyNights = Object.values(data.rota.week).filter((day) => day.night.carer === "AGENCY");
+    expect(agencyNights.length).toBeLessThanOrEqual(1);
+  });
+
   it("store floor area and ceiling height for every room", () => {
     for (const room of data.floorplan.rooms) {
       expect(room.floor_area_m2).toBeGreaterThan(0);

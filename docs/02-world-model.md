@@ -66,6 +66,7 @@ Named points are where people go and where interactions happen. Each point has a
 | `WaitingArea.Seat1`–`Seat8` | Lounge seats |
 | `Reception.Desk` | Visitor sign-in spot (in front of the desk) |
 | `Reception.DeskStaff` | Receptionist's seat |
+| `Reception.Office` | Wing manager's office desk (a corner of reception; no separate office room) |
 | `StaffRoom.Seat1`–`Seat6` | Handover and break seats |
 | `ExitDoor` | Just inside the exit; where people appear from and leave to `Outside` |
 

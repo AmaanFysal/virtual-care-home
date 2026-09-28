@@ -99,14 +99,14 @@
     "Thu": {
       "early": {
         "lead": "stf_blessing",
-        "ca": "stf_tom"
+        "ca": "AGENCY"
       },
       "late": {
         "lead": "stf_kasia",
-        "ca": "stf_aisha"
+        "ca": "stf_tom"
       },
       "night": {
-        "carer": "AGENCY"
+        "carer": "stf_aisha"
       },
       "rn_day": {
         "nurse": "stf_maria"
@@ -122,14 +122,14 @@
     "Fri": {
       "early": {
         "lead": "stf_blessing",
-        "ca": "stf_tom"
+        "ca": "AGENCY"
       },
       "late": {
         "lead": "stf_dave",
-        "ca": "stf_aisha"
+        "ca": "stf_tom"
       },
       "night": {
-        "carer": "AGENCY"
+        "carer": "stf_aisha"
       },
       "rn_day": {
         "nurse": "AGENCY"

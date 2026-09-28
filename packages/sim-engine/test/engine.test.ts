@@ -188,7 +188,7 @@ describe("rota", () => {
     const sim = createSim({ seed: "1", data });
     const events = run(sim, 24 * 5); // to Sun 06:00
     const spawned = events.filter((e) => e.type === "agency.spawned");
-    // Thu night; Fri RN and night; Sat RN, early CA, late CA and night.
+    // Thu early CA; Fri RN and early CA; Sat RN, early CA, late CA and night.
     expect(spawned).toHaveLength(7);
     expect(new Set(spawned.map((e) => e.actors[0])).size).toBe(7);
     for (const e of spawned) expect(e.actors[0]).toMatch(/^agy_/);

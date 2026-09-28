@@ -24,12 +24,17 @@ Not a clinical tool: behaviour here is plausible, not authoritative. A registere
 | Mon | Blessing | Tom | Kasia | Aisha | Florin | Agency RN |
 | Tue | Blessing | Tom | Dave | Aisha | Florin | Maria |
 | Wed | Blessing | Kasia | Dave | Aisha | Florin | Maria |
-| Thu | Blessing | Tom | Kasia | Aisha | Agency | Maria |
-| Fri | Blessing | Tom | Dave | Aisha | Agency | Agency RN |
+| Thu | Blessing | Agency | Kasia | Tom | Aisha | Maria |
+| Fri | Blessing | Agency | Dave | Tom | Aisha | Agency RN |
 | Sat | Kasia | Agency | Dave | Agency | Agency | Agency RN |
 | Sun | Kasia | Agency | Dave | Agency | Florin | Agency RN |
 
-Shift counts: Blessing 5, Dave 5, Kasia 5, Aisha 5, Tom 4, Florin 4 nights, Maria 3 long days. The seven empty care slots and four RN days go to generated agency staff. Weekends are thin, which is realistic. No one works a late followed by an early the next day (the Working Time Regulations require 11 hours' rest), and every late lead is meds-trained for the 21:00 round.
+Shift counts: Blessing 5, Dave 5, Kasia 5, Aisha 5 (3 lates, 2 nights), Tom 4, Florin 4 nights, Maria 3 long days. **Agency: 11 shifts a week**: 7 carer shifts (early CA Thu to Sun, late CA Sat and Sun, night Sat) and 4 RN days (Mon, Fri, Sat, Sun). Weekends are thin, which is realistic.
+
+Rules the rota keeps (checked by the validator and tests):
+- **At most one lone agency night a week** (Saturday). More only if short staffing is injected later (Phase 3).
+- **11 hours' rest** (Working Time Regulations): no late followed by an early next day, and no day shift the day after a night.
+- Every late lead is meds-trained for the 21:00 round; shift leads are never agency.
 
 **Agency staff** are generated when their shift starts (`agy_` ids, grey circles). Agency carers are not meds-trained and don't know residents' preferences. The agency nurse is meds-trained and can assess falls. Their names come from a fixed list, picked with the `rota` RNG stream.
 

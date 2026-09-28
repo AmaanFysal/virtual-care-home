@@ -26,13 +26,13 @@ const POSTS: Record<string, string> = {
   "night.carer": "Corridor.Mid",
   "rn_day.nurse": "Corridor.East",
 };
-/** Office and reception staff have fixed workplaces. There is no separate office in v1. */
+/** Office and reception staff have fixed workplaces; the staff room stays for handovers and breaks. */
 const WORKPLACES: Record<string, string> = {
-  stf_joanne: "StaffRoom.Seat6",
+  stf_joanne: "Reception.Office",
   stf_bev: "WaitingArea.Seat1",
   stf_sanjay: "Reception.DeskStaff",
 };
-const STAFF_ROOM_SEATS = ["StaffRoom.Seat1", "StaffRoom.Seat2", "StaffRoom.Seat3", "StaffRoom.Seat4", "StaffRoom.Seat5"];
+const STAFF_ROOM_SEATS = ["StaffRoom.Seat1", "StaffRoom.Seat2", "StaffRoom.Seat3", "StaffRoom.Seat4", "StaffRoom.Seat5", "StaffRoom.Seat6"];
 
 export function postFor(assignment: ShiftAssignment): string {
   return POSTS[assignment.slot] ?? WORKPLACES[assignment.personId] ?? "Corridor.Mid";

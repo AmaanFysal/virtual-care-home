@@ -73,7 +73,7 @@ Node-only helpers live outside `src/`: `tools/load-data.ts` (exported as `@vch/s
 ## Rota in the engine (M2)
 
 - Each day's shifts are planned at 00:00 (and for the start day and the previous night at creation). Named staff arrive 5 to 15 minutes early, agency workers 0 to 10, drawn from the `rota` stream.
-- Arriving staff wait in the staff room until their shift starts, then go to a placeholder post (leads and night carer `Corridor.Mid`, CAs `Corridor.West`, RN `Corridor.East`) until M4a adds tasks and handovers. Joanne works at the staff-room table (there is no separate office in v1), Bev in the waiting area, Sanjay at the desk.
+- Arriving staff wait in the staff room until their shift starts, then go to a placeholder post (leads and night carer `Corridor.Mid`, CAs `Corridor.West`, RN `Corridor.East`) until M4a adds tasks and handovers. Joanne works at the office desk in reception (`Reception.Office`), Bev in the waiting area, Sanjay at the reception desk; the staff room stays for handovers and breaks.
 - Agency workers (`agy_001`, ...) are created when their day is planned, named from the pool without repeats that day, and removed a day after they leave.
 
 ## Performance budget
