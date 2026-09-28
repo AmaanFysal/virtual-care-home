@@ -100,6 +100,10 @@ export class WingRenderer {
     this.initialised = true;
     host.appendChild(this.app.canvas);
     this.camera.addChild(this.floor, this.awayLayer, this.peopleLayer, this.night, this.nightLights);
+    // Decorative layers never take clicks. Without this, the night overlay (a rectangle over the
+    // whole wing, drawn above people) would catch every click at night, because children of a
+    // clickable stage are hit-tested as clickable in Pixi v8.
+    for (const layer of [this.floor, this.awayLayer, this.night, this.nightLights]) layer.eventMode = "none";
     this.app.stage.addChild(this.camera);
     // Clicking empty floor clears the selection.
     this.app.stage.eventMode = "static";
