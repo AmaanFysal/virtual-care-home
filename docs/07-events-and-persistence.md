@@ -52,7 +52,7 @@ Clock commands (pause, step, set_speed) and inspect requests are not inputs: the
 | Rota | `shift.started`, `shift.ended` {staffId, shift}, `agency.spawned` {role, shift}, `break.started`, `break.ended`, `rn.on_call_started`, `rn.on_call_ended` |
 | Handover | `handover.started`, `handover.completed` {from, to, floorCover, summary} |
 | Needs and tasks | `resident.requested_help` {need}, `task.created`, `task.assigned`, `task.started`, `task.interrupted`, `task.resumed`, `task.completed` {taskId, kind, residentId?} |
-| Care | `care.personal_care_done`, `resident.got_up`, `resident.went_to_bed`, `resident.checked`, `resident.repositioned`, `resident.transferred` {staffIds, method} |
+| Care | `resident.woke` {reason}, `resident.fell_asleep`, `care.personal_care_done`, `resident.got_up`, `resident.went_to_bed`, `resident.checked`, `resident.repositioned`, `resident.transferred` {staffIds, method} |
 | Meals | `meal.served` {meal}, `drink.served`, `intake.recorded` {mealPct?, fluidsMl?} |
 | Meds | `med_round.started`, `med_round.completed`, `med.administered`, `med.late`, `med.missed`, `med.prn_requested` |
 | Falls | `resident.fell` {severity}, `fall.found`, `fall.rn_called`, `fall.assessed` {outcome}, `fall.lifted`, `ambulance.called`, `paramedics.arrived`, `resident.conveyed_to_hospital`, `family.informed`, `incident.recorded`, `cqc.notification_flagged` {regulation, reason} |

@@ -49,6 +49,8 @@ export interface EventPayloads {
   "task.completed": { taskId: string; kind: string; residentId: string | null; waitMins: number };
 
   "care.personal_care_done": { residentId: string; staffIds: string[]; period: "morning" | "evening" };
+  "resident.woke": { residentId: string; reason: "routine" | "toilet" };
+  "resident.fell_asleep": { residentId: string };
   "resident.got_up": { residentId: string; to: string };
   "resident.went_to_bed": { residentId: string };
   "resident.checked": { residentId: string; staffId: string; sinceLastMins: number };

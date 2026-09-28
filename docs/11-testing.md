@@ -20,5 +20,11 @@ Tooling: Vitest (`pnpm test`), TypeScript (`pnpm typecheck`).
 | File | Covers |
 |---|---|
 | `packages/sim-engine/test/data.test.ts` | Data validator on the real files, plus injected errors it must catch |
-| `packages/sim-engine/test/engine.test.ts` | RNG reproducibility and stream independence; byte-identical logs for the same seed and inputs; different seed differs; gap-free seq and ids; every point reachable; paths use doors not walls; doorway single occupancy (targeted crossing and a 5-day run); nobody off walkable ground or faster than their speed; rota events for Tuesday; agency spawning and clean-up |
+| `packages/sim-engine/test/engine.test.ts` | RNG reproducibility and stream independence; byte-identical logs for the same seed and inputs; different seed differs; gap-free seq and ids; every point reachable; paths use doors not walls; doorway single occupancy (targeted crossing and a 5-day run); nobody off walkable ground or faster than their speed; rota events for Tuesday; agency spawning and clean-up || `packages/sim-engine/test/behaviour.test.ts` | Behaviour-tree runtime; standing spots; **a full week with every invariant checked every tick** (floor cover, standing spots, two-person care, RN reachable, no visitors in the staff room); three handovers a day with the expected people and floor cover, and the 07:00 briefing; one break each, carers never off together, sole night carer breaks in the wing; help requests served (two staff for Raj, only women for Peggy's personal care); staff stay on until relieved; **throughput: one headless sim day within 2,000 ms** (`VCH_DAY_BUDGET_MS` to override) |
+| `apps/server/test/runner.test.ts` | Snapshot on connect, pacing, compact deltas, SQLite logging, input logging before apply, command parsing, inspect detail |
+| `apps/web/test/store.test.ts` | Store folding of snapshot and deltas, night dimming curve |
+
+## Invariants implemented (`packages/sim-engine/src/invariants.ts`)
+
+`floor_cover`, `standing_spot`, `two_person`, `rn_reachable`, `no_visitors_in_staff_room`. The engine logs `invariant.violated` once when a rule starts failing. Still to come: check intervals (M4b), meds-trained only and no fallen resident moved before assessment (M5).
 

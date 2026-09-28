@@ -82,3 +82,15 @@ describe("parseCommand", () => {
     expect(parseCommand('{"type":"teleport"}')).toBeNull();
   });
 });
+
+describe("inspect detail", () => {
+  it("includes a resident's needs and a staff member's workload and task", () => {
+    const { runner } = setup();
+    runner.advance(12 * 60 * 3); // to 09:00
+    const resident = runner.handle({ type: "inspect", personId: "res_peggy" }) as Extract<ServerMessage, { type: "detail" }>;
+    expect(Object.keys(resident.detail.needs!)).toEqual(["hunger", "thirst", "toileting", "fatigue", "social"]);
+    const staff = runner.handle({ type: "inspect", personId: "stf_blessing" }) as Extract<ServerMessage, { type: "detail" }>;
+    expect(staff.detail.workload).toBeGreaterThanOrEqual(0);
+    expect(staff.detail.schedule.map((s) => s.label)).toContain("early shift ends");
+  });
+});

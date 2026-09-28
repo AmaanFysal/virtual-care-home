@@ -32,7 +32,9 @@ export function App() {
         <WingCanvas />
       </main>
       <footer>
-        {selected ? `${selected.name} · ${selected.posture.replace("_", " ")} · ${selected.roomId ?? "off the map"}` : "Click a person to select them."}
+        {selected
+          ? [selected.name, selected.posture.replace("_", " "), selected.roomId ?? "off the map", selected.task].filter(Boolean).join(" · ")
+          : "Click a person to select them."}
         {error && <span className="error"> · {error}</span>}
       </footer>
     </div>

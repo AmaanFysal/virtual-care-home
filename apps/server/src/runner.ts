@@ -173,10 +173,21 @@ export class Runner {
       for (const round of resident.medication_rounds) at(round, "Medication round");
       at(resident.routine.nap, "Nap");
       at(resident.routine.bed, "Bed");
-      schedule.sort((a, b) => a.t - b.t);
     }
     const view = this.sim.people().find((p) => p.id === personId)!;
-    return { person: view, persona, needs: null, workload: null, currentTask: person.task, btNode: null, schedule };
+    const taskId = person.staff?.taskId ?? person.resident?.busyTaskId ?? null;
+    const task = taskId ? this.sim.world.tasks.get(taskId) : undefined;
+    if (person.staff?.breakDueT && !person.staff.breakTaken) schedule.push({ t: person.staff.breakDueT, label: "Break due" });
+    schedule.sort((a, b) => a.t - b.t);
+    return {
+      person: view,
+      persona,
+      needs: person.resident ? { ...person.resident.needs } : null,
+      workload: person.staff ? Math.round(person.staff.workload * 100) / 100 : null,
+      currentTask: task?.label ?? person.task,
+      btNode: task?.bt.node ?? null,
+      schedule,
+    };
   }
 }
 

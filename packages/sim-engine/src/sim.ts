@@ -12,9 +12,12 @@ import {
 } from "@vch/shared-types";
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
+import { checkInvariants } from "./invariants.js";
+import { initialNeeds, residentsMinute } from "./needs.js";
 import { createStreams, hashString } from "./rng.js";
-import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaMinute, staffPerson } from "./rota.js";
+import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaLeaving, rotaMinute, sendIdleToPosts, staffPerson } from "./rota.js";
 import type { Person, World } from "./state.js";
+import { decideStaff, runTasks } from "./tasks.js";
 import { buildGrid } from "./world/grid.js";
 import { moveAll, spawnWaiting } from "./world/movement.js";
 
@@ -56,9 +59,19 @@ function residentPerson(r: Resident, world: World): Person {
     task: null,
     move: null,
     atPoint: r.room,
+    standCell: null,
     heldZone: null,
     waitingAtDoor: null,
     staff: null,
+    resident: {
+      data: r,
+      needs: initialNeeds(world.rng.needs),
+      asleep: true,
+      inBed: true,
+      requestId: null,
+      busyTaskId: null,
+      fluidsMlToday: 0,
+    },
   };
 }
 
@@ -90,6 +103,11 @@ export function createSim(options: SimOptions): Sim {
     spawnQueue: [],
     zoneOwner: new Map(),
     zoneReleasedTick: new Map(),
+    standClaims: new Map(),
+    tasks: new Map(),
+    taskSeq: 0,
+    shiftLog: new Map(data.residents.map((r) => [r.id, { falls: 0, lateOrMissedDoses: 0, helpRequests: 0, checksDone: 0 }])),
+    failing: new Set(),
     rnOnCall: true,
     agencyCount: 0,
     inputs: [],
@@ -129,10 +147,18 @@ export function createSim(options: SimOptions): Sim {
       world.tick += 1;
       world.t = startT + world.tick * TICK_SECONDS;
       applyInputs();
-      if (world.t % 60 === 0) rotaMinute(world);
+      if (world.t % 60 === 0) {
+        rotaMinute(world);
+        residentsMinute(world);
+        decideStaff(world);
+        sendIdleToPosts(world);
+      }
+      rotaLeaving(world);
+      runTasks(world);
       const spawned = spawnWaiting(world);
       const arrived = moveAll(world);
       rotaArrivals(world, spawned, arrived);
+      logInvariants(world);
       const events = world.pending;
       world.pending = [];
       return events;
@@ -146,6 +172,15 @@ export function createSim(options: SimOptions): Sim {
       return world.order.map((id) => toView(world.people.get(id)!));
     },
   };
+}
+
+/** Logs a violation when a rule starts failing (not on every tick it stays failing). */
+function logInvariants(world: World): void {
+  const now = new Map(checkInvariants(world).map((v) => [v.rule, v]));
+  for (const [rule, v] of now) {
+    if (!world.failing.has(rule)) emit(world, "invariant.violated", [], { rule, details: v.details });
+  }
+  world.failing = new Set(now.keys());
 }
 
 export function toView(p: Person): PersonView {

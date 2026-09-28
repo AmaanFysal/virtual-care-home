@@ -1,7 +1,7 @@
 // Rota system (docs/05): plans each day's shifts at 00:00, brings staff in through the exit
-// door before their shift, starts and ends shifts, fills agency slots and tracks RN on-call.
-//
-// Until M4a adds handovers and tasks, on-shift staff wait at a fixed post.
+// door before their shift, starts and ends shifts, creates the three daily handovers, plans
+// staggered breaks, fills agency slots and tracks RN on-call. Staff whose shift has ended stay
+// on until they finish their task and someone else covers the floor.
 
 import {
   AGENCY,
@@ -14,10 +14,12 @@ import {
   type Staff,
 } from "@vch/shared-types";
 import { emit } from "./emit.js";
-import type { Person, ShiftAssignment, World } from "./state.js";
-import { depart, walkTo } from "./world/movement.js";
+import { coveredWithout } from "./floor.js";
+import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
+import { createHandover, idleStaff } from "./tasks.js";
+import { depart, placeAt, walkTo } from "./world/movement.js";
 
-/** Where each slot waits while on shift (placeholder until tasks exist). */
+/** Where each slot waits on the floor when there's nothing to do. */
 const POSTS: Record<string, string> = {
   "early.lead": "Corridor.Mid",
   "early.ca": "Corridor.West",
@@ -34,6 +36,23 @@ const WORKPLACES: Record<string, string> = {
 };
 const STAFF_ROOM_SEATS = ["StaffRoom.Seat1", "StaffRoom.Seat2", "StaffRoom.Seat3", "StaffRoom.Seat4", "StaffRoom.Seat5", "StaffRoom.Seat6"];
 
+/** Break start windows (docs/05 "Breaks"); each break is 30 minutes. */
+const BREAK_WINDOWS: Record<ShiftName, [string, string]> = {
+  early: ["10:30", "11:45"],
+  late: ["17:30", "19:00"],
+  rn_day: ["11:30", "12:15"],
+  night: ["02:30", "03:30"],
+  office: ["12:15", "12:45"],
+  reception: ["12:15", "12:45"],
+};
+
+/** Handovers (docs/05): time, duration, and whether the lead briefs the floor cover after. */
+const HANDOVERS = [
+  { at: "07:00", mins: 15, brief: true },
+  { at: "14:00", mins: 20, brief: false },
+  { at: "21:15", mins: 15, brief: false },
+] as const;
+
 export function postFor(assignment: ShiftAssignment): string {
   return POSTS[assignment.slot] ?? WORKPLACES[assignment.personId] ?? "Corridor.Mid";
 }
@@ -43,7 +62,7 @@ export function initials(name: string): string {
   return ((words[0]?.[0] ?? "") + (words.length > 1 ? words[words.length - 1]![0] : "")).toUpperCase();
 }
 
-export function staffPerson(s: Staff): Person {
+export function staffPerson(s: Pick<Staff, "id" | "name" | "gender" | "walk_speed_mps" | "role" | "competencies">): Person {
   return {
     id: s.id,
     kind: "staff",
@@ -60,9 +79,21 @@ export function staffPerson(s: Staff): Person {
     task: null,
     move: null,
     atPoint: null,
+    standCell: null,
     heldZone: null,
     waitingAtDoor: null,
-    staff: { role: s.role, competencies: [...s.competencies], duty: "off", shift: null },
+    staff: {
+      role: s.role,
+      competencies: [...s.competencies],
+      duty: "off",
+      shift: null,
+      taskId: null,
+      pausedBreakId: null,
+      breakDueT: null,
+      breakTaken: false,
+      workload: 0,
+    },
+    resident: null,
   };
 }
 
@@ -108,23 +139,11 @@ export function planDay(world: World, day: number): void {
       namesInUse.add(worker.name);
       world.agencyCount += 1;
       personId = `agy_${String(world.agencyCount).padStart(3, "0")}`;
-      addPerson(world, {
-        ...staffPerson({
-          id: personId,
-          name: worker.name,
-          gender: worker.gender,
-          walk_speed_mps: 1.2,
-          role: isNurse ? "registered_nurse" : "care_assistant",
-          competencies: isNurse ? ["meds_trained", "fall_assessment", "moving_handling"] : ["moving_handling"],
-        } as Staff),
-        kind: "agency",
-        staff: {
-          role: isNurse ? "agency_nurse" : "agency_carer",
-          competencies: isNurse ? ["meds_trained", "fall_assessment", "moving_handling"] : ["moving_handling"],
-          duty: "off",
-          shift: null,
-        },
-      });
+      const competencies: Staff["competencies"] = isNurse ? ["meds_trained", "fall_assessment", "moving_handling"] : ["moving_handling"];
+      const person = staffPerson({ id: personId, name: worker.name, gender: worker.gender, walk_speed_mps: 1.2, role: isNurse ? "registered_nurse" : "care_assistant", competencies });
+      person.kind = "agency";
+      person.staff!.role = isNurse ? "agency_nurse" : "agency_carer";
+      addPerson(world, person);
       early = rng.int(0, 10);
     }
     world.shifts.push({ personId, shift, slot, arriveT: startT - early * 60, startT, endT, spawned: false, started: false, ended: false });
@@ -137,15 +156,47 @@ function freeStaffRoomSeat(world: World): string {
   return STAFF_ROOM_SEATS.find((s) => !taken.has(s)) ?? STAFF_ROOM_SEATS[0]!;
 }
 
+function planBreak(world: World, a: ShiftAssignment, person: Person): void {
+  const [from, to] = BREAK_WINDOWS[a.shift];
+  const day = dayIndex(a.startT) + (clockToSeconds(from) < timeOfDay(a.startT) ? 1 : 0);
+  const start = day * SECONDS_PER_DAY + clockToSeconds(from);
+  const spread = (clockToSeconds(to) - clockToSeconds(from)) / 60;
+  person.staff!.breakDueT = start + world.rng.decisions.int(0, spread) * 60;
+  person.staff!.breakTaken = false;
+}
+
 function startShift(world: World, a: ShiftAssignment, person: Person): void {
   a.started = true;
   person.staff!.duty = "on_shift";
+  planBreak(world, a, person);
   emit(world, "shift.started", [person.id], { staffId: person.id, shift: a.shift, slot: a.slot });
   if (a.shift === "rn_day" && world.rnOnCall) {
     world.rnOnCall = false;
     emit(world, "rn.on_call_ended", [], { nurseLabel: "On-call RN (main building)" });
   }
-  if (person.onMap) walkTo(world, person, postFor(a));
+}
+
+/** Who holds a slot on a given day (the night slot at 07:00 is yesterday's). */
+function holder(world: World, day: number, slot: string): string | null {
+  const shift = slot.split(".")[0] as ShiftName;
+  const a = world.shifts.find((s) => s.slot === slot && s.shift === shift && dayIndex(s.startT) === day);
+  return a?.personId ?? null;
+}
+
+function createHandovers(world: World): void {
+  const tod = timeOfDay(world.t);
+  const day = dayIndex(world.t);
+  for (const h of HANDOVERS) {
+    if (tod !== clockToSeconds(h.at)) continue;
+    const list = (...ids: (string | null)[]) => ids.filter((id): id is string => !!id);
+    if (h.at === "07:00") {
+      createHandover(world, list(holder(world, day - 1, "night.carer")), list(holder(world, day, "early.lead"), holder(world, day, "rn_day.nurse")), holder(world, day, "early.ca"), h.mins, h.brief);
+    } else if (h.at === "14:00") {
+      createHandover(world, list(holder(world, day, "early.lead")), list(holder(world, day, "late.lead"), holder(world, day, "late.ca")), holder(world, day, "early.ca"), h.mins, h.brief);
+    } else {
+      createHandover(world, list(holder(world, day, "late.lead")), list(holder(world, day, "night.carer")), holder(world, day, "late.ca"), h.mins, h.brief);
+    }
+  }
 }
 
 /** Runs on minute boundaries. */
@@ -165,17 +216,46 @@ export function rotaMinute(world: World): void {
     if (a.spawned && !a.started && t >= a.startT) startShift(world, a, person);
     if (a.started && !a.ended && t >= a.endT) {
       a.ended = true;
-      person.staff!.duty = "leaving";
       emit(world, "shift.ended", [person.id], { staffId: person.id, shift: a.shift, slot: a.slot });
       if (a.shift === "rn_day") {
         world.rnOnCall = true;
         emit(world, "rn.on_call_started", [], { nurseLabel: "On-call RN (main building)" });
       }
-      if (person.onMap) walkTo(world, person, "ExitDoor");
-      else world.spawnQueue.splice(world.spawnQueue.indexOf(person.id), 1);
+      if (person.onMap) person.staff!.duty = "staying";
+      else {
+        world.spawnQueue.splice(world.spawnQueue.indexOf(person.id), 1);
+        person.staff!.duty = "off";
+      }
     }
   }
+  createHandovers(world);
   pruneShifts(world, t - SECONDS_PER_DAY);
+}
+
+/** Staff whose shift has ended leave once their task is done and the floor is covered without them. */
+export function rotaLeaving(world: World): void {
+  for (const id of world.order) {
+    const p = world.people.get(id)!;
+    const s = p.staff;
+    if (!s || s.duty !== "staying" || s.taskId) continue;
+    if (isCareStaff(p) && !coveredWithout(world, p)) continue;
+    if (s.pausedBreakId) world.tasks.delete(s.pausedBreakId);
+    s.pausedBreakId = null;
+    s.duty = "leaving";
+    p.badges = [];
+    p.task = null;
+    walkTo(world, p, "ExitDoor");
+  }
+}
+
+/** Idle on-shift staff wait at their floor post or workplace. */
+export function sendIdleToPosts(world: World): void {
+  for (const p of idleStaff(world)) {
+    const a = p.staff!.shift;
+    if (!a || p.move) continue;
+    const post = postFor(a);
+    if (p.atPoint !== post) walkTo(world, p, post);
+  }
 }
 
 /** Forgets shifts that ended before `before`, and agency workers who have gone home. */
@@ -197,8 +277,7 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
   for (const id of spawned) {
     const person = world.people.get(id)!;
     const a = person.staff?.shift;
-    if (!a) continue;
-    walkTo(world, person, a.started ? postFor(a) : freeStaffRoomSeat(world));
+    if (a) walkTo(world, person, a.started ? postFor(a) : freeStaffRoomSeat(world));
   }
   for (const id of arrived) {
     const person = world.people.get(id)!;
@@ -222,14 +301,14 @@ export function placeInitialStaff(world: World): void {
       continue;
     }
     const person = world.people.get(a.personId)!;
-    const pointId = t >= a.startT ? postFor(a) : freeStaffRoomSeat(world);
-    const point = world.points.get(pointId)!;
-    Object.assign(person, { onMap: true, x: point.x, y: point.y, roomId: point.room, atPoint: pointId, posture: point.kind === "seat" ? "sitting" : "standing" });
+    placeAt(world, person, t >= a.startT ? postFor(a) : freeStaffRoomSeat(world));
     person.staff!.shift = a;
     a.spawned = true;
     if (t >= a.startT) {
       a.started = true;
       person.staff!.duty = "on_shift";
+      planBreak(world, a, person);
+      if (person.staff!.breakDueT! > t + 12 * 3600 || person.staff!.breakDueT! < t) person.staff!.breakTaken = true;
       if (a.shift === "rn_day") world.rnOnCall = false;
     } else {
       person.staff!.duty = "arriving";

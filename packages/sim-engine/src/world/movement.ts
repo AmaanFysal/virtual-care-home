@@ -1,38 +1,110 @@
-// Movement along A* paths, the doorway wait rule and arrivals (docs/02, docs/04).
-// Runs every tick. Doorway zones are single-occupancy: a person entering one claims it and
-// releases it on reaching the first cell beyond it; anyone else waits at the edge. A zone
-// used during a tick stays closed until the next tick, so two people never cross a doorway
-// within the same 5 seconds (which would look like passing through each other).
+// Movement along A* paths, standing spots, the doorway wait rule and arrivals (docs/02, docs/04).
+// Runs every tick.
+// - Doorway zones are single-occupancy: a person entering one claims it and releases it on
+//   reaching the first cell beyond it; anyone else waits at the edge. A zone used during a tick
+//   stays closed until the next tick, so two people never cross a doorway within 5 seconds.
+// - Standing spots: everyone who stops somewhere claims that grid cell. If a destination's cell
+//   is taken, the person goes to the nearest free cell in the same room instead.
 
-import { TICK_SECONDS } from "@vch/shared-types";
+import { TICK_SECONDS, type NamedPoint } from "@vch/shared-types";
 import { emit } from "../emit.js";
 import type { Person, World } from "../state.js";
-import { cellAt, cellCentre } from "./grid.js";
+import { cellAt, cellCentre, neighbours } from "./grid.js";
 import { findPath } from "./pathfind.js";
 
 const SEATED_POINTS = new Set(["seat", "chair", "wc"]);
+
+function claimFree(world: World, cell: number, person: Person): boolean {
+  const owner = world.standClaims.get(cell);
+  return owner === undefined || owner === person.id;
+}
+
+export function releaseStand(world: World, person: Person): void {
+  if (person.standCell !== null && world.standClaims.get(person.standCell) === person.id) world.standClaims.delete(person.standCell);
+  person.standCell = null;
+}
+
+function claimStand(world: World, person: Person, cell: number): void {
+  releaseStand(world, person);
+  world.standClaims.set(cell, person.id);
+  person.standCell = cell;
+}
+
+/**
+ * The cell a person should stand on for a point: the point's own cell if free, otherwise the
+ * nearest free walkable cell in the same room that isn't a doorway. The exit is never claimed
+ * (people pass straight through it).
+ */
+export function standingCell(world: World, person: Person, point: NamedPoint): number {
+  const { grid } = world;
+  const home = cellAt(grid, point.x, point.y);
+  if (point.kind === "exit" || claimFree(world, home, person)) return home;
+  const seen = new Set([home]);
+  let frontier = [home];
+  while (frontier.length > 0) {
+    const next: number[] = [];
+    for (const cell of frontier) {
+      for (const { cell: n } of neighbours(grid, cell)) {
+        if (seen.has(n)) continue;
+        seen.add(n);
+        if (grid.roomOf[n] !== point.room) continue;
+        if (!grid.doorZoneOf[n] && claimFree(world, n, person)) return n;
+        next.push(n);
+      }
+    }
+    frontier = next.sort((a, b) => a - b);
+  }
+  return home;
+}
 
 /** Sends a person walking to a named point. Returns false if there is no path. */
 export function walkTo(world: World, person: Person, pointId: string): boolean {
   const point = world.points.get(pointId);
   if (!point) throw new Error(`Unknown point "${pointId}"`);
+  if (person.move?.destPointId === pointId) return true;
   if (person.atPoint === pointId && !person.move) return true;
+  const goal = standingCell(world, person, point);
   const start = cellAt(world.grid, person.x, person.y);
-  const goal = cellAt(world.grid, point.x, point.y);
   const cells = findPath(world.grid, start, goal);
   if (!cells) return false;
-  person.move = { destPointId: pointId, cells, next: 0 };
+  const exact = goal === cellAt(world.grid, point.x, point.y);
+  const end = exact ? { x: point.x, y: point.y } : cellCentre(world.grid, goal);
+  if (point.kind === "exit") releaseStand(world, person);
+  else claimStand(world, person, goal);
+  person.move = { destPointId: pointId, cells, next: 0, endX: end.x, endY: end.y };
   person.atPoint = null;
   person.posture = "walking";
   return true;
 }
 
-function zoneFree(world: World, zone: string): boolean {
-  return !world.zoneOwner.has(zone) && (world.zoneReleasedTick.get(zone) ?? -1) < world.tick;
+/** Puts a person straight onto a point (initial placement), respecting standing spots. */
+export function placeAt(world: World, person: Person, pointId: string): void {
+  const point = world.points.get(pointId)!;
+  const cell = standingCell(world, person, point);
+  const exact = cell === cellAt(world.grid, point.x, point.y);
+  const pos = exact ? { x: point.x, y: point.y } : cellCentre(world.grid, cell);
+  claimStand(world, person, cell);
+  Object.assign(person, { onMap: true, x: pos.x, y: pos.y, roomId: point.room, atPoint: pointId, move: null });
+  person.posture = exact && SEATED_POINTS.has(point.kind) ? "sitting" : "standing";
+}
+
+/** A resident at their bedside gets into bed (the bed cell isn't walkable, so no claim). */
+export function getIntoBed(world: World, person: Person): void {
+  const bed = world.points.get(person.resident!.data.room)!;
+  releaseStand(world, person);
+  Object.assign(person, { x: bed.x, y: bed.y, roomId: bed.room, atPoint: bed.id, move: null, posture: "in_bed" });
+  person.resident!.inBed = true;
+}
+
+/** A resident gets out of bed onto the bedside (or the nearest free cell to it). */
+export function getOutOfBed(world: World, person: Person): void {
+  placeAt(world, person, `${person.resident!.data.room}.Side`);
+  person.resident!.inBed = false;
 }
 
 function claimZone(world: World, person: Person, zone: string): boolean {
-  if (world.zoneOwner.get(zone) !== person.id && !zoneFree(world, zone)) return false;
+  const free = !world.zoneOwner.has(zone) && (world.zoneReleasedTick.get(zone) ?? -1) < world.tick;
+  if (world.zoneOwner.get(zone) !== person.id && !free) return false;
   if (person.heldZone && person.heldZone !== zone) releaseZone(world, person);
   world.zoneOwner.set(zone, person.id);
   person.heldZone = zone;
@@ -72,8 +144,7 @@ function stepPerson(world: World, person: Person): boolean {
     }
     person.waitingAtDoor = null;
     const isLast = move.next === move.cells.length - 1;
-    const dest = world.points.get(move.destPointId)!;
-    const target = isLast ? { x: dest.x, y: dest.y } : cellCentre(world.grid, cell);
+    const target = isLast ? { x: move.endX, y: move.endY } : cellCentre(world.grid, cell);
     const dist = Math.hypot(target.x - person.x, target.y - person.y);
     if (dist <= budget) {
       person.x = target.x;
@@ -89,9 +160,10 @@ function stepPerson(world: World, person: Person): boolean {
   }
   if (move.next < move.cells.length) return false;
   const dest = world.points.get(move.destPointId)!;
+  const exact = person.x === dest.x && person.y === dest.y;
   person.move = null;
   person.atPoint = dest.id;
-  person.posture = SEATED_POINTS.has(dest.kind) ? "sitting" : "standing";
+  person.posture = exact && SEATED_POINTS.has(dest.kind) ? "sitting" : "standing";
   return true;
 }
 
@@ -110,15 +182,16 @@ export function spawnWaiting(world: World): string[] {
   const spawned: string[] = [];
   const exit = world.points.get("ExitDoor")!;
   const zone = world.grid.doorZoneOf[cellAt(world.grid, exit.x, exit.y)]!;
-  while (world.spawnQueue.length > 0 && zoneFree(world, zone)) {
-    const person = world.people.get(world.spawnQueue.shift()!)!;
+  while (world.spawnQueue.length > 0) {
+    const person = world.people.get(world.spawnQueue[0]!)!;
+    if (!claimZone(world, person, zone)) break;
+    world.spawnQueue.shift();
     person.onMap = true;
     person.x = exit.x;
     person.y = exit.y;
     person.atPoint = "ExitDoor";
     person.posture = "standing";
     person.roomId = null;
-    claimZone(world, person, zone);
     emit(world, "person.arrived", [person.id], { pointId: "ExitDoor" });
     enterCell(world, person, cellAt(world.grid, exit.x, exit.y));
     spawned.push(person.id);
@@ -129,10 +202,13 @@ export function spawnWaiting(world: World): string[] {
 /** Takes a person standing at the exit door off the map. */
 export function depart(world: World, person: Person): void {
   releaseZone(world, person);
+  releaseStand(world, person);
   person.onMap = false;
   person.move = null;
   person.atPoint = null;
   person.roomId = null;
   person.waitingAtDoor = null;
+  person.badges = [];
+  person.task = null;
   emit(world, "person.departed", [person.id], { pointId: "ExitDoor" });
 }

@@ -53,11 +53,13 @@ Handovers happen in the staff room during shift overlaps. **One carer always sta
 
 The RN's evening handover to the on-call RN at 19:30 happens off the map (event `rn.on_call_started`).
 
+**How handovers run (M4a):** the handover is created at 07:00, 14:00 and 21:15 with its members. It waits until the floor cover is out on the floor, gathers the members in the staff room (going ahead after 20 minutes with whoever is there if someone never turns up), runs for 15, 20 or 15 minutes, then logs `handover.completed`. After the 07:00 handover the early lead briefs the early CA for 5 minutes in the corridor. Staff whose shift ends stay on (`staying`) until their task is done and someone else covers the floor, so a late handover never leaves the wing empty.
+
 **Phase 1 handover content** is a rules-generated summary in the `handover.completed` event. For each resident it lists falls, late or missed doses, help requests, whether fluids are below target, and night checks done. The LLM layer (Phase 2) will turn this into dialogue and allow information to be lost.
 
 ## Breaks
 
-- **Day care staff:** one 30-minute break, in the staff room. Early: 10:30–12:00. Late: 17:30–19:30. The RN's 30 minutes falls at 12:00–14:00, outside med rounds. Breaks are staggered: nobody starts a break if that would leave the floor uncovered, and the break is postponed instead.
+- **Day care staff:** one 30-minute break in the staff room, starting at a seeded time in a window: early 10:30–11:45, late 17:30–19:00, RN 11:30–12:15 (outside med rounds). Breaks are staggered between **carers**: nobody starts a break unless another carer (not the RN) is on the floor, and the break waits instead.
 - **Night carer (alone):** one 30-minute break around 03:00, taken in the waiting area, not the staff room. They stay interruptible and count as on the floor.
 - **Office and reception:** 30-minute lunch around 12:30; this doesn't affect the floor rule.
 

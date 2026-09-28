@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_START_T, TICK_SECONDS, clockToSeconds, type AnySimEvent, type SimInput } from "@vch/shared-types";
-import { createSim, type Person, type Sim } from "../src/index.js";
+import { createSim, type Sim } from "../src/index.js";
 import { createRng, createStreams } from "../src/rng.js";
 import { cellAt } from "../src/world/grid.js";
 import { findPath } from "../src/world/pathfind.js";
-import { walkTo } from "../src/world/movement.js";
+import { placeAt, walkTo } from "../src/world/movement.js";
 import { loadWorldData } from "../tools/load-data.js";
 
 const data = loadWorldData();
@@ -110,16 +110,11 @@ describe("movement", () => {
   it("lets only one person through a doorway at a time", () => {
     const sim = createSim({ seed: "1", data });
     const w = sim.world;
-    // Blessing and Tom arrive around 06:47 and wait in the staff room; send them through
+    // Joanne and Bev are off duty at 06:00, so nothing else directs them. Send them through
     // the Room 1 door in opposite directions at the same moment.
-    run(sim, 1);
-    const [a, b] = ["stf_blessing", "stf_tom"].map((id) => w.people.get(id)!);
-    const place = (p: Person, pointId: string) => {
-      const pt = w.points.get(pointId)!;
-      Object.assign(p, { x: pt.x, y: pt.y, roomId: pt.room, atPoint: pointId, move: null });
-    };
-    place(a!, "Room1.BedA.Side");
-    place(b!, "Corridor.West");
+    const [a, b] = ["stf_joanne", "stf_bev"].map((id) => w.people.get(id)!);
+    placeAt(w, a!, "Room1.BedA.Side");
+    placeAt(w, b!, "Corridor.West");
     walkTo(w, a!, "Corridor.West");
     walkTo(w, b!, "Room1.BedA.Side");
     const zone = w.grid.doorZones.get("D_Room1")!;
@@ -137,7 +132,7 @@ describe("movement", () => {
   it("keeps everyone on walkable ground, within walking speed, and doorways single-occupancy (5 sim days)", () => {
     const sim = createSim({ seed: "1", data });
     const w = sim.world;
-    const last = new Map<string, { x: number; y: number }>();
+    const last = new Map<string, { x: number; y: number; posture: string }>();
     run(sim, 24 * 5, () => {
       const perZone = new Map<string, number>();
       for (const id of w.order) {
@@ -151,8 +146,10 @@ describe("movement", () => {
         const zone = w.grid.doorZoneOf[cell];
         if (zone) perZone.set(zone, (perZone.get(zone) ?? 0) + 1);
         const prev = last.get(id);
-        if (prev) expect(Math.hypot(p.x - prev.x, p.y - prev.y)).toBeLessThanOrEqual(p.speed * TICK_SECONDS + 1e-6);
-        last.set(id, { x: p.x, y: p.y });
+        // Getting into or out of bed moves a resident between the bed and the bedside without walking.
+        const bedMove = prev && (prev.posture === "in_bed") !== (p.posture === "in_bed");
+        if (prev && !bedMove) expect(Math.hypot(p.x - prev.x, p.y - prev.y)).toBeLessThanOrEqual(p.speed * TICK_SECONDS + 1e-6);
+        last.set(id, { x: p.x, y: p.y, posture: p.posture });
       }
       for (const [zone, n] of perZone) expect(n, zone).toBeLessThanOrEqual(1);
     });
