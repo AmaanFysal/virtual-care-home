@@ -46,7 +46,7 @@ export function visitorPerson(v: Visitor): Person {
     waitingAtDoor: null,
     staff: null,
     resident: null,
-    visitor: { data: v, residentId: v.relation_to_resident[0]!.resident, leadId: v.accompanies ?? null, phase: "home", arriveT: null, durationMins: 0, visitStartT: null, stepT: null },
+    visitor: { data: v, residentId: v.relation_to_resident[0]!.resident, leadId: v.accompanies ?? null, phase: "home", arriveT: null, durationMins: 0, visitStartT: null, stepT: null, weekDays: [] },
   };
 }
 
@@ -54,7 +54,34 @@ function visitorsOf(world: World): Person[] {
   return world.order.map((id) => world.people.get(id)!).filter((p) => p.visitor);
 }
 
-/** Samples today's visits. Leads first, so companions can check whether their lead is coming. */
+/**
+ * The weekly quota: each lead visitor visits a set number of their pattern days a week,
+ * `floor(reliability × days)` plus one more with the leftover fraction as its probability (so
+ * Linda, 0.85 × 5 = 4.25, comes 4 days, sometimes 5; Gary, 0.04 × 1, comes in about 1 week in
+ * 25). Which days is chosen with the seeded `visitors` stream. At the start of a run only the
+ * days left in that week count. Phase 3's director can cancel a visitor's week with a cause.
+ */
+export function planWeek(world: World, fromDay: number): void {
+  const rng = world.rng.visitors;
+  const monday = fromDay - (fromDay % 7);
+  for (const p of visitorsOf(world).sort((a, b) => a.id.localeCompare(b.id))) {
+    const v = p.visitor!;
+    if (v.leadId) continue; // companions come when their lead does
+    const pattern = v.data.visit_pattern;
+    const days = pattern.days.map((d) => monday + WEEKDAYS.indexOf(d)).sort((a, b) => a - b);
+    const exact = pattern.reliability * days.length;
+    const quota = Math.floor(exact) + (rng.next() < exact - Math.floor(exact) ? 1 : 0);
+    // Pick `quota` of the pattern days (a seeded shuffle), then keep those not already past.
+    const shuffled = [...days];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = rng.int(0, i);
+      [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+    }
+    v.weekDays = shuffled.slice(0, quota).filter((d) => d >= fromDay).sort((a, b) => a - b);
+  }
+}
+
+/** Plans today's visits from the weekly quota. Leads first, so companions can see whether their lead is coming. */
 export function planVisits(world: World, day: number, fromT: number): void {
   const weekday = WEEKDAYS[day % 7]!;
   const rng = world.rng.visitors;
@@ -62,9 +89,9 @@ export function planVisits(world: World, day: number, fromT: number): void {
   for (const p of people) {
     const v = p.visitor!;
     const pattern = v.data.visit_pattern;
-    if (!pattern.days.includes(weekday)) continue;
-    const roll = rng.next();
-    if (v.phase !== "home" || roll >= pattern.reliability) continue;
+    if (!pattern.days.includes(weekday) || v.phase !== "home") continue;
+    // Leads visit on their quota days; a companion comes along with the given probability.
+    if (v.leadId ? rng.next() >= pattern.reliability : !v.weekDays.includes(day)) continue;
     let arriveT: number;
     let durationMins: number;
     if (v.leadId) {
@@ -166,7 +193,10 @@ export const letInTree: BtNode<Ctx> = seq(
 /** Runs each minute: arrivals, waiting and the end of visits. */
 export function visitorsMinute(world: World): void {
   const t = world.t;
-  if (timeOfDay(t) === 0) planVisits(world, dayIndex(t), t);
+  if (timeOfDay(t) === 0) {
+    if (dayIndex(t) % 7 === 0) planWeek(world, dayIndex(t));
+    planVisits(world, dayIndex(t), t);
+  }
 
   for (const p of visitorsOf(world)) {
     const v = p.visitor!;

@@ -4,7 +4,7 @@
 
 ## Status
 
-M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 built (M0 to M7).** Acceptance passes except one visitor criterion on one seed (below). Next: the user's review; then Phase 2 (minds).
+M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).** All acceptance criteria pass on seeds 1 to 8; PR open into `main`, pending the user's manual 10x check. Next: Phase 2 (minds).
 
 ## Done
 
@@ -26,7 +26,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 built (M0 to M7).** Acce
 
 ## Next
 
-- User review of Phase 1; decision on the visitor criterion; then Phase 2 planning.
+- User's manual 10x check and merge; then Phase 2 planning (docs/09).
 
 ## Decisions made (link ADRs)
 
@@ -35,6 +35,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 built (M0 to M7).** Acce
 - Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
 - Floating night carer (spec decision 16) for Peggy's female-only care and night two-person tasks.
 - Checks: by day observation within 6 m counts; at night and always for Dennis only bedside checks (1.5 m), logged with `via`. Checks before handover at 06:40 and 20:55.
+- Weekly visitor quota (user decision): quota of pattern days per week from reliability, days by seeded shuffle; acceptance passes on all 8 seeds; director week-cancelling noted for Phase 3 (docs/10).
 - M7 (part 2): inspector (needs, workload, task and BT step, persona facts, schedule, recent events, inject fall), follow camera with zoom, filtered event log panel, `?select=` links; acceptance test. Requests: 7.6 to 9.0 a day across seeds 1 to 8, toileting 65 to 75%, social 0%; longest single wait 24 min. 98 tests + 1 expected failure.
 - M7 (part 1): idle behaviour (care notes, tidying, restocking, sitting with residents who want company), interruptible, on the floor; holders wait in the corridor. Social requests down to ~0. Breaks guard waiting two-person tasks. Stress: no-fall 0/0, falls 0 hard / 3 service.
 - Visitor acceptance restated (user): weekday peak avg 2 to 4, Sunday avg 4 to 8, everyone but Arthur 2+ visits a week.
@@ -50,7 +51,8 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 built (M0 to M7).** Acce
 
 ## Blockers and open questions
 
-- **Visitor criterion "everyone but Arthur gets 2+ visits a week, across seeds 1 to 8":** holds on seeds 1 to 7 and on average, but on seed 8 Linda misses four of her five days (each 85% likely), so Peggy gets 1 visit. Options: judge the criterion on the average across seeds; model reliability as a weekly quota rather than independent days; or accept seed 8 as a rare bad week. Marked `it.fails` in the acceptance test until decided.
+- None. Note: the Sunday visitor peak averages 4.00, exactly the lower edge of its 4 to 8 target; a small data change would move it.
+- Manual check before merge (user): 30 sim minutes at 10x around 07:30 and 15:00.
 
 
 ## Session log
@@ -69,3 +71,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 built (M0 to M7).** Acce
 | 2026-09-28 | Turning as a service target; evening crunch and night rounds fixed; visitor target restated | spec, 05, 11, PROGRESS |
 | 2026-09-28 | M7 part 1: idle behaviour; break guard for waiting two-person tasks | 04, 11, PROGRESS |
 | 2026-09-28 | M7 part 2: inspector, follow, event log panel, acceptance test | 08, 11, spec, plan, PROGRESS |
+| 2026-09-29 | Weekly visitor quota; acceptance passes on seeds 1 to 8; Phase 1 complete; PR opened | 05, 06, 10, 11, PROGRESS |

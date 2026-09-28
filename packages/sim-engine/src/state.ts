@@ -110,6 +110,8 @@ export interface VisitorState {
   visitStartT: number | null;
   /** When the current step (signing in or out) started. */
   stepT: number | null;
+  /** Days (day index since the epoch) this week's visits fall on, from the weekly quota. */
+  weekDays: number[];
 }
 
 /** Scheduled care done at the bedside (or chair). */

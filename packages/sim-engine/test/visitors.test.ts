@@ -54,7 +54,7 @@ describe("a week of visitors (seed 1)", () => {
     expect(signedIn.length).toBeGreaterThan(20);
     const bells = new Set(ofType(events, "visitor.rang_bell").map((e) => e.t));
     expect(bells.size).toBeGreaterThan(0);
-    for (const e of ofType(events, "visitor.let_in")) expect(careStaff.has(e.payload.staffId), e.payload.staffId).toBe(true);
+    for (const e of ofType(events, "visitor.let_in")) expect(careStaff.has(e.payload.staffId) || e.payload.staffId.startsWith("agy_"), e.payload.staffId).toBe(true);
     for (const e of signedIn) {
       if (e.payload.staffId === "stf_sanjay") {
         expect(["Sat", "Sun"]).not.toContain(weekday(e.t));

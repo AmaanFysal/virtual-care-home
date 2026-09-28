@@ -121,22 +121,9 @@ describe("acceptance: visitors across seeds 1 to 8 (a week each)", () => {
     expect(mean(sundayPeaks)).toBeLessThanOrEqual(8);
   });
 
-  it("gives every resident except Arthur at least 2 visits a week on seeds 1 to 7, and on average across all 8", () => {
-    visitsPerResident.slice(0, 7).forEach((visits, i) => {
+  it("gives every resident except Arthur at least 2 visits a week, on every seed", () => {
+    visitsPerResident.forEach((visits, i) => {
       for (const id of residents.filter((r) => r !== "res_arthur")) expect(visits.get(id) ?? 0, `seed ${i + 1} ${id}`).toBeGreaterThanOrEqual(2);
     });
-    for (const id of residents.filter((r) => r !== "res_arthur")) {
-      expect(mean(visitsPerResident.map((v) => v.get(id) ?? 0)), id).toBeGreaterThanOrEqual(2);
-    }
-  });
-
-  // KNOWN FAILURE, awaiting a decision (PROGRESS.md): on seed 8 Linda misses four of her five
-  // days (each 85% likely; about a 0.2% chance), so Peggy gets 1 visit that week. With the
-  // visitor data as written, the literal criterion "at least 2 on every seed" doesn't hold.
-  // `it.fails` passes while it fails, and flags if that ever changes.
-  it.fails("gives every resident except Arthur at least 2 visits a week on every seed (seed 8: Peggy 1)", () => {
-    for (const visits of visitsPerResident) {
-      for (const id of residents.filter((r) => r !== "res_arthur")) expect(visits.get(id) ?? 0, id).toBeGreaterThanOrEqual(2);
-    }
   });
 });

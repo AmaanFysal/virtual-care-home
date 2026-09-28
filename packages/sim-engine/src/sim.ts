@@ -16,7 +16,7 @@ import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
 import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.js";
 import { medsMinute } from "./meds.js";
-import { planVisits, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
+import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
 import { floatMinute } from "./float.js";
 import { breachCause, checkInvariants, checkServiceTargets } from "./invariants.js";
 import { initialNeeds, residentsMinute } from "./needs.js";
@@ -154,6 +154,7 @@ export function createSim(options: SimOptions): Sim {
   addPerson(world, onCall);
   for (const v of data.visitors) addPerson(world, visitorPerson(v));
   placeInitialStaff(world);
+  planWeek(world, dayIndex(startT));
   planVisits(world, dayIndex(startT), startT);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
 
