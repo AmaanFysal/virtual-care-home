@@ -103,6 +103,30 @@ function report(events: AnySimEvent[], endT: number): void {
   const visits = events.filter((e) => e.type === "second_carer.arrived").length;
   console.log(`\nFloating night carer: ${visits} visits, ${callouts} out-of-round call-outs.`);
 
+  // Visitors: visits per day and how many were on site at the busiest moment of mid-afternoon.
+  console.log("\nVisitors per care day (visits started; peak on site 14:30 to 16:30; bells out of hours):");
+  const visitorOnSite = new Map<string, number>();
+  const visitDays = new Map<string, { visits: number; peak: number; bells: number }>();
+  const dayOf = (t: number) => formatSimTime(t - 6 * 3600).slice(0, 10);
+  let lastT = 0;
+  for (const e of events) {
+    const row = visitDays.get(dayOf(e.t)) ?? { visits: 0, peak: 0, bells: 0 };
+    // Count whoever is already here when the window opens.
+    const opens = Math.floor(e.t / 86400) * 86400 + 14.5 * 3600;
+    if (lastT < opens && e.t >= opens) row.peak = Math.max(row.peak, [...visitorOnSite.values()].reduce((a, b) => a + b, 0));
+    lastT = e.t;
+    if (e.type === "visit.started") row.visits += 1;
+    if (e.type === "visitor.rang_bell") row.bells += 1;
+    if (e.actors[0]?.startsWith("vis_") && (e.type === "person.arrived" || e.type === "person.departed")) {
+      visitorOnSite.set(e.actors[0], e.type === "person.arrived" ? 1 : 0);
+      const tod = (e.t % 86400) / 3600;
+      const count = [...visitorOnSite.values()].reduce((a, b) => a + b, 0);
+      if (tod >= 14.5 && tod <= 16.5) row.peak = Math.max(row.peak, count);
+    }
+    visitDays.set(dayOf(e.t), row);
+  }
+  for (const [day, row] of visitDays) if (row.visits || row.bells) console.log(`  ${day.padEnd(11)} ${String(row.visits).padStart(3)} visits   peak ${row.peak}   ${row.bells} bells`);
+
   const hard = events.filter((e) => e.type === "invariant.violated") as Extract<AnySimEvent, { type: "invariant.violated" }>[];
   console.log(`\nHard safety invariants: ${hard.length} violation${hard.length === 1 ? "" : "s"}${hard.length ? " <-- MUST BE ZERO" : ""}`);
   for (const v of hard) console.log(`  ${formatSimTime(v.t)}  ${v.payload.rule}: ${v.payload.details}`);

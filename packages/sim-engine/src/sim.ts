@@ -4,6 +4,7 @@
 import {
   DEFAULT_START_T,
   TICK_SECONDS,
+  dayIndex,
   type AnySimEvent,
   type PersonView,
   type Resident,
@@ -15,6 +16,7 @@ import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
 import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.js";
 import { medsMinute } from "./meds.js";
+import { planVisits, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
 import { floatMinute } from "./float.js";
 import { breachCause, checkInvariants, checkServiceTargets } from "./invariants.js";
 import { initialNeeds, residentsMinute } from "./needs.js";
@@ -87,6 +89,7 @@ function residentPerson(r: Resident, world: World): Person {
       bedtimeDone: false,
       mealsServed: [],
     },
+    visitor: null,
   };
 }
 
@@ -149,7 +152,9 @@ export function createSim(options: SimOptions): Sim {
   onCall.kind = "external";
   onCall.initials = "RN";
   addPerson(world, onCall);
+  for (const v of data.visitors) addPerson(world, visitorPerson(v));
   placeInitialStaff(world);
+  planVisits(world, dayIndex(startT), startT);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
 
   const applyInputs = () => {
@@ -181,6 +186,7 @@ export function createSim(options: SimOptions): Sim {
         medsMinute(world);
         floatMinute(world);
         fallsMinute(world);
+        visitorsMinute(world);
         decideStaff(world);
         sendIdleToPosts(world);
       }
@@ -189,6 +195,7 @@ export function createSim(options: SimOptions): Sim {
       const spawned = spawnWaiting(world);
       const arrived = moveAll(world);
       rotaArrivals(world, spawned, arrived);
+      visitorsTick(world, spawned, arrived);
       logInvariants(world);
       const events = world.pending;
       world.pending = [];

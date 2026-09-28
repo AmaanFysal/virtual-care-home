@@ -228,6 +228,8 @@ export interface Visitor {
   /** Visits only together with this visitor (on the listed days, with this reliability), arriving and leaving together. */
   accompanies?: string;
   visit_behaviours: string[];
+  /** May help the resident eat during a protected mealtime (Kuldip with Raj). */
+  may_help_at_meals?: boolean;
   conflicts: { with: string; issue: string; intensity: number }[];
   walk_speed_mps: number;
 }

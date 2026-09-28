@@ -4,11 +4,12 @@
 
 ## Status
 
-M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors).
+M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M6 done. Next: M7 (follow, inspector, badges, event log panel, acceptance test).
 
 ## Done
 
 - M0: spec, plan, ADR-0001 (5 s tick), ADR-0002 (SQLite); docs 01, 02, 03, 05, 07 filled; Node pinned to >= 22.13.
+- M6: visitors: daily sampling from patterns (seeded), companions with their lead, sign-in with the receptionist or a carer answering the bell out of hours, visits beside the resident, protected lunch and personal-care friction (Kuldip may help Raj at lunch), sign-out and leaving, none for residents in hospital; visitor numbers in `--report`. 85 tests. Stress re-run: 65 fall runs 0 hard / 1 service breach; 8 no-fall weeks 0 / 0.
 - M5 review: on-call RN comes over for serious falls with no RN on the wing; invariants split into hard safety rules (`invariant.violated`, must be zero) and service targets (`sla.breached` with cause, reported). 65 fall runs: 0 hard, 1 service breach; 8 no-fall weeks: 0 and 0.
 - M5: medication rounds (RN 08:00/13:00/17:00, late lead 21:00; interruptible, missed-dose chance rising with interruptions, late after 60 min), fall response by day (RN attends) and night (on-call RN by phone, floating carer lifts or covers), paramedics and conveyance to hospital with CQC flag, family and incident logging, post-fall checks; `meds_trained` and `fall_moved_before_assessment` invariants; golden tests; inject-fall buttons and "in hospital" bed label in the browser. 77 tests.
 - M4b: care schedule (morning and bedtime care, three meals with intake charting, drinks rounds at 10:30/15:00/20:00, Peggy's prompted toileting, checks with observation, Dennis's 2-hourly turns with fluids and mouth care), floating night carer rounds and call-outs, wait-time rule, `resident_check` and `request_wait` invariants, `--report`. About 13 requests a day (~48% toileting), longest wait 21 min, zero violations over a week on 8 seeds. 58 tests.
@@ -25,7 +26,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 
 ## Next
 
-- M6: visitors (daily sampling, reception sign-in, doorbell after hours, visits, leaving).
+- M7: click to follow, inspector panel (persona, needs, task, BT node, schedule), badges, filtered event log panel, watch-a-day acceptance test, `pre-pr`.
 
 ## Decisions made (link ADRs)
 
@@ -34,6 +35,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 - Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
 - Floating night carer (spec decision 16) for Peggy's female-only care and night two-person tasks.
 - Checks: by day observation within 6 m counts; at night and always for Dennis only bedside checks (1.5 m), logged with `via`. Checks before handover at 06:40 and 20:55.
+- Overdue turns now climb in priority; Dennis's turns can run up to ~40 min late in the evening crunch (tested to 2 h 45 min).
 - M5 fixes found by the stress runs: late shift floor cover stays until its handover ends; a briefing no longer holds someone idle; a check can't absorb a two-person request; staff go to where the resident is (chair or floor), not always the bed; check lead capped at half the interval (post-fall checks); two-person morning care waits for the day shift.
 - Handover fix: outgoing staff can still join their handover after shift end and don't leave owing it; handovers go ahead after 30 min with whoever is there.
 - Scheduled care takes over a waiting request; only one two-person task may be held by a lone carer at a time (deadlock fix).
@@ -45,7 +47,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 
 ## Blockers and open questions
 
-- None open.
+- **Visitor numbers:** mid-afternoon peaks are usually 2 to 3 on weekdays (4 to 7 on Sundays), below the acceptance "3 to 8". Tune the visit patterns, or restate the target? (docs/05)
 
 
 ## Session log
@@ -60,3 +62,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 | 2026-09-28 | M4b review: bedside-only checks at night and for Dennis, handover rounds, handover deadlock fix, need-rate tuning record, float time-on-site report | spec, 04, 05, PROGRESS |
 | 2026-09-28 | M5 med rounds, falls, paramedics, golden tests; stress runs and fixes | spec, 04, 05, 07, 11, 12, PROGRESS |
 | 2026-09-28 | M5 review: on-call RN for serious night falls; hard invariants vs service targets | spec, 05, 07, 11, 12, PROGRESS |
+| 2026-09-28 | M6 visitors; overdue-turn escalation; visitor stats in report | 05, 06, 07, 11, PROGRESS |

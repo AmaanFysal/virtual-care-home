@@ -97,6 +97,7 @@ export function staffPerson(s: Pick<Staff, "id" | "name" | "gender" | "walk_spee
       workload: 0,
     },
     resident: null,
+    visitor: null,
   };
 }
 

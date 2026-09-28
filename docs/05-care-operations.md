@@ -151,11 +151,16 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 - Peggy has female carers only for personal care. At night, when the night carer is male, the floating night carer does it (on a planned round, or an out-of-round call-out if urgent).
 - Visitors never enter the staff room.
 
-## Visiting (Regulation 9A, open visiting)
+## Visiting (Regulation 9A, open visiting; M6, `src/visitors.ts`)
 
-- Visitors can arrive at any time. Between 08:30 and 16:30 on weekdays Sanjay signs them in at the desk. Otherwise they ring the bell and a care staff member comes to the exit door, lets them in and signs them in (an interruption).
-- **Soft friction:** during protected lunch (12:15–13:30) and while personal care is under way in the resident's room, visitors wait in the waiting area. Kuldip is allowed to help Raj at lunch.
-- Visitors go to the resident's bedside chair, or the waiting area if the resident is there, and stay for their visit duration, then sign out and leave.
+- **Planning:** at 00:00 (and at the start of a run) every visitor is sampled from their `visit_pattern` with the seeded `visitors` stream: on a listed day they come with probability `reliability`, arriving at a random minute in their window and staying their `duration_mins` ± 20% (`visit.planned`). Companions (`accompanies`: Mick with Linda, Simran and the grandchildren with Harpreet) only come when their lead does, arriving and leaving with them.
+- **Arriving:** when Sanjay is at the reception desk (weekdays 08:30 to 16:30, not on his break), visitors come in, sign in with him at the desk (`visitor.signed_in`). Otherwise they ring the bell (`visitor.rang_bell`): a care worker takes an "answer the door" task (priority 80), goes to reception, lets them in and signs them in (`visitor.let_in`, `visitor.signed_in`).
+- **Visiting:** visitors go to the resident (beside their chair, or the far side of the bed) and the visit starts (`visit.started`); company settles the resident's social need over about half an hour.
+- **Soft friction:** during protected lunch (12:15 to 13:30), while personal care is going on with the resident (morning or bedtime care, a pad change, a turn, help to the toilet), or while the resident is on the floor after a fall, visitors wait in the waiting area and go back afterwards. A visitor who helps at meals (`may_help_at_meals`: Kuldip with Raj) stays; when she's there, staff only bring Raj's tray (2 minutes instead of 15).
+- **Leaving:** when the visit time is up (`visit.ended`), visitors sign out at the desk (`visitor.signed_out`; with the visitors' book out of hours) and leave by the exit.
+- **Hospital:** nobody comes to see a resident who is in hospital, and anyone visiting leaves.
+- **Numbers (seeds 1 to 8, a week each):** 32 to 40 visits a week, 10 to 21 bells out of hours. Mid-afternoon (14:30 to 16:30) peaks are usually 2 or 3 on weekdays and 4 to 7 on Sundays, **below the plan's "3 to 8"**: calibration question open with the user.
+- No moods, conflicts or off-screen family life yet (Phase 4).
 
 ## Notifications and safeguarding
 

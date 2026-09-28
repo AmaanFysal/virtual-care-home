@@ -8,6 +8,7 @@ import type {
   NamedPoint,
   NeedName,
   PersonKind,
+  Visitor,
   Posture,
   Resident,
   ShiftName,
@@ -95,7 +96,21 @@ export interface FloatState {
   planned: boolean;
 }
 
-export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round" | "med_round" | "fall";
+export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round" | "med_round" | "fall" | "let_in";
+
+/** A visitor's progress through a visit (docs/05 "Visiting"). */
+export interface VisitorState {
+  data: Visitor;
+  residentId: string;
+  /** Lead visitor for companions who only come with someone (the Sandhu grandchildren). */
+  leadId: string | null;
+  phase: "home" | "outside" | "at_door" | "entering" | "signing_in" | "to_resident" | "waiting" | "visiting" | "signing_out" | "leaving";
+  arriveT: number | null;
+  durationMins: number;
+  visitStartT: number | null;
+  /** When the current step (signing in or out) started. */
+  stepT: number | null;
+}
 
 /** Scheduled care done at the bedside (or chair). */
 export type CareKind = "morning" | "bedtime" | "check" | "reposition" | "meal" | "pad_change";
@@ -159,6 +174,7 @@ export interface Person {
   waitingAtDoor: string | null;
   staff: StaffState | null;
   resident: ResidentState | null;
+  visitor: VisitorState | null;
 }
 
 export interface World {

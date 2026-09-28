@@ -58,7 +58,7 @@ Clock commands (pause, step, set_speed) and inspect requests are not inputs: the
 | Falls | `resident.fell` {severity} (source of the input, `user` in Phase 1), `fall.found`, `fall.rn_called`, `fall.assessed` {outcome}, `fall.lifted`, `ambulance.called`, `paramedics.arrived`, `resident.conveyed_to_hospital`, `family.informed`, `incident.recorded`, `cqc.notification_flagged` {regulation, reason} |
 | On-call RN | `on_call_rn.called` {residentId, reason}, `on_call_rn.arrived` {personId, residentId}, `on_call_rn.departed` (serious falls with no RN on the wing) |
 | Off-map help | `second_carer.called` {reason, residentIds, outOfRound}, `second_carer.arrived` {personId, planned}, `second_carer.departed` (the floating night carer) |
-| Visitors | `visit.planned` {visitorId, residentId, arriveT, durationMins}, `visitor.rang_bell`, `visitor.let_in`, `visitor.signed_in`, `visit.started`, `visit.ended`, `visitor.signed_out` |
+| Visitors | `visit.planned` {visitorId, residentId, arriveT, durationMins}, `visitor.rang_bell`, `visitor.let_in` {staffId}, `visitor.signed_in` {staffId: the receptionist, the carer who let them in, or `visitors_book`}, `visit.started`, `visit.ended`, `visitor.signed_out`; the "answer the door" task is `task.created` with kind `let_in` |
 | Checks | `invariant.violated` {rule, details}: a hard safety rule broke (must never happen); `sla.breached` {target, residentId, details, cause}: a service target was missed (reported). Both logged by the engine when the condition starts |
 
 New types follow the `new-event-type` skill and are added here.

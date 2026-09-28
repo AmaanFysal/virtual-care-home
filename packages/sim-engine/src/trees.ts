@@ -198,8 +198,12 @@ function careMinutes(c: Ctx): number {
       return 10;
     case "pad_change":
       return 10;
-    case "meal":
+    case "meal": {
+      // A visitor who helps at meals (Kuldip with Raj) takes over the feeding; staff just bring the tray.
+      const helper = [...c.world.people.values()].some((p) => p.visitor?.data.may_help_at_meals && p.visitor.residentId === c.resident!.id && p.visitor.phase === "visiting");
+      if (helper) return 2;
       return { independent: 2, prompting: 5, assisted: 15, mouth_care_only: 5 }[r.care.eating_support];
+    }
   }
 }
 

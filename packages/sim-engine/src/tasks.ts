@@ -311,6 +311,8 @@ export function taskScore(world: World, p: Person, task: Task): number {
     const window = hard ? 20 : 15;
     const left = (task.deadlineT - world.t) / 60;
     if (left < window) score += hard ? 60 + 6 * (window - Math.max(0, left)) : 30;
+    // An overdue turn keeps climbing (pressure-ulcer risk).
+    if (!hard && left < 0) score += 3 * Math.min(40, -left);
   }
   if (resident) {
     score -= 3 * Math.hypot(p.x - resident.x, p.y - resident.y);
@@ -380,7 +382,7 @@ export function decideStaff(world: World): void {
   }
 
   // 3. Work: repeatedly take the best (task, staff) match.
-  const open = tasks.filter((t) => (t.kind === "assist" || t.kind === "care" || t.kind === "round") && t.status === "open").sort((a, b) => a.id.localeCompare(b.id));
+  const open = tasks.filter((t) => (t.kind === "assist" || t.kind === "care" || t.kind === "round" || t.kind === "let_in") && t.status === "open").sort((a, b) => a.id.localeCompare(b.id));
   const night = isNight(world.t);
   // Only one two-person task may be held by a lone carer at a time, or two carers can end up
   // each holding a different one, waiting for each other for ever.
