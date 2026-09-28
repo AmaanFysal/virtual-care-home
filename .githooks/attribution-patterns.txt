@@ -1,0 +1,7 @@
+Co-Authored-By: Claude
+Co-authored-by: Claude
+Generated with Claude Code
+Generated with [Claude Code]
+Claude-Session:
+claude.ai/code/session
+noreply@anthropic.com

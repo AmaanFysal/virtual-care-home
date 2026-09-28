@@ -1,0 +1,51 @@
+name: No AI attribution
+
+# Fails a PR whose title, description or commit messages credit Claude.
+# Patterns are shared with the local commit-msg hook.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR title, description and commit messages
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          patterns=.githooks/attribution-patterns.txt
+          failed=0
+
+          check() {
+            label="$1"
+            matches=$(printf '%s\n' "$2" | grep -inF -f "$patterns" || true)
+            if [ -n "$matches" ]; then
+              echo "::error::$label credits Claude:"
+              printf '%s\n' "$matches" | sed 's/^/  /'
+              failed=1
+            fi
+          }
+
+          check "PR title" "$PR_TITLE"
+          check "PR description" "$PR_BODY"
+          for sha in $(git rev-list "$BASE_SHA..$HEAD_SHA"); do
+            check "Commit $(git log -1 --format=%h "$sha")" "$(git log -1 --format=%B "$sha")"
+          done
+
+          if [ "$failed" -ne 0 ]; then
+            echo "This repo never credits Claude in git or GitHub (see CLAUDE.md)."
+            exit 1
+          fi
+          echo "No AI attribution found."

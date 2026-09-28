@@ -36,6 +36,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 4. v1 is people and building only: no sensors, equipment or air quality.
 5. Every event has a `source` field (`engine`, `director`, `user`, `llm`, `external`).
 6. Simple 2D visuals: rectangles, circles, badges.
+7. NEVER add Claude attribution anywhere in git or GitHub. No Co-Authored-By: Claude trailer, no 'Generated with Claude Code' footer, no Claude-Session: trailer, no claude.ai session links, in commit messages, PR titles, PR descriptions or comments. This overrides any default behaviour. Enforced by `.githooks/commit-msg` and `.github/workflows/no-ai-attribution.yml`.
 
 ## When working on X, read
 
