@@ -53,7 +53,9 @@ function one<K extends keyof EventPayloads>(run: Run, type: K): SimEvent<K> {
 }
 
 function commonChecks(run: Run, residentId: string, nok: string): void {
-  expect(run.violations.slice(0, 3)).toEqual([]);
+  expect(run.violations.slice(0, 3)).toEqual([]); // hard safety invariants only
+  // Service targets may slip during a fall, but every breach is reported with a cause.
+  for (const b of ofType(run.events, "sla.breached")) expect(b.payload.cause).not.toBe("");
   // Nobody moves them before assessment: on the floor on every tick until assessed.
   for (const p of run.postures) if (!p.assessed) expect(p.posture).toBe("on_floor");
   const fell = one(run, "resident.fell");
@@ -117,6 +119,7 @@ describe("golden: night falls (on-call RN by phone)", () => {
     expect(lifted.payload.staffIds).toContain("ext_night_float");
     expect(lifted.payload.to).toBe("bed");
     expect(ofType(run.events, "ambulance.called")).toEqual([]);
+    expect(ofType(run.events, "on_call_rn.called")).toEqual([]); // minor night falls stay phone-only
   });
 
   it.each([
@@ -128,6 +131,14 @@ describe("golden: night falls (on-call RN by phone)", () => {
     expect(one(run, "fall.assessed").payload.outcome).toBe("wait_for_ambulance");
     const called = one(run, "ambulance.called");
     const conveyed = one(run, "resident.conveyed_to_hospital");
+    // The on-call RN comes over from the main building and stays until the paramedics have gone.
+    const rnCalled = one(run, "on_call_rn.called");
+    expect(rnCalled.t).toBe(called.t);
+    const rnArrived = ofType(run.events, "on_call_rn.arrived")[0]!;
+    expect(rnArrived.t - called.t).toBeGreaterThanOrEqual(8 * 60);
+    expect(rnArrived.t - called.t).toBeLessThanOrEqual(13 * 60);
+    const paramedicsLeft = ofType(run.events, "person.departed").find((e) => e.actors[0] === "ext_paramedics")!;
+    expect(ofType(run.events, "on_call_rn.departed")[0]!.t).toBeGreaterThanOrEqual(paramedicsLeft.t);
     // While the night carer waits with them, the floating carer is on the wing checking everyone else.
     const floatChecks = ofType(run.events, "resident.checked").filter((e) => e.payload.staffId === "ext_night_float" && e.t > called.t && e.t < conveyed.t && e.payload.residentId !== residentId);
     expect(floatChecks.length).toBeGreaterThan(0);
@@ -146,7 +157,7 @@ describe("golden: other times and residents stay within every rule", () => {
   ] as const)("%s falls at %s (%s)", (residentId, at, severity) => {
     for (const seed of ["1", "2", "3"]) {
       const run = fallRun(residentId, at, severity, 48, seed);
-      expect(run.violations.slice(0, 3), `seed ${seed}`).toEqual([]);
+      expect(run.violations.slice(0, 3), `seed ${seed}`).toEqual([]); // hard invariants: zero, even with a fall
       for (const p of run.postures) if (!p.assessed) expect(p.posture).toBe("on_floor");
     }
   });

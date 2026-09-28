@@ -101,8 +101,17 @@ function report(events: AnySimEvent[], endT: number): void {
   if (arrivedAt !== null) console.log(`  (still on site at the end of the run, since ${formatSimTime(arrivedAt)})`);
   const callouts = events.filter((e) => e.type === "second_carer.called").length;
   const visits = events.filter((e) => e.type === "second_carer.arrived").length;
-  const violations = events.filter((e) => e.type === "invariant.violated").length;
-  console.log(`\nFloating night carer: ${visits} visits, ${callouts} out-of-round call-outs. Invariant violations: ${violations}.`);
+  console.log(`\nFloating night carer: ${visits} visits, ${callouts} out-of-round call-outs.`);
+
+  const hard = events.filter((e) => e.type === "invariant.violated") as Extract<AnySimEvent, { type: "invariant.violated" }>[];
+  console.log(`\nHard safety invariants: ${hard.length} violation${hard.length === 1 ? "" : "s"}${hard.length ? " <-- MUST BE ZERO" : ""}`);
+  for (const v of hard) console.log(`  ${formatSimTime(v.t)}  ${v.payload.rule}: ${v.payload.details}`);
+  const breaches = events.filter((e) => e.type === "sla.breached") as Extract<AnySimEvent, { type: "sla.breached" }>[];
+  console.log(`Service targets: ${breaches.length} breach${breaches.length === 1 ? "" : "es"}`);
+  const byCause = new Map<string, number>();
+  for (const b of breaches) byCause.set(`${b.payload.target}, ${b.payload.cause}`, (byCause.get(`${b.payload.target}, ${b.payload.cause}`) ?? 0) + 1);
+  for (const [k, n] of byCause) console.log(`  ${String(n).padStart(3)}  ${k}`);
+  for (const b of breaches) console.log(`       ${formatSimTime(b.t)}  ${b.payload.details}  [${b.payload.cause}]`);
 }
 if (values.positions) {
   console.log(`\nAt ${formatSimTime(sim.t)}:`);

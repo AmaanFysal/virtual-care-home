@@ -7,7 +7,9 @@
 // Minor: two staff lift with the hoist (at night the floating carer comes to help), back to bed
 // or chair, then checks every 30 minutes for 4 hours. Serious: 999; a carer stays with them;
 // paramedics arrive after 30 to 90 minutes and take them to hospital; a CQC Regulation 18
-// notification is flagged. The family is phoned and an incident recorded after every fall.
+// notification is flagged. If the RN isn't on the wing (night, or evening on call), the on-call RN
+// comes over from the main building (about 10 minutes) and works on the wing until the
+// paramedics have gone: an extra pair of hands while the carer stays with the resident. The family is phoned and an incident recorded after every fall.
 // Not a clinical tool: the procedure is plausible, not authoritative.
 
 import type { FallSeverity, NamedPoint, Source } from "@vch/shared-types";
@@ -23,6 +25,7 @@ import { cellAt, cellCentre } from "./world/grid.js";
 import { getIntoBed, placeAt, releaseStand, walkTo } from "./world/movement.js";
 
 export const PARAMEDICS_ID = "ext_paramedics";
+export const ON_CALL_RN_ID = "ext_oncall_rn";
 const RN_ASSESS_MINS = 10;
 const LIFT_MINS = 5;
 const PARAMEDIC_HANDOVER_MINS = 10;
@@ -90,6 +93,7 @@ export function injectFall(world: World, residentId: string, severity: FallSever
   res.inBed = false;
   res.asleep = false;
   world.shiftLog.get(r.id)!.falls += 1;
+  world.fallLog.push({ residentId: r.id, severity, t: world.t, endT: null });
   emit(world, "resident.fell", [r.id], { residentId: r.id, severity, roomId: r.roomId ?? "" }, source);
 
   world.taskSeq += 1;
@@ -150,6 +154,8 @@ function assessed(c: Ctx, by: string): void {
 }
 
 function cleanUp(c: Ctx): void {
+  const entry = c.world.fallLog.findLast((f) => f.residentId === c.resident!.id && f.endT === null);
+  if (entry) entry.endT = c.world.t;
   c.world.points.delete(point(c));
   c.resident!.resident!.fall = null;
   c.resident!.badges = [];
@@ -270,6 +276,11 @@ export const fallTree: BtNode<Ctx> = seq(
           p.task = null;
         }
         task.assigned = [responder(c).id];
+        // With no RN on the wing, the on-call RN comes over to help until the paramedics have gone.
+        if (task.data.byPhone === 1 && world.onCallRn.status === "off") {
+          world.onCallRn = { status: "coming", arriveT: world.t + world.rng.falls.int(8, 12) * 60, residentId: c.resident!.id };
+          emit(world, "on_call_rn.called", [c.resident!.id], { residentId: c.resident!.id, reason: "serious fall, waiting for an ambulance" });
+        }
         // At night the floating carer covers the rest of the wing while the night carer waits.
         if (isNight(world.t) && world.float.status === "off") {
           world.metrics.floatCallouts += 1;
@@ -300,14 +311,41 @@ export const fallTree: BtNode<Ctx> = seq(
   ),
 );
 
-/** Brings the paramedics in when they are due (runs each minute). */
+/** Brings the paramedics and the on-call RN in when due, and sends the RN back afterwards (each minute). */
 export function fallsMinute(world: World): void {
+  const rn = world.people.get(ON_CALL_RN_ID)!;
+  const call = world.onCallRn;
+  if (call.status === "coming" && world.t >= call.arriveT! && !world.spawnQueue.includes(ON_CALL_RN_ID)) {
+    call.status = "on_site";
+    rn.staff!.duty = "arriving";
+    world.spawnQueue.push(ON_CALL_RN_ID);
+  }
+  const seriousFallOngoing = world.paramedics !== null || [...world.tasks.values()].some((t) => t.kind === "fall" && t.data.severity === "serious");
+  if (call.status === "on_site" && rn.onMap && rn.staff!.duty === "on_shift" && !rn.staff!.taskId && !seriousFallOngoing) {
+    call.status = "leaving";
+    rn.staff!.duty = "leaving";
+    rn.badges = [];
+    rn.task = null;
+    walkTo(world, rn, "ExitDoor");
+  }
+
   const due = world.paramedics;
   const paramedics = world.people.get(PARAMEDICS_ID)!;
   if (due && world.t >= due.dueT && !paramedics.onMap && !world.spawnQueue.includes(PARAMEDICS_ID)) {
     paramedics.staff!.duty = "arriving";
     world.spawnQueue.push(PARAMEDICS_ID);
   }
+}
+
+export function onCallRnArrived(world: World, rn: Person): void {
+  rn.staff!.duty = "on_shift";
+  emit(world, "on_call_rn.arrived", [rn.id], { personId: rn.id, residentId: world.onCallRn.residentId ?? "" });
+  walkTo(world, rn, "Corridor.East");
+}
+
+export function onCallRnDeparted(world: World, rn: Person): void {
+  world.onCallRn = { status: "off", arriveT: null, residentId: null };
+  emit(world, "on_call_rn.departed", [rn.id], { personId: rn.id });
 }
 
 /** Called when the paramedics appear at the exit door. */

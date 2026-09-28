@@ -139,9 +139,10 @@ describe("out-of-round call-out", () => {
 });
 
 describe("no deadlocks or rule breaks across seeds", () => {
-  it.each(["2", "3", "4"])("seed %s runs a week with no invariant violations", (seed) => {
+  it.each(["2", "3", "4"])("seed %s runs a week with no hard violations and no service breaches", (seed) => {
     const events = run(createSim({ seed, data }), 24 * 7);
     expect(ofType(events, "invariant.violated").map((e) => `${hhmm(e.t)} ${e.payload.rule} ${e.payload.details}`)).toEqual([]);
+    expect(ofType(events, "sla.breached").map((e) => `${hhmm(e.t)} ${e.payload.target} ${e.payload.details}`)).toEqual([]);
   });
 });
 

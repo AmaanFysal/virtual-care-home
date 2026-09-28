@@ -35,7 +35,7 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 7. **Rota.** A hand-written 7-day rota (`data/rota.json`). Recurring gaps are covered by two named bank carers from the home's own pool (Lucy and Shanice: know the residents, not meds-trained). Agency is used only for the 4 RN days and one lone Saturday night; generated agency carers (grey, no resident knowledge, not meds-trained) otherwise appear only for injected sickness or short staffing.
 8. **Falls.** Falls happen only through a user `inject_fall` input {resident, severity: minor | serious}.
    - **Day:** the RN attends and assesses before anyone moves the resident.
-   - **Night:** the night carer does a first check, then calls the on-call RN (the call counts as the assessment and takes a few sim minutes). If the RN clears the resident to be moved, the floating night carer is called out (decision 16), arrives within about 10 minutes, and the two lift together. If the RN says to wait for an ambulance, the carer keeps the resident comfortable on the floor (pillow, blanket) and stays with them; paramedics arrive after a seeded delay.
+   - **Night:** the night carer does a first check, then calls the on-call RN (the call counts as the assessment and takes a few sim minutes). For a **serious** fall with no RN on the wing, the on-call RN also comes over from the main building (about 10 minutes, logged as an off-map arrival) and works on the wing until the paramedics have gone; minor night falls stay phone-only. If the RN clears the resident to be moved, the floating night carer is called out (decision 16), arrives within about 10 minutes, and the two lift together. If the RN says to wait for an ambulance, the carer keeps the resident comfortable on the floor (pillow, blanket) and stays with them; paramedics arrive after a seeded delay.
    - **Outcome:** a minor fall ends with the resident back in bed or their chair. A serious fall means 999, paramedics, conveyance to hospital (the resident leaves the map and the bed shows "in hospital") and a `cqc.notification_flagged` event. The family is phoned after every fall.
    - Off-map arrivals and departures are logged as events.
 9. **Med rounds.** 08:00, 13:00 and 17:00 are done by the RN; 21:00 by the late senior before handover. Rounds can be interrupted and resume where they stopped. Each interruption adds 5 points (cap 40%) to the seeded chance each remaining dose is missed; a dose more than 60 minutes after the round time is late. Both are logged. There are no routine meds at night; a night PRN request goes through the on-call RN (not generated in Phase 1).
@@ -49,17 +49,22 @@ Status: **agreed 2026-09-28**. Tasks are in [plan.md](plan.md).
 17. **Drinks rounds** at 10:30, 15:00 and 20:00 (tea and a biscuit), plus a drink with every meal, on waking and at bedtime, so thirst is mostly met by rounds, not requests. A drink is left for anyone asleep or busy. Dennis gets fluids and mouth care at every check and turn.
 18. **Wait-time rule.** By day, help must start on every request within 30 minutes. At night, two-person and female-only requests are covered by the next floating-carer round if it is within 30 minutes (deadline: the round + 20 minutes); otherwise urgent ones (toileting, incontinence) trigger a call-out and must start within 30 minutes. Scheduled care already under way with the resident takes over a waiting request.
 
-## Invariants (every tick, in tests; logged as `invariant.violated` at runtime)
+## Invariants and service targets (checked every tick)
+
+**Hard safety invariants** (must be zero in every run, including fall runs; logged as `invariant.violated`):
 
 1. At least one on-duty care staff member on the floor (decision 4).
-2. No resident unchecked beyond their care-plan check interval. By day a check is any time a carer sees them (an explicit check, any care, or working within 6 m in the same room); at night, and always for Dennis, only a bedside check (within 1.5 m) counts and it is logged.
-3. No two-person task (Raj's transfers, a hoist lift after a fall) carried out by one person.
-4. No visitor in the staff room.
-5. Only meds-trained staff (RN, senior carers, agency nurse) administer medication.
-6. No fallen resident moved before assessment.
-7. An RN is always reachable: on the map by day, on call off the map at night.
-8. No help request waits beyond its limit (decision 18).
-9. Two people never stand on the same cell while stationary.
+2. No two-person task (Raj's transfers, a hoist lift after a fall) carried out by one person.
+3. No visitor in the staff room.
+4. Only meds-trained staff (RN, senior carers, agency nurse) administer medication.
+5. No fallen resident moved before assessment.
+6. An RN is always reachable: on the map by day, on call off the map at night.
+7. Two people never stand on the same cell while stationary.
+
+**Service targets** (reported, not failures; logged as `sla.breached` with the likely cause, e.g. "during serious fall (Stan)", and summarised by `--report`):
+
+- `request_wait`: help starts on every request within its limit (decision 18).
+- `resident_check`: nobody unchecked beyond their care-plan interval. By day a check is any time a carer sees them (an explicit check, any care, or working within 6 m in the same room); at night, and always for Dennis, only a bedside check (within 1.5 m) counts and it is logged.
 
 ## Acceptance: Phase 1 is done when
 
@@ -71,7 +76,7 @@ One sim day (Tue 06:00 → Wed 06:00), run headless and unpaced on seed 1:
 - Raj's transfers always use two staff;
 - 3 to 8 visitors are on site in mid-afternoon (14:30 to 16:30);
 - night checks happen at each resident's interval;
-- zero invariant violations;
+- zero hard safety violations in every run (including fall runs), and zero service breaches on days without a fall; fall runs may breach service targets but must report them;
 - the fall golden tests pass (06:40 and 02:00, minor and serious);
 - running the same seed twice gives a byte-identical event log.
 

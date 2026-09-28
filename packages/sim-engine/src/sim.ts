@@ -13,10 +13,10 @@ import {
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
-import { PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.js";
+import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.js";
 import { medsMinute } from "./meds.js";
 import { floatMinute } from "./float.js";
-import { checkInvariants } from "./invariants.js";
+import { breachCause, checkInvariants, checkServiceTargets } from "./invariants.js";
 import { initialNeeds, residentsMinute } from "./needs.js";
 import { createStreams, hashString } from "./rng.js";
 import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaLeaving, rotaMinute, sendIdleToPosts, staffPerson } from "./rota.js";
@@ -123,6 +123,8 @@ export function createSim(options: SimOptions): Sim {
     taskSeq: 0,
     float: { status: "off", arriveT: null, planned: false },
     paramedics: null,
+    onCallRn: { status: "off", arriveT: null, residentId: null },
+    fallLog: [],
     metrics: { floatCallouts: 0, medInterruptions: 0 },
     shiftLog: new Map(data.residents.map((r) => [r.id, { falls: 0, lateOrMissedDoses: 0, helpRequests: 0, checksDone: 0 }])),
     failing: new Set(),
@@ -143,6 +145,10 @@ export function createSim(options: SimOptions): Sim {
   paramedics.kind = "external";
   paramedics.staff!.role = "paramedic";
   addPerson(world, paramedics);
+  const onCall = staffPerson({ id: ON_CALL_RN_ID, name: "On-call Nurse", gender: "female", walk_speed_mps: 1.2, role: "registered_nurse", competencies: ["meds_trained", "fall_assessment", "moving_handling"] });
+  onCall.kind = "external";
+  onCall.initials = "RN";
+  addPerson(world, onCall);
   placeInitialStaff(world);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
 
@@ -199,13 +205,20 @@ export function createSim(options: SimOptions): Sim {
   };
 }
 
-/** Logs a violation when a rule starts failing (not on every tick it stays failing). */
+/** Logs a hard violation or a service breach when it starts (not on every tick it continues). */
 function logInvariants(world: World): void {
-  const now = new Map(checkInvariants(world).map((v) => [v.key ? `${v.rule}:${v.key}` : v.rule, v]));
-  for (const [key, v] of now) {
+  const now = new Set<string>();
+  for (const v of checkInvariants(world)) {
+    const key = v.key ? `${v.rule}:${v.key}` : v.rule;
+    now.add(key);
     if (!world.failing.has(key)) emit(world, "invariant.violated", [], { rule: v.rule, details: v.details });
   }
-  world.failing = new Set(now.keys());
+  for (const b of checkServiceTargets(world)) {
+    const key = `${b.target}:${b.key}`;
+    now.add(key);
+    if (!world.failing.has(key)) emit(world, "sla.breached", [b.residentId], { target: b.target, residentId: b.residentId, details: b.details, cause: breachCause(world) });
+  }
+  world.failing = now;
 }
 
 export function toView(p: Person): PersonView {

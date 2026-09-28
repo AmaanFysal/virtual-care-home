@@ -1,5 +1,9 @@
-// Per-tick invariants (spec "Invariants", docs/11). The engine logs `invariant.violated` when a
-// rule starts failing; tests call `checkInvariants` directly every tick.
+// Per-tick checks (spec "Invariants", docs/11), in two classes:
+// - Hard safety invariants must hold in every run, including fall runs; the engine logs
+//   `invariant.violated` when one starts failing.
+// - Service targets (request waits, check intervals) are reported, not failures; the engine logs
+//   `sla.breached` with the likely cause (e.g. during a serious fall).
+// Tests call both functions every tick.
 
 import { cellAt } from "./world/grid.js";
 import { floorCovered } from "./floor.js";
@@ -48,33 +52,41 @@ export function checkInvariants(world: World): Violation[] {
     if (p.kind === "visitor" && p.onMap && p.roomId === "StaffRoom") out.push({ rule: "no_visitors_in_staff_room", details: p.id });
   }
 
-  // Nobody goes unchecked beyond their care-plan interval (the interval in force at their last check).
-  for (const p of people) {
+  return out;
+}
+
+export interface Breach {
+  target: "request_wait" | "resident_check";
+  residentId: string;
+  key: string;
+  details: string;
+}
+
+/** Service targets: every request helped within its limit; everyone checked within their interval. */
+export function checkServiceTargets(world: World): Breach[] {
+  const out: Breach[] = [];
+  for (const p of world.order.map((id) => world.people.get(id)!)) {
     const res = p.resident;
     if (!res || !p.onMap) continue;
     const interval = checkInterval(res);
-    const overdue = world.t - res.lastCheckedT - interval * 60;
-    if (overdue > 0) out.push({ rule: "resident_check", key: p.id, details: `${p.id} unchecked for ${Math.round((world.t - res.lastCheckedT) / 60)} min (interval ${interval})` });
-  }
-
-  // Only meds-trained staff give medication.
-  for (const task of world.tasks.values()) {
-    if (task.kind !== "med_round" || task.status !== "active") continue;
-    for (const id of task.assigned) {
-      if (!isMedsTrained(world.people.get(id)!)) out.push({ rule: "meds_trained", key: task.id, details: `${id} on ${task.label}` });
+    if (world.t - res.lastCheckedT > interval * 60) {
+      out.push({ target: "resident_check", residentId: p.id, key: p.id, details: `${p.id} unchecked for ${Math.round((world.t - res.lastCheckedT) / 60)} min (interval ${interval})` });
     }
   }
-
-  // Nobody moves a fallen resident before they have been assessed.
-  for (const p of people) {
-    const fall = p.resident?.fall;
-    if (fall && !fall.assessed && (p.posture !== "on_floor" || p.move)) out.push({ rule: "fall_moved_before_assessment", key: p.id, details: `${p.id} moved before assessment` });
-  }
-
-  // The wait-time rule: help has started on every request by its deadline.
   for (const task of world.tasks.values()) {
     if (!task.request || task.startedT !== null || task.deadlineT === null || world.t <= task.deadlineT) continue;
-    out.push({ rule: "request_wait", key: task.id, details: `${task.label} waiting ${Math.round((world.t - task.createdT) / 60)} min` });
+    out.push({ target: "request_wait", residentId: task.residentId!, key: task.id, details: `${task.label} waiting ${Math.round((world.t - task.createdT) / 60)} min` });
   }
   return out;
 }
+
+/** Why a target was probably missed: a fall in progress, or one in the last two hours. */
+export function breachCause(world: World): string {
+  const name = (id: string) => world.people.get(id)!.name.split(" ")[0];
+  const ongoing = world.fallLog.find((f) => f.endT === null);
+  if (ongoing) return `during ${ongoing.severity} fall (${name(ongoing.residentId)})`;
+  const recent = world.fallLog.findLast((f) => f.endT !== null && world.t - f.endT < 2 * 3600);
+  if (recent) return `after ${recent.severity} fall (${name(recent.residentId)})`;
+  return "no emergency";
+}
+

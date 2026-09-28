@@ -92,7 +92,14 @@ export interface EventPayloads {
   "visit.ended": { visitorId: string; residentId: string };
   "visitor.signed_out": { visitorId: string };
 
+  "on_call_rn.called": { residentId: string; reason: string };
+  "on_call_rn.arrived": { personId: string; residentId: string };
+  "on_call_rn.departed": { personId: string };
+
+  /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
+  /** A service target was missed: reported, not a failure (docs/11). */
+  "sla.breached": { target: "request_wait" | "resident_check"; residentId: string; details: string; cause: string };
 }
 
 export type EventType = keyof EventPayloads;

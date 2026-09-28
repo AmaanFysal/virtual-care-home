@@ -9,6 +9,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 ## Done
 
 - M0: spec, plan, ADR-0001 (5 s tick), ADR-0002 (SQLite); docs 01, 02, 03, 05, 07 filled; Node pinned to >= 22.13.
+- M5 review: on-call RN comes over for serious falls with no RN on the wing; invariants split into hard safety rules (`invariant.violated`, must be zero) and service targets (`sla.breached` with cause, reported). 65 fall runs: 0 hard, 1 service breach; 8 no-fall weeks: 0 and 0.
 - M5: medication rounds (RN 08:00/13:00/17:00, late lead 21:00; interruptible, missed-dose chance rising with interruptions, late after 60 min), fall response by day (RN attends) and night (on-call RN by phone, floating carer lifts or covers), paramedics and conveyance to hospital with CQC flag, family and incident logging, post-fall checks; `meds_trained` and `fall_moved_before_assessment` invariants; golden tests; inject-fall buttons and "in hospital" bed label in the browser. 77 tests.
 - M4b: care schedule (morning and bedtime care, three meals with intake charting, drinks rounds at 10:30/15:00/20:00, Peggy's prompted toileting, checks with observation, Dennis's 2-hourly turns with fluids and mouth care), floating night carer rounds and call-outs, wait-time rule, `resident_check` and `request_wait` invariants, `--report`. About 13 requests a day (~48% toileting), longest wait 21 min, zero violations over a week on 8 seeds. 58 tests.
 - M4a: resident needs and sleep, self-toileting, help requests, utility-based task matching (two-person and female-only rules), behaviour-tree runtime, handovers with floor cover and briefing, staggered breaks, staying on until relieved, standing spots, per-tick invariants logged by the engine, inspector detail (needs, workload, BT node). Bank carers Lucy and Shanice replace recurring agency carer slots. 44 tests including a checked week and a throughput budget.
@@ -44,7 +45,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 
 ## Blockers and open questions
 
-- **Decision needed:** during a serious night fall, a two-person request can wait past 30 minutes (only one pair of hands free). Should the on-call RN come over for emergencies, or do we accept and report it? (docs/12)
+- None open.
 
 
 ## Session log
@@ -58,3 +59,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. M0 to M5 done. Next: M6 (visitors)
 | 2026-09-28 | M4b care schedule, drinks rounds, floating night carer, wait-time rule, check invariant, request report | spec, 04, 05, 07, 11, CLAUDE.md, PROGRESS |
 | 2026-09-28 | M4b review: bedside-only checks at night and for Dennis, handover rounds, handover deadlock fix, need-rate tuning record, float time-on-site report | spec, 04, 05, PROGRESS |
 | 2026-09-28 | M5 med rounds, falls, paramedics, golden tests; stress runs and fixes | spec, 04, 05, 07, 11, 12, PROGRESS |
+| 2026-09-28 | M5 review: on-call RN for serious night falls; hard invariants vs service targets | spec, 05, 07, 11, 12, PROGRESS |

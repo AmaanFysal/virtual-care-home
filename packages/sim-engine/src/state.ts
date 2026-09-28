@@ -188,6 +188,10 @@ export interface World {
   rnOnCall: boolean;
   agencyCount: number;
   float: FloatState;
+  /** The on-call RN coming over from the main building for a serious fall. */
+  onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
+  /** Recent falls, for explaining missed service targets. */
+  fallLog: { residentId: string; severity: "minor" | "serious"; t: number; endT: number | null }[];
   /** Paramedics on their way to a fall (off-map until due). */
   paramedics: { taskId: string; dueT: number } | null;
   metrics: { floatCallouts: number; medInterruptions: number };

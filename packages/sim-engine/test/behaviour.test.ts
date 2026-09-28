@@ -91,9 +91,13 @@ describe("a week on the wing (seed 1)", () => {
     for (const v of checkInvariants(s.world)) violations.push(`${clock(s.t)} ${v.rule}: ${v.details}`);
   });
 
-  it("never breaks an invariant (floor cover, standing spots, two-person care, RN reachable, checks, request waits)", () => {
+  it("never breaks a hard safety invariant", () => {
     expect(violations.slice(0, 5)).toEqual([]);
     expect(ofType(events, "invariant.violated")).toEqual([]);
+  });
+
+  it("meets every service target on days without a fall (checks on time, requests within limit)", () => {
+    expect(ofType(events, "sla.breached").map((e) => e.payload.details)).toEqual([]);
   });
 
   it("hands over three times a day, with the floor covered", () => {

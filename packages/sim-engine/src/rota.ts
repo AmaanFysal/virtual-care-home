@@ -16,7 +16,7 @@ import {
 import { emit } from "./emit.js";
 import { coveredWithout } from "./floor.js";
 import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
-import { PARAMEDICS_ID, paramedicsArrived } from "./falls.js";
+import { ON_CALL_RN_ID, PARAMEDICS_ID, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
 import { floatArrived, floatDeparted } from "./float.js";
 import { coverableOnSite } from "./nightcover.js";
 import { createHandover, idleStaff } from "./tasks.js";
@@ -297,6 +297,10 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       paramedicsArrived(world, person);
       continue;
     }
+    if (person.id === ON_CALL_RN_ID) {
+      onCallRnArrived(world, person);
+      continue;
+    }
     const a = person.staff?.shift;
     if (a) walkTo(world, person, a.started ? postFor(a) : freeStaffRoomSeat(world));
   }
@@ -307,6 +311,7 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       person.staff.duty = "off";
       person.staff.shift = null;
       if (person.id === world.data.rota.night_float.id) floatDeparted(world, person);
+      if (person.id === ON_CALL_RN_ID) onCallRnDeparted(world, person);
     }
   }
 }

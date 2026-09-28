@@ -26,13 +26,21 @@ Tooling: Vitest (`pnpm test`), TypeScript (`pnpm typecheck`).
 | `apps/server/test/runner.test.ts` | Snapshot on connect, pacing, compact deltas, SQLite logging, input logging before apply, command parsing, inspect detail |
 | `apps/web/test/store.test.ts` | Store folding of snapshot and deltas, night dimming curve |
 
-## Invariants implemented (`packages/sim-engine/src/invariants.ts`)
+## Invariants and service targets (`packages/sim-engine/src/invariants.ts`)
 
-`floor_cover`, `standing_spot`, `two_person`, `rn_reachable`, `no_visitors_in_staff_room`, `resident_check` (per resident), `request_wait` (per request), `meds_trained`, `fall_moved_before_assessment`. The engine logs `invariant.violated` once when a rule starts failing (per resident or request for the keyed rules).
+- **Hard safety invariants** (`checkInvariants`, event `invariant.violated`): `floor_cover`, `standing_spot`, `two_person`, `rn_reachable`, `no_visitors_in_staff_room`, `meds_trained`, `fall_moved_before_assessment`. Must be zero in every run, including fall runs.
+- **Service targets** (`checkServiceTargets`, event `sla.breached` with a cause from `breachCause`: "during/after <severity> fall (<name>)" or "no emergency"): `request_wait`, `resident_check`. Must be zero on days without a fall; fall runs may breach them but every breach is reported.
 
-The headless CLI's `--report` flag prints help requests per care day by need, the longest wait per resident, floating-carer visits and call-outs, and the violation count.
+The headless CLI's `--report` prints help requests per care day by need, the longest wait per resident, floating-carer time on site per night, hard violations, and service breaches grouped by target and cause.
 
-## Stress runs (M5)
+## Stress runs (after the M5 review)
 
-Beyond the tests, 65 headless fall runs (13 scenarios × 5 seeds, 48 hours each) and 8 no-fall weeks were checked. The no-fall weeks have zero violations. Five fall runs log violations, all genuine staffing conflicts rather than bugs (see docs/12): a serious night fall ties up the night carer until the ambulance, so a two-person request from Raj waits past 30 minutes (4 runs), and a serious fall in the 08:00 rush once delays Dennis's hourly bedside check by 3 minutes.
+65 headless fall runs (13 scenarios × 5 seeds, 48 hours each) and 8 no-fall weeks:
+
+| | Hard violations | Service breaches |
+|---|---|---|
+| 65 fall runs | 0 | 1 (Dennis's hourly check 3 minutes late, during Win's serious fall at 08:10, seed 4) |
+| 8 no-fall weeks | 0 | 0 |
+
+With the on-call RN coming over for serious night falls, the four night-time request waits seen after M5 no longer happen.
 
