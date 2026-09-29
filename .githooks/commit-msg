@@ -1,0 +1,15 @@
+#!/bin/sh
+# Rejects commits that credit Claude (see CLAUDE.md non-negotiables).
+# Patterns live in .githooks/attribution-patterns.txt, shared with the
+# no-ai-attribution GitHub Action. Matching is case-insensitive and
+# ignores git's "#" comment lines.
+
+patterns="$(git rev-parse --show-toplevel)/.githooks/attribution-patterns.txt"
+
+matches=$(grep -v '^#' "$1" | grep -inF -f "$patterns")
+if [ -n "$matches" ]; then
+  echo "commit-msg: rejected. This repo never credits Claude in git or GitHub." >&2
+  echo "Remove these lines from the commit message:" >&2
+  echo "$matches" | sed 's/^/  /' >&2
+  exit 1
+fi

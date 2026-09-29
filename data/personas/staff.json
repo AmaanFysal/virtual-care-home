@@ -1,1 +1,615 @@
-[]
+[
+  {
+    "id": "stf_joanne",
+    "name": "Joanne Price",
+    "gender": "female",
+    "age": 52,
+    "role": "wing_manager",
+    "experience_years": 25,
+    "prior": "Care assistant, then senior carer, then deputy manager",
+    "origin": "Chelmsford, Essex",
+    "competencies": [
+      "meds_trained",
+      "moving_handling",
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "office",
+        "on_call"
+      ],
+      "sickness_propensity": 0.01
+    },
+    "personality": {
+      "conscientiousness": 0.9,
+      "agreeableness": 0.5,
+      "extraversion": 0.6,
+      "neuroticism": 0.5
+    },
+    "stress": {
+      "baseline": 0.5,
+      "rises_with": [
+        "CQC inspections",
+        "rota gaps",
+        "complaints"
+      ],
+      "coping": "long walks with her dog"
+    },
+    "care_style": "by the book, protective of the home's CQC rating, warm with families but firm",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_dave",
+        "type": "manages",
+        "tension": 0.6,
+        "note": "clashes with him over rotas and paperwork"
+      },
+      {
+        "with": "stf_sanjay",
+        "type": "manages",
+        "rapport": 0.7
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_maria",
+    "name": "Maria Santos",
+    "gender": "female",
+    "age": 41,
+    "role": "registered_nurse",
+    "experience_years": 15,
+    "prior": "Staff nurse in Manila",
+    "origin": "Manila, Philippines; in the UK since 2011",
+    "competencies": [
+      "meds_trained",
+      "fall_assessment",
+      "end_of_life_care",
+      "moving_handling",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "rn_day"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.9,
+      "agreeableness": 0.8,
+      "extraversion": 0.5,
+      "neuroticism": 0.3
+    },
+    "stress": {
+      "baseline": 0.3,
+      "rises_with": [
+        "interrupted med rounds",
+        "families arguing at the bedside"
+      ],
+      "coping": "prays, video-calls her sister in Manila"
+    },
+    "care_style": "calm clinician, unhurried at the bedside, leads end-of-life care",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_aisha",
+        "type": "mentor",
+        "rapport": 0.8
+      },
+      {
+        "with": "res_dennis",
+        "rapport": 0.8,
+        "note": "leads his end-of-life care"
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_blessing",
+    "name": "Blessing Mensah",
+    "gender": "female",
+    "age": 38,
+    "role": "senior_carer",
+    "experience_years": 10,
+    "origin": "Kumasi, Ghana; in the UK since 2012",
+    "competencies": [
+      "meds_trained",
+      "moving_handling",
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "early"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.8,
+      "agreeableness": 0.9,
+      "extraversion": 0.8,
+      "neuroticism": 0.3
+    },
+    "stress": {
+      "baseline": 0.3,
+      "rises_with": [
+        "agency staff who don't know the residents",
+        "short staffing"
+      ],
+      "coping": "gospel music on the bus home"
+    },
+    "care_style": "warm and organised; the residents' favourite",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_kasia",
+        "type": "friend",
+        "rapport": 0.9
+      },
+      {
+        "with": "res_peggy",
+        "rapport": 0.9,
+        "note": "Peggy calls her 'my Blessing'"
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_dave",
+    "name": "Dave Collins",
+    "gender": "male",
+    "age": 47,
+    "role": "senior_carer",
+    "experience_years": 9,
+    "prior": "Royal Logistic Corps, 12 years",
+    "origin": "Bow, East London",
+    "competencies": [
+      "meds_trained",
+      "moving_handling",
+      "moving_handling_trainer",
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "late",
+        "night"
+      ],
+      "sickness_propensity": 0.03
+    },
+    "personality": {
+      "conscientiousness": 0.8,
+      "agreeableness": 0.4,
+      "extraversion": 0.6,
+      "neuroticism": 0.3
+    },
+    "stress": {
+      "baseline": 0.4,
+      "rises_with": [
+        "paperwork",
+        "short staffing"
+      ],
+      "coping": "smoke break, humour"
+    },
+    "care_style": "practical, calm under pressure, blunt with families",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_joanne",
+        "type": "manager",
+        "tension": 0.6
+      },
+      {
+        "with": "stf_tom",
+        "type": "junior",
+        "rapport": 0.6,
+        "note": "protective but gruff"
+      },
+      {
+        "with": "res_stan",
+        "rapport": 0.9,
+        "note": "both from the East End, talk football"
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_kasia",
+    "name": "Kasia Nowak",
+    "gender": "female",
+    "age": 34,
+    "role": "care_assistant",
+    "experience_years": 6,
+    "origin": "Łódź, Poland; in the UK since 2014",
+    "competencies": [
+      "meds_trained",
+      "moving_handling",
+      "dementia_level2"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "early",
+        "late"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.9,
+      "agreeableness": 0.7,
+      "extraversion": 0.5,
+      "neuroticism": 0.4
+    },
+    "stress": {
+      "baseline": 0.4,
+      "rises_with": [
+        "childcare falling through",
+        "late finishes"
+      ],
+      "coping": "running on her days off"
+    },
+    "care_style": "fast and thorough; quietly fixes things; single mum so avoids nights",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_blessing",
+        "type": "friend",
+        "rapport": 0.9
+      },
+      {
+        "with": "res_raj",
+        "rapport": 0.8
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_aisha",
+    "name": "Aisha Rahman",
+    "gender": "female",
+    "age": 23,
+    "role": "care_assistant",
+    "experience_years": 2,
+    "prior": "Nursing degree apprenticeship, year 1",
+    "origin": "Tower Hamlets, East London",
+    "competencies": [
+      "moving_handling",
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "mixed"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.9,
+      "agreeableness": 0.8,
+      "extraversion": 0.5,
+      "neuroticism": 0.7
+    },
+    "stress": {
+      "baseline": 0.5,
+      "rises_with": [
+        "making a mistake",
+        "being watched by families"
+      ],
+      "coping": "texts her mum, revises her course notes"
+    },
+    "care_style": "careful and kind; double-checks everything; mentors Tom",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_tom",
+        "type": "mentor",
+        "rapport": 0.7
+      },
+      {
+        "with": "stf_maria",
+        "type": "mentee",
+        "rapport": 0.8
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_tom",
+    "name": "Tom Fletcher",
+    "gender": "male",
+    "age": 19,
+    "role": "care_assistant",
+    "experience_years": 0.25,
+    "origin": "Romford",
+    "competencies": [
+      "moving_handling",
+      "care_certificate_in_progress"
+    ],
+    "contract": {
+      "hours_per_week": 30,
+      "patterns": [
+        "mixed"
+      ],
+      "sickness_propensity": 0.08
+    },
+    "personality": {
+      "conscientiousness": 0.4,
+      "agreeableness": 0.7,
+      "extraversion": 0.7,
+      "neuroticism": 0.5
+    },
+    "stress": {
+      "baseline": 0.4,
+      "rises_with": [
+        "residents who shout",
+        "early starts"
+      ],
+      "coping": "gaming, five-a-side with mates"
+    },
+    "care_style": "friendly and chatty, still learning, cuts corners when rushed; sometimes calls in sick on Mondays",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_aisha",
+        "type": "mentee",
+        "rapport": 0.7
+      },
+      {
+        "with": "stf_dave",
+        "type": "senior",
+        "rapport": 0.6
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_florin",
+    "name": "Florin Popescu",
+    "gender": "male",
+    "age": 45,
+    "role": "care_assistant",
+    "experience_years": 8,
+    "origin": "Iași, Romania; in the UK since 2016",
+    "competencies": [
+      "moving_handling",
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 40,
+      "patterns": [
+        "night"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.8,
+      "agreeableness": 0.8,
+      "extraversion": 0.3,
+      "neuroticism": 0.3
+    },
+    "stress": {
+      "baseline": 0.3,
+      "rises_with": [
+        "fatigue after 04:00",
+        "two emergencies at once on his own"
+      ],
+      "coping": "strong coffee, quiet"
+    },
+    "care_style": "quiet and patient; knows every resident's sleep pattern",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "res_stan",
+        "rapport": 0.7,
+        "note": "talks him back to bed at night"
+      },
+      {
+        "with": "stf_dave",
+        "type": "colleague",
+        "rapport": 0.6
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_bev",
+    "name": "Bev Harris",
+    "gender": "female",
+    "age": 58,
+    "role": "activities_coordinator",
+    "experience_years": 7,
+    "prior": "Drama teacher, 25 years",
+    "origin": "Leytonstone, East London",
+    "competencies": [
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 30,
+      "patterns": [
+        "office"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "openness": 0.9,
+      "extraversion": 0.9,
+      "agreeableness": 0.8,
+      "neuroticism": 0.4
+    },
+    "stress": {
+      "baseline": 0.3,
+      "rises_with": [
+        "activities being cancelled",
+        "Arthur stuck indoors"
+      ],
+      "coping": "choir practice"
+    },
+    "care_style": "theatrical and warm; runs music and reminiscence; fights for Arthur to get out",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "res_arthur",
+        "rapport": 0.9
+      },
+      {
+        "with": "stf_joanne",
+        "type": "manager",
+        "rapport": 0.6
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_sanjay",
+    "name": "Sanjay Mehta",
+    "gender": "male",
+    "age": 30,
+    "role": "receptionist",
+    "experience_years": 4,
+    "origin": "Harrow, North West London",
+    "competencies": [
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 37.5,
+      "patterns": [
+        "reception"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.6,
+      "agreeableness": 0.8,
+      "extraversion": 0.7,
+      "neuroticism": 0.3
+    },
+    "stress": {
+      "baseline": 0.3,
+      "rises_with": [
+        "complaints at the desk"
+      ],
+      "coping": "cricket podcasts"
+    },
+    "care_style": "the friendly first face of the home; absorbs complaints; knows all the family news",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_joanne",
+        "type": "manager",
+        "rapport": 0.7
+      },
+      {
+        "with": "vis_linda",
+        "rapport": 0.6,
+        "note": "she stops for a chat at the desk"
+      }
+    ],
+    "employment": "permanent"
+  },
+  {
+    "id": "stf_lucy",
+    "name": "Lucy Brennan",
+    "gender": "female",
+    "age": 44,
+    "role": "care_assistant",
+    "employment": "bank",
+    "experience_years": 12,
+    "prior": "Care assistant in the home for eight years before going bank to fit around her own children",
+    "origin": "Kilburn, North West London",
+    "competencies": [
+      "moving_handling",
+      "dementia_level2",
+      "first_aid"
+    ],
+    "contract": {
+      "hours_per_week": 0,
+      "patterns": [
+        "bank"
+      ],
+      "sickness_propensity": 0.02
+    },
+    "personality": {
+      "conscientiousness": 0.8,
+      "agreeableness": 0.8,
+      "extraversion": 0.6,
+      "neuroticism": 0.3
+    },
+    "stress": {
+      "baseline": 0.3,
+      "rises_with": [
+        "not knowing what changed since her last shift"
+      ],
+      "coping": "a quick catch-up with Blessing"
+    },
+    "care_style": "steady and familiar; knows the residents' routines from years on the wing",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_blessing",
+        "type": "former colleague",
+        "rapport": 0.8
+      },
+      {
+        "with": "res_peggy",
+        "rapport": 0.7
+      }
+    ]
+  },
+  {
+    "id": "stf_shanice",
+    "name": "Shanice Clarke",
+    "gender": "female",
+    "age": 29,
+    "role": "care_assistant",
+    "employment": "bank",
+    "experience_years": 4,
+    "prior": "Domiciliary carer",
+    "origin": "Lewisham, South East London",
+    "competencies": [
+      "moving_handling",
+      "dementia_level2"
+    ],
+    "contract": {
+      "hours_per_week": 0,
+      "patterns": [
+        "bank"
+      ],
+      "sickness_propensity": 0.03
+    },
+    "personality": {
+      "conscientiousness": 0.7,
+      "agreeableness": 0.8,
+      "extraversion": 0.8,
+      "neuroticism": 0.4
+    },
+    "stress": {
+      "baseline": 0.4,
+      "rises_with": [
+        "weekend short staffing",
+        "families asking things she doesn't know"
+      ],
+      "coping": "music on the walk home"
+    },
+    "care_style": "cheerful and chatty; good at getting residents talking",
+    "walk_speed_mps": 1.2,
+    "relationships": [
+      {
+        "with": "stf_dave",
+        "type": "colleague",
+        "rapport": 0.6
+      },
+      {
+        "with": "res_win",
+        "rapport": 0.7
+      }
+    ]
+  }
+]

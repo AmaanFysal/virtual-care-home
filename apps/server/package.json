@@ -7,7 +7,18 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
   },
-  "dependencies": { "@vch/shared-types": "workspace:*", "@vch/sim-engine": "workspace:*" }
+  "dependencies": {
+    "@fastify/websocket": "^11",
+    "@vch/shared-types": "workspace:*",
+    "@vch/sim-engine": "workspace:*",
+    "fastify": "^5"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.15"
+  }
 }

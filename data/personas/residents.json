@@ -1,1 +1,373 @@
-[]
+[
+  {
+    "id": "res_peggy",
+    "name": { "first": "Margaret", "known_as": "Peggy", "last": "Holloway" },
+    "gender": "female",
+    "dob": "1937-03-14",
+    "room": "Room1.BedA",
+    "admitted": "2025-11-02",
+    "origin": "Hackney, East London",
+    "faith": "Church of England (not practising)",
+    "languages": ["English"],
+    "conditions": ["Alzheimer's disease (moderate)", "urinary incontinence", "osteoarthritis of both knees"],
+    "life_story": [
+      "Born in Hackney in 1937; evacuated to Norfolk as a small child in 1940",
+      "School dinner lady at a Hackney primary school, 1962-1997",
+      "Married Ron Holloway in 1958; widowed in 2016",
+      "Loved dancing at the Hackney Palais on Saturday nights",
+      "Two children: Linda (born 1964) and Gary (born 1968)"
+    ],
+    "personality": { "openness": 0.5, "conscientiousness": 0.7, "extraversion": 0.8, "agreeableness": 0.7, "neuroticism": 0.6 },
+    "speech_style": "Warm East London voice, calls everyone 'love', repeats questions, especially about Ron and the cat",
+    "cognition": {
+      "diagnosis": "Alzheimer's disease",
+      "stage": "moderate",
+      "capacity": { "daily_choices": true, "finances": false, "treatment": "decision-specific" },
+      "memory_profile": { "recent_retention_hours": 2, "time_anchor_at_dusk": 1972, "misidentification_rate": 0.15 },
+      "sundowning": { "onset": "16:00", "severity": 0.6 }
+    },
+    "mobility": { "aid": "zimmer frame", "transfer": "1 staff standby", "falls_risk": "high", "walk_speed_mps": 0.4 },
+    "continence": "urinary incontinence, pads, prompted toileting 2-hourly",
+    "nutrition": {
+      "diet": "normal, fortified",
+      "fluids_target_ml": 1500,
+      "likes": ["tea, 3 sugars", "custard creams"],
+      "dislikes": ["fish"]
+    },
+    "medication_rounds": ["08:00", "13:00", "17:00", "21:00"],
+    "routine": { "wake": "07:30", "bed": "21:00", "nap": "14:00" },
+    "preferences": ["music: Vera Lynn, Elvis", "cardigan buttoned up", "female carers only for personal care"],
+    "legal": { "dnacpr": false, "lpa_health": "vis_linda", "dols": "granted 2026-01" },
+    "staff_relationships": [
+      { "staff": "stf_blessing", "trust": 0.9, "note": "calls her 'my Blessing'" },
+      { "staff": "stf_tom", "trust": 0.4 }
+    ],
+    "goals": ["find Ron", "go home to feed the cat"],
+    "triggers": ["loud voices", "men in the room at night"],
+    "care": {
+      "personal_care_staff": 1,
+      "personal_care_mins": 20,
+      "transfer_staff": 1,
+      "transfer_method": "standby",
+      "bed_bound": false,
+      "female_carers_only": true,
+      "check_interval_mins": { "day": 60, "night": 60 },
+      "reposition_interval_mins": { "day": null, "night": null },
+      "can_request_help": true,
+      "toileting": "prompted",
+      "prompted_toileting_hours": 2,
+      "eating_support": "prompting",
+      "lounge": { "lunch": true, "tea": true, "escort": true, "likes": ["chatting", "tv"] },
+      "next_of_kin": "vis_linda"
+    }
+  },
+  {
+    "id": "res_win",
+    "name": { "first": "Winifred", "known_as": "Win", "last": "Adeyemi" },
+    "gender": "female",
+    "dob": "1942-05-21",
+    "room": "Room1.BedB",
+    "admitted": "2025-06-16",
+    "origin": "Born in Ibadan, Nigeria; came to London in 1962; lived in Peckham for 50 years",
+    "faith": "Pentecostal Christian",
+    "languages": ["English", "Yoruba"],
+    "conditions": ["vascular dementia (mild)", "heart failure", "type 2 diabetes"],
+    "life_story": [
+      "Came to London in 1962 and trained as a nurse, then a midwife",
+      "NHS midwife at King's College Hospital, 1966-2004; says she delivered 'more babies than I can count'",
+      "Married Samuel Adeyemi in 1965; widowed in 2011",
+      "Two children: Funmi (born 1968) and Tunde (born 1971)",
+      "Sang in her church choir for 40 years"
+    ],
+    "personality": { "openness": 0.6, "conscientiousness": 0.9, "extraversion": 0.6, "agreeableness": 0.6, "neuroticism": 0.4 },
+    "speech_style": "Precise and warm; gives gentle instructions the way she did as a midwife; speaks Yoruba with family, more so when tired",
+    "cognition": {
+      "diagnosis": "vascular dementia",
+      "stage": "mild",
+      "capacity": { "daily_choices": true, "finances": true, "treatment": "decision-specific" },
+      "memory_profile": { "recent_retention_hours": 12, "time_anchor_at_dusk": null, "misidentification_rate": 0.05 },
+      "sundowning": null
+    },
+    "mobility": { "aid": "walking stick", "transfer": "independent", "falls_risk": "medium", "walk_speed_mps": 0.5 },
+    "continence": "continent; needs the toilet more often on the mornings she takes her water tablet",
+    "nutrition": {
+      "diet": "diabetic (reduced sugar), low salt",
+      "fluids_target_ml": 1300,
+      "fluid_limit_ml": 1500,
+      "likes": ["jollof rice when family bring it", "plantain", "hot tea, no sugar"],
+      "dislikes": ["bland food", "being rushed at meals"]
+    },
+    "medication_rounds": ["08:00", "13:00", "17:00", "21:00"],
+    "routine": { "wake": "07:00", "bed": "21:30", "nap": "13:30" },
+    "preferences": ["gospel music on Sunday mornings", "her headscarf tied properly", "new staff call her Mrs Adeyemi until invited otherwise"],
+    "legal": { "dnacpr": false, "dnacpr_note": "Under discussion: Funmi and Tunde disagree", "lpa_health": "vis_funmi", "dols": null },
+    "staff_relationships": [
+      { "staff": "stf_maria", "trust": 0.8, "note": "talks shop about nursing and midwifery" },
+      { "staff": "stf_blessing", "trust": 0.7 }
+    ],
+    "goals": ["get to church on Sunday", "see Kayode finish his course"],
+    "triggers": ["being talked over", "staff not washing their hands"],
+    "care": {
+      "personal_care_staff": 1,
+      "personal_care_mins": 20,
+      "transfer_staff": 0,
+      "transfer_method": "independent",
+      "bed_bound": false,
+      "female_carers_only": false,
+      "check_interval_mins": { "day": 120, "night": 120 },
+      "reposition_interval_mins": { "day": null, "night": null },
+      "can_request_help": true,
+      "toileting": "independent",
+      "eating_support": "independent",
+      "glucose_check_before_breakfast": true,
+      "lounge": { "lunch": true, "tea": true, "escort": false, "likes": ["chatting", "reading"] },
+      "next_of_kin": "vis_funmi"
+    }
+  },
+  {
+    "id": "res_arthur",
+    "name": { "first": "Arthur", "known_as": "Arthur", "last": "Pemberton" },
+    "gender": "male",
+    "dob": "1935-01-19",
+    "room": "Room2.BedA",
+    "admitted": "2024-09-09",
+    "origin": "Swindon; later RAF bases across the UK and West Germany",
+    "faith": "Church of England",
+    "languages": ["English"],
+    "conditions": ["Parkinson's disease (time-critical medication)", "hearing loss"],
+    "life_story": [
+      "National Service in the RAF in 1953; stayed on as an aircraft engineer until 1985",
+      "Worked on Vulcan bombers at RAF Waddington",
+      "Married Joan in 1960; widowed in 2019; no children",
+      "Built model aircraft in his garage for 30 years",
+      "His nephew Colin is his only close family"
+    ],
+    "personality": { "openness": 0.5, "conscientiousness": 0.9, "extraversion": 0.3, "agreeableness": 0.5, "neuroticism": 0.4 },
+    "speech_style": "Precise, dry humour, the odd bit of RAF slang; proud and dislikes fuss",
+    "cognition": {
+      "diagnosis": null,
+      "stage": null,
+      "capacity": { "daily_choices": true, "finances": true, "treatment": "full capacity" },
+      "memory_profile": { "recent_retention_hours": null, "time_anchor_at_dusk": null, "misidentification_rate": 0 },
+      "sundowning": null
+    },
+    "mobility": { "aid": "rollator", "transfer": "independent", "falls_risk": "medium", "walk_speed_mps": 0.45 },
+    "continence": "continent",
+    "nutrition": {
+      "diet": "normal",
+      "fluids_target_ml": 1600,
+      "likes": ["Battenberg cake", "a crossword with his tea"],
+      "dislikes": ["being given a beaker", "soup"]
+    },
+    "medication_rounds": ["08:00", "13:00", "17:00", "21:00"],
+    "routine": { "wake": "06:30", "bed": "22:30", "nap": "14:30" },
+    "preferences": ["shower on Monday mornings", "the Telegraph crossword", "his chair turned towards the window", "not disturbed at night more than necessary (agreed 4-hourly night checks)"],
+    "legal": { "dnacpr": true, "dnacpr_note": "His own decision, made with capacity in 2025", "lpa_health": null, "dols": null },
+    "staff_relationships": [
+      { "staff": "stf_bev", "trust": 0.9, "note": "she keeps pushing him to get out" },
+      { "staff": "stf_dave", "trust": 0.7, "note": "forces talk" }
+    ],
+    "goals": ["visit the RAF Museum at Hendon once more", "finish the crossword before lunch"],
+    "triggers": ["being talked down to", "noise at night"],
+    "care": {
+      "personal_care_staff": 1,
+      "personal_care_mins": 15,
+      "transfer_staff": 0,
+      "transfer_method": "independent",
+      "bed_bound": false,
+      "female_carers_only": false,
+      "check_interval_mins": { "day": 120, "night": 240 },
+      "reposition_interval_mins": { "day": null, "night": null },
+      "can_request_help": true,
+      "toileting": "independent",
+      "eating_support": "independent",
+      "shower_day": "Mon",
+      "time_critical_meds": true,
+      "lounge": { "lunch": false, "tea": false, "escort": false, "likes": ["puzzles", "reading"] },
+      "next_of_kin": "vis_colin"
+    }
+  },
+  {
+    "id": "res_raj",
+    "name": { "first": "Rajinder", "known_as": "Raj", "last": "Sandhu" },
+    "gender": "male",
+    "dob": "1947-08-02",
+    "room": "Room2.BedB",
+    "admitted": "2026-02-10",
+    "origin": "Born in Jalandhar, Punjab; came to Southall in 1965",
+    "faith": "Sikh",
+    "languages": ["Punjabi", "English"],
+    "conditions": ["stroke (2025) with left-sided weakness", "expressive aphasia", "dysphagia (soft diet)", "type 2 diabetes (tablets)"],
+    "life_story": [
+      "Came to Southall aged 18 in 1965",
+      "London bus driver, 1970-2010, mostly on the 207 along the Uxbridge Road",
+      "Married Kuldip in 1970",
+      "Son Harpreet (born 1974); grandchildren Arjun and Priya",
+      "Played kabaddi when young and has followed cricket all his life"
+    ],
+    "personality": { "openness": 0.5, "conscientiousness": 0.7, "extraversion": 0.7, "agreeableness": 0.8, "neuroticism": 0.5 },
+    "speech_style": "Understands well but since the stroke speaks in single words and gestures; Punjabi with family; frustrated when rushed, laughs easily",
+    "cognition": {
+      "diagnosis": null,
+      "stage": null,
+      "capacity": { "daily_choices": true, "finances": true, "treatment": "has capacity; needs communication support" },
+      "memory_profile": { "recent_retention_hours": null, "time_anchor_at_dusk": null, "misidentification_rate": 0 },
+      "sundowning": null
+    },
+    "mobility": { "aid": "hoist and wheelchair", "transfer": "2 staff, hoist", "falls_risk": "medium", "walk_speed_mps": 0 },
+    "continence": "doubly incontinent since the stroke; pads; changed in bed by two staff",
+    "nutrition": {
+      "diet": "soft and bite-sized (IDDSI level 6), diabetic",
+      "fluids_target_ml": 1600,
+      "likes": ["Kuldip's dal", "sweet tea with sweetener"],
+      "dislikes": ["food that 'looks like nothing'"]
+    },
+    "medication_rounds": ["08:00", "13:00", "17:00", "21:00"],
+    "routine": { "wake": "06:30", "bed": "20:00", "nap": "14:00" },
+    "preferences": ["turban tied by Kuldip or a carer she has shown how", "Punjabi radio in the afternoon", "cricket scores"],
+    "legal": { "dnacpr": false, "lpa_health": "vis_harpreet", "dols": null },
+    "staff_relationships": [
+      { "staff": "stf_kasia", "trust": 0.8, "note": "quick and gentle with the hoist" },
+      { "staff": "stf_aisha", "trust": 0.7 }
+    ],
+    "goals": ["walk again", "be home for Vaisakhi"],
+    "triggers": ["being rushed", "people speaking for him"],
+    "care": {
+      "personal_care_staff": 2,
+      "personal_care_mins": 25,
+      "transfer_staff": 2,
+      "transfer_method": "hoist",
+      "bed_bound": false,
+      "female_carers_only": false,
+      "check_interval_mins": { "day": 120, "night": 120 },
+      "reposition_interval_mins": { "day": null, "night": 240 },
+      "can_request_help": true,
+      "toileting": "assisted",
+      "eating_support": "assisted",
+      "next_of_kin": "vis_kuldip"
+    }
+  },
+  {
+    "id": "res_stan",
+    "name": { "first": "Stanley", "known_as": "Stan", "last": "Brooks" },
+    "gender": "male",
+    "dob": "1944-02-11",
+    "room": "Room2.BedC",
+    "admitted": "2025-03-03",
+    "origin": "Bethnal Green, East London",
+    "faith": "none",
+    "languages": ["English"],
+    "conditions": ["dementia with Lewy bodies", "visual hallucinations", "night wandering"],
+    "life_story": [
+      "Fruit and veg trader on Roman Road market, 1960-2009",
+      "Married Sheila in 1966, divorced in 1985; daughter Tracey (born 1968)",
+      "Married Maureen in 1990",
+      "West Ham season-ticket holder for 50 years",
+      "Known on the market for his patter and for slipping extra fruit to kids"
+    ],
+    "personality": { "openness": 0.6, "conscientiousness": 0.4, "extraversion": 0.9, "agreeableness": 0.6, "neuroticism": 0.5 },
+    "speech_style": "Quick East End market patter; becomes urgent and repetitive when he thinks he must go and open the stall",
+    "cognition": {
+      "diagnosis": "dementia with Lewy bodies",
+      "stage": "moderate",
+      "capacity": { "daily_choices": true, "finances": false, "treatment": "decision-specific" },
+      "memory_profile": { "recent_retention_hours": 4, "time_anchor_at_dusk": 1975, "misidentification_rate": 0.2 },
+      "sundowning": { "onset": "16:30", "severity": 0.7 },
+      "hallucinations": "sees animals and small children in the room, mostly at night"
+    },
+    "mobility": { "aid": "none (shuffling gait)", "transfer": "independent", "falls_risk": "high", "walk_speed_mps": 0.6 },
+    "continence": "urinary urgency; toilets himself but sometimes can't find the WC at night",
+    "nutrition": {
+      "diet": "normal",
+      "fluids_target_ml": 1500,
+      "likes": ["pie and mash", "strong tea"],
+      "dislikes": ["soggy veg"]
+    },
+    "medication_rounds": ["08:00", "13:00", "17:00", "21:00"],
+    "routine": { "wake": "08:00", "bed": "22:00", "nap": "15:00" },
+    "preferences": ["West Ham results", "Dave for personal care when possible", "corridor light left on at night"],
+    "legal": { "dnacpr": false, "lpa_health": "vis_maureen", "dols": "granted 2025-06" },
+    "staff_relationships": [
+      { "staff": "stf_dave", "trust": 0.9, "note": "both from the East End, talk football" },
+      { "staff": "stf_florin", "trust": 0.7, "note": "calms him at night" }
+    ],
+    "goals": ["get to the market to open up", "see West Ham win"],
+    "triggers": ["being argued with", "dark rooms", "crowds"],
+    "care": {
+      "personal_care_staff": 1,
+      "personal_care_mins": 20,
+      "transfer_staff": 0,
+      "transfer_method": "independent",
+      "bed_bound": false,
+      "female_carers_only": false,
+      "check_interval_mins": { "day": 60, "night": 60 },
+      "reposition_interval_mins": { "day": null, "night": null },
+      "can_request_help": true,
+      "toileting": "independent",
+      "eating_support": "independent",
+      "night_wandering": true,
+      "lounge": { "lunch": true, "tea": true, "escort": true, "likes": ["tv", "chatting"] },
+      "next_of_kin": "vis_maureen"
+    }
+  },
+  {
+    "id": "res_dennis",
+    "name": { "first": "Dennis", "known_as": "Dennis", "last": "Hart" },
+    "gender": "male",
+    "dob": "1939-06-24",
+    "room": "Room2.BedD",
+    "admitted": "2024-01-15",
+    "origin": "Walthamstow; later Chingford",
+    "faith": "Roman Catholic",
+    "languages": ["English"],
+    "conditions": ["Alzheimer's disease (advanced)", "end of life (weeks)", "at risk of pressure ulcers"],
+    "life_story": [
+      "Printer on Fleet Street, 1955-1986",
+      "Married Eileen in 1962; widowed in 2015",
+      "Two children: Sarah (born 1965) and Paul (born 1968)",
+      "Sang in the parish choir; Father Michael has known him for 20 years",
+      "Kept racing pigeons in his back garden"
+    ],
+    "personality": { "openness": 0.5, "conscientiousness": 0.7, "extraversion": 0.5, "agreeableness": 0.8, "neuroticism": 0.3 },
+    "speech_style": "No longer speaks in sentences; responds to touch, familiar voices and hymns",
+    "cognition": {
+      "diagnosis": "Alzheimer's disease",
+      "stage": "advanced",
+      "capacity": { "daily_choices": false, "finances": false, "treatment": "lacks capacity; best-interests decisions" },
+      "memory_profile": { "recent_retention_hours": 0, "time_anchor_at_dusk": null, "misidentification_rate": 0 },
+      "sundowning": null
+    },
+    "mobility": { "aid": "none (bed-bound)", "transfer": "2 staff, slide sheet", "falls_risk": "low", "walk_speed_mps": 0 },
+    "continence": "doubly incontinent; pads; changed in bed by two staff",
+    "nutrition": {
+      "diet": "comfort feeding only; sips of thickened fluid",
+      "fluids_target_ml": 500,
+      "likes": ["sips of sweet tea", "hymns"],
+      "dislikes": []
+    },
+    "medication_rounds": ["08:00", "13:00", "17:00", "21:00"],
+    "routine": { "wake": null, "bed": null, "nap": null },
+    "preferences": ["rosary beads in his hand", "hymns playing quietly", "curtains open in the day"],
+    "legal": { "dnacpr": true, "lpa_health": "vis_sarah", "dols": "granted 2024-03" },
+    "staff_relationships": [
+      { "staff": "stf_maria", "trust": 0.8, "note": "leads his end-of-life care" }
+    ],
+    "goals": [],
+    "triggers": ["sudden movement", "cold hands"],
+    "care": {
+      "personal_care_staff": 2,
+      "personal_care_mins": 30,
+      "transfer_staff": 2,
+      "transfer_method": "none",
+      "bed_bound": true,
+      "female_carers_only": false,
+      "check_interval_mins": { "day": 60, "night": 60 },
+      "reposition_interval_mins": { "day": 120, "night": 120 },
+      "can_request_help": false,
+      "toileting": "in_bed",
+      "eating_support": "mouth_care_only",
+      "mouth_care_interval_mins": 120,
+      "next_of_kin": "vis_sarah"
+    }
+  }
+]

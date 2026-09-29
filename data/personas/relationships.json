@@ -1,1 +1,20 @@
-[]
+[
+  {"from": "vis_funmi", "to": "vis_tunde", "type": "sibling", "closeness": 0.5, "tension": 0.8, "history": ["Tunde moved to Manchester in 2004", "Funmi was Mum's main carer 2019-2025"], "live_issues": ["DNACPR decision for Mum", "selling Mum's flat"]},
+  {"from": "vis_linda", "to": "vis_gary", "type": "sibling", "closeness": 0.4, "tension": 0.7, "history": ["Gary moved to Spain in 2009", "Linda has looked after Mum since Dad died in 2016"], "live_issues": ["who decides about Mum's care", "Gary thinks the fees are too high"]},
+  {"from": "vis_linda", "to": "vis_mick", "type": "spouse", "closeness": 0.8, "tension": 0.3, "history": ["Married in 1985"], "live_issues": ["Mick's redundancy", "Linda's knee operation in spring"]},
+  {"from": "vis_linda", "to": "vis_chloe", "type": "parent", "closeness": 0.9, "tension": 0.1},
+  {"from": "vis_funmi", "to": "vis_kayode", "type": "parent", "closeness": 0.8, "tension": 0.2},
+  {"from": "vis_kuldip", "to": "vis_harpreet", "type": "parent", "closeness": 0.9, "tension": 0.2},
+  {"from": "vis_harpreet", "to": "vis_simran", "type": "spouse", "closeness": 0.8, "tension": 0.2},
+  {"from": "vis_harpreet", "to": "vis_arjun", "type": "parent", "closeness": 0.9, "tension": 0.1},
+  {"from": "vis_harpreet", "to": "vis_priya", "type": "parent", "closeness": 0.9, "tension": 0.1},
+  {"from": "vis_maureen", "to": "vis_sheila", "type": "second wife and ex-wife", "closeness": 0.1, "tension": 0.6, "history": ["Sheila and Stan divorced in 1985; Stan married Maureen in 1990"], "live_issues": ["Stan's birthday: who organises it"]},
+  {"from": "vis_maureen", "to": "vis_tracey", "type": "step-parent", "closeness": 0.3, "tension": 0.5, "live_issues": ["Stan's lasting power of attorney"]},
+  {"from": "vis_sarah", "to": "vis_paul", "type": "sibling", "closeness": 0.6, "tension": 0.4, "live_issues": ["Paul visits less", "Dad's funeral wishes"]},
+  {"from": "vis_sarah", "to": "vis_mia", "type": "parent", "closeness": 0.9, "tension": 0.1},
+  {"from": "vis_pat", "to": "vis_sarah", "type": "aunt", "closeness": 0.7, "tension": 0.1},
+  {"from": "stf_dave", "to": "stf_joanne", "type": "reports to", "closeness": 0.3, "tension": 0.6, "live_issues": ["rota changes", "paperwork"]},
+  {"from": "stf_blessing", "to": "stf_kasia", "type": "friends", "closeness": 0.9, "tension": 0.0},
+  {"from": "stf_aisha", "to": "stf_tom", "type": "mentor", "closeness": 0.7, "tension": 0.1},
+  {"from": "stf_maria", "to": "stf_aisha", "type": "mentor", "closeness": 0.8, "tension": 0.0}
+]
