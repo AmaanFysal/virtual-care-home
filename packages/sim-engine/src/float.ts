@@ -7,7 +7,7 @@ import { FLOAT_TURNS } from "./care.js";
 import { emit } from "./emit.js";
 import { coverableOnSite, isNight, nextCoverT } from "./nightcover.js";
 import type { Person, Task, World } from "./state.js";
-import { createCare, hasCare, pullOff } from "./tasks.js";
+import { createCare, hasCare, nightBreakOn, nightBreakWaiting, pullOff } from "./tasks.js";
 import { walkTo } from "./world/movement.js";
 
 const IDLE_POST = "Corridor.East";
@@ -128,7 +128,8 @@ export function floatMinute(world: World): void {
     // A fall in progress keeps her here: the night carer may be tied up with it.
     // She stays for the round's turns, and while a fall is in progress.
     const roundTurn = (task: Task) => task.kind === "care" && task.data.care === "reposition" && floatCovers(task.deadlineT ?? 0);
-    const stillNeeded = [...world.tasks.values()].some((task) => (needsHer(world, task) && task.status !== "done") || pressing(task) || roundTurn(task) || task.kind === "fall");
+    // And she covers the wing for the night carer's break, once it's due, until it's over.
+    const stillNeeded = nightBreakOn(world) || nightBreakWaiting(world) || [...world.tasks.values()].some((task) => (needsHer(world, task) && task.status !== "done") || pressing(task) || roundTurn(task) || task.kind === "fall");
     if (!stillNeeded) {
       if (doing) pullOff(world, me, "going back to the main building");
       f.status = "leaving";

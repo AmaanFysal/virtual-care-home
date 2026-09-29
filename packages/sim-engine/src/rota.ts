@@ -44,7 +44,8 @@ const BREAK_WINDOWS: Record<ShiftName, [string, string]> = {
   early: ["10:30", "11:45"],
   late: ["17:30", "19:00"],
   rn_day: ["11:30", "12:15"],
-  night: ["02:30", "03:30"],
+  // From 01:30 the lone night carer takes his break at the floating carer's next round, after its turns (tasks.ts).
+  night: ["01:30", "01:30"],
   office: ["12:15", "12:45"],
   reception: ["12:15", "12:45"],
 };

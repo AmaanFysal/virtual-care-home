@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { FloorPlan, PersonView } from "@vch/shared-types";
 import floorplan from "../../../data/floorplan.json";
 import { BLEND_M, FACE_PX, PAD_PX, TILE_PX, makeBanding } from "../src/canvas/banding";
-import { activityIcon, directionOf, figureBox, pickPerson, seatFacings } from "../src/canvas/figures";
+import { activityIcon, directionOf, facingFixture, figureBox, makeSlide, pickPerson, seatFacings, slideAt, slideRest } from "../src/canvas/figures";
 
 const plan = floorplan as unknown as FloorPlan;
 const banding = makeBanding(plan);
@@ -123,5 +123,36 @@ describe("click to select", () => {
     const f = person("res_dennis", 18, 1, "in_bed");
     expect(pickPerson([f], f.anchor)).toBe("res_dennis");
     expect(f.anchor.y).toBeLessThan(banding.y(1));
+  });
+});
+
+describe("sliding through turning points", () => {
+  // Out of Room 1 through its door (x 3 to 4 at y 5.5) and along the corridor.
+  const slide = makeSlide([{ x: 2.25, y: 4.75 }, { x: 3.25, y: 5.25 }, { x: 3.25, y: 5.75 }, { x: 6.25, y: 6.75 }]);
+
+  it("goes through each turning point in order, by distance", () => {
+    expect(slideAt(slide, 0)).toEqual({ x: 2.25, y: 4.75 });
+    expect(slideAt(slide, 1)).toEqual({ x: 6.25, y: 6.75 });
+    const total = slide.cum[slide.cum.length - 1]!;
+    const atDoor = slideAt(slide, slide.cum[1]! / total);
+    expect(atDoor.x).toBeCloseTo(3.25, 9);
+    expect(atDoor.y).toBeCloseTo(5.25, 9);
+    // Crossing the wall line happens inside the door gap, never beside it.
+    for (let k = 0; k <= 1; k += 0.01) {
+      const p = slideAt(slide, k);
+      if (Math.abs(p.y - 5.5) < 0.01) expect(p.x).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("carries on from mid-slide with the turning points still ahead", () => {
+    const total = slide.cum[slide.cum.length - 1]!;
+    const rest = slideRest(slide, slide.cum[1]! / total / 2);
+    expect(rest.slice(1)).toEqual(slide.points.slice(1));
+  });
+
+  it("faces the toilet when standing still beside it", () => {
+    expect(facingFixture(plan, 7.25, 4.75)).toBe("west"); // Room 1's standing point, east of the toilet
+    expect(facingFixture(plan, 6.75, 4.75)).toBeNull(); // on the seat itself
+    expect(facingFixture(plan, 3, 3)).toBeNull();
   });
 });

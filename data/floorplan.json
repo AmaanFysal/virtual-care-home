@@ -119,6 +119,8 @@
     {"id": "Room2.BedD.Chair", "kind": "chair", "room": "Room2", "x": 17.25, "y": 2.75},
     {"id": "Room1.WC", "kind": "wc", "room": "Room1", "x": 6.75, "y": 4.75},
     {"id": "Room2.WC", "kind": "wc", "room": "Room2", "x": 19.25, "y": 4.75},
+    {"id": "Room1.WC.Stand", "kind": "waypoint", "room": "Room1", "x": 7.25, "y": 4.75},
+    {"id": "Room2.WC.Stand", "kind": "waypoint", "room": "Room2", "x": 19.75, "y": 4.75},
     {"id": "Corridor.West", "kind": "waypoint", "room": "Corridor", "x": 1.25, "y": 6.75},
     {"id": "Corridor.Mid", "kind": "waypoint", "room": "Corridor", "x": 9.75, "y": 6.75},
     {"id": "Corridor.East", "kind": "waypoint", "room": "Corridor", "x": 18.75, "y": 6.75},

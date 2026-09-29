@@ -36,6 +36,8 @@ export class Runner {
   private recent: AnySimEvent[] = [];
   private unsent: AnySimEvent[] = [];
   private lastSent = new Map<string, string>();
+  /** Turning points each person passed since the last delta (from Sim.trail), sent as `via`. */
+  private via = new Map<string, { x: number; y: number }[]>();
   private inputSeq = 0;
   private timer: NodeJS.Timeout | null = null;
 
@@ -74,7 +76,14 @@ export class Runner {
   /** Runs ticks immediately (used by the pacer, `step`, and tests). */
   advance(ticks: number): void {
     const batch: AnySimEvent[] = [];
-    for (let i = 0; i < ticks; i++) batch.push(...this.sim.step());
+    for (let i = 0; i < ticks; i++) {
+      batch.push(...this.sim.step());
+      for (const [id, points] of this.sim.trail()) {
+        const list = this.via.get(id);
+        if (list) list.push(...points);
+        else this.via.set(id, [...points]);
+      }
+    }
     if (batch.length === 0) return;
     this.log.appendEvents(batch);
     this.unsent.push(...batch);
@@ -92,11 +101,14 @@ export class Runner {
     const changed: PersonView[] = [];
     for (const view of this.sim.people()) {
       const json = JSON.stringify(view);
-      if (this.lastSent.get(view.id) !== json) {
+      // The turning points passed on the way, without the final position itself.
+      const via = (this.via.get(view.id) ?? []).filter((p, i, all) => !(p.x === view.x && p.y === view.y && i === all.length - 1));
+      if (this.lastSent.get(view.id) !== json || via.length > 0) {
         this.lastSent.set(view.id, json);
-        changed.push(view);
+        changed.push(via.length > 0 ? { ...view, via } : view);
       }
     }
+    this.via.clear();
     if (changed.length === 0 && this.unsent.length === 0 && this.paused) return;
     const message: ServerMessage = { type: "delta", clock: this.clock(), people: changed, events: this.unsent };
     this.unsent = [];

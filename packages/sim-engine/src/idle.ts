@@ -26,7 +26,8 @@ const OFFER_DRINK_FROM = 0.3;
 const SIT_WITH_FROM = 0.4;
 const SOCIAL_RELIEF_PER_MIN = 1 / 25;
 const NOTES_POINTS = ["Reception.Desk", "Reception.Office"];
-const WC_POINTS = ["Room1.WC", "Room2.WC"];
+/** Restocking an en-suite is done standing beside the toilet, never on it. */
+const WC_POINTS = ["Room1.WC.Stand", "Room2.WC.Stand"];
 
 /** Someone the idle carer could sit with: awake, free, wanting company, not already accompanied. */
 function wantsCompany(world: World): Person[] {
@@ -92,7 +93,8 @@ export function startIdleActivity(world: World, p: Person, floorCover = false): 
     options.push({ value: { activity: "restock", residentId: null, point: WC_POINTS[world.rng.decisions.int(0, 1)]! }, weight: WEIGHT.restock });
     const r = lonely[0];
     if (r) {
-      const spot = r.resident!.inBed ? `${r.resident!.data.room}.Side` : r.atPoint ?? `${r.resident!.data.room}.Chair`;
+      // Beside them: at their bedside, or next to wherever they are (the carer stands; the seat is theirs).
+      const spot = r.resident!.inBed || !r.atPoint ? `${r.resident!.data.room}.Side` : r.atPoint;
       options.push({ value: { activity: "sit_with", residentId: r.id, point: spot }, weight: WEIGHT.sit_with * r.resident!.needs.social });
     }
     // Residents in the Lounge: someone keeps an eye on them (unless a carer is already there).

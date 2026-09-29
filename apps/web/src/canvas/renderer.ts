@@ -10,7 +10,7 @@ import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Text
 import { timeOfDay, type ClockView, type FloorPlan, type PersonKind, type PersonView } from "@vch/shared-types";
 import { spriteFor, sprites, type SpriteEntry } from "../sprites";
 import { makeBanding, type Banding } from "./banding";
-import { SIT_DY, activityIcon, directionOf, figureBox, pickPerson, seatAt, seatFacings, type Dir, type FigureBox, type IconName } from "./figures";
+import { SIT_DY, activityIcon, directionOf, facingFixture, figureBox, makeSlide, pickPerson, seatAt, seatFacings, slideAt, slideRest, type Dir, type FigureBox, type IconName, type Slide } from "./figures";
 import { paintMap, type Images } from "./mapPainter";
 import tileset from "./tileset.json";
 
@@ -55,8 +55,8 @@ interface Figure {
   tagText: Text;
   tagIcon: Sprite;
   tagW: number;
-  from: { x: number; y: number };
-  to: { x: number; y: number };
+  /** The slide being drawn: from where they were, through turning points, to the latest position. */
+  slide: Slide;
   startMs: number;
   durationMs: number;
   dir: Dir;
@@ -176,20 +176,23 @@ export class WingRenderer {
     const duration = clock && !clock.paused ? Math.max(100, Math.min(5000, 5000 / clock.speed)) : 250;
     for (const view of Object.values(people)) {
       let fig = this.figures.get(view.id);
+      const fresh = !fig;
       if (!fig) {
         fig = this.createFigure(view);
         this.figures.set(view.id, fig);
-      }
+      } else if (fig.view === view) continue; // unchanged since the last update (its `via` is already used)
       const prev = fig.view;
       fig.view = view;
-      if (view.x !== prev.x || view.y !== prev.y || view.onMap !== prev.onMap || fig.startMs === 0) {
-        const snap = (!prev.onMap && view.onMap) || fig.startMs === 0;
-        fig.from = snap ? { x: view.x, y: view.y } : this.currentPos(fig, now);
-        fig.to = { x: view.x, y: view.y };
-        fig.startMs = now;
-        fig.durationMs = snap ? 0 : duration;
-        if (snap) fig.last = { ...fig.from };
-      }
+      const via = view.via ?? [];
+      if (!fresh && view.x === prev.x && view.y === prev.y && view.onMap === prev.onMap && via.length === 0) continue;
+      // Slide from where they're drawn now, through the turning points they passed (path corners
+      // and doorways), to the new position, so a turn between two updates doesn't cut a wall.
+      const appear = fresh || (!prev.onMap && view.onMap);
+      const to = { x: view.x, y: view.y };
+      fig.slide = makeSlide(appear ? [...via, to] : [...slideRest(fig.slide, this.progress(fig, now)), ...via, to]);
+      fig.startMs = now;
+      fig.durationMs = appear && via.length === 0 ? 0 : duration;
+      if (appear) fig.last = { ...fig.slide.points[0]! };
     }
     this.drawAway(people);
   }
@@ -328,8 +331,7 @@ export class WingRenderer {
       tagText,
       tagIcon,
       tagW: 0,
-      from: { x: view.x, y: view.y },
-      to: { x: view.x, y: view.y },
+      slide: makeSlide([{ x: view.x, y: view.y }]),
       startMs: 0,
       durationMs: 0,
       dir: "south",
@@ -339,9 +341,12 @@ export class WingRenderer {
     };
   }
 
+  private progress(fig: Figure, now: number): number {
+    return fig.durationMs <= 0 ? 1 : Math.min(1, (now - fig.startMs) / fig.durationMs);
+  }
+
   private currentPos(fig: Figure, now: number): { x: number; y: number } {
-    const k = fig.durationMs <= 0 ? 1 : Math.min(1, (now - fig.startMs) / fig.durationMs);
-    return { x: fig.from.x + (fig.to.x - fig.from.x) * k, y: fig.from.y + (fig.to.y - fig.from.y) * k };
+    return slideAt(fig.slide, this.progress(fig, now));
   }
 
   private drawFigure(fig: Figure, now: number): void {
@@ -367,6 +372,7 @@ export class WingRenderer {
       const seat = seatAt(this.plan!, pos.x, pos.y);
       if (seat) fig.dir = this.facings.get(seat.id) ?? fig.dir;
     }
+    if (posture === "standing" && !moving) fig.dir = facingFixture(this.plan!, pos.x, pos.y) ?? fig.dir;
     const scale = entry?.scale ?? 1;
     const box = figureBox(view, pos, b, scale);
     fig.box = box;

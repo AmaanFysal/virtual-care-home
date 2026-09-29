@@ -13,6 +13,31 @@ import { cellAt, cellCentre, neighbours } from "./grid.js";
 import { findPath } from "./pathfind.js";
 
 const SEATED_POINTS = new Set(["seat", "chair", "wc"]);
+/** Rooms where staff sit at seats: breaks and handovers, reception and office work. */
+const STAFF_SEAT_ROOMS = new Set(["staff", "reception"]);
+
+/**
+ * Whether someone sits on arriving exactly at a point. Only residents use a WC seat. Staff sit
+ * only in the staff room and at reception; everywhere else they stand (beside a resident's chair,
+ * tidying, restocking). Visitors sit where they're shown.
+ */
+function sitsAt(world: World, person: Person, point: NamedPoint): boolean {
+  if (!SEATED_POINTS.has(point.kind)) return false;
+  if (point.kind === "wc") return !!person.resident;
+  if (!person.staff) return true;
+  const kind = world.data.floorplan.rooms.find((r) => r.id === point.room)?.kind;
+  return !!kind && STAFF_SEAT_ROOMS.has(kind);
+}
+
+/**
+ * Where someone actually stands for a point. Anyone but a resident sent to a WC (a carer helping,
+ * a visitor) stands at the standing point beside it; like any displaced spot, they're still "at"
+ * the WC point for the task.
+ */
+function spotFor(world: World, person: Person, point: NamedPoint): NamedPoint {
+  if (point.kind !== "wc" || person.resident) return point;
+  return world.points.get(`${point.id}.Stand`) ?? point;
+}
 
 function claimFree(world: World, cell: number, person: Person): boolean {
   const owner = world.standClaims.get(cell);
@@ -48,7 +73,8 @@ export function standingCell(world: World, person: Person, point: NamedPoint): n
         if (seen.has(n)) continue;
         seen.add(n);
         if (grid.roomOf[n] !== point.room) continue;
-        if (!grid.doorZoneOf[n] && claimFree(world, n, person)) return n;
+        // Never displaced onto a WC seat.
+        if (!grid.doorZoneOf[n] && !wcCell(world, n) && claimFree(world, n, person)) return n;
         next.push(n);
       }
     }
@@ -57,13 +83,27 @@ export function standingCell(world: World, person: Person, point: NamedPoint): n
   return home;
 }
 
+function wcCell(world: World, cell: number): boolean {
+  for (const p of world.points.values()) if (p.kind === "wc" && cellAt(world.grid, p.x, p.y) === cell) return true;
+  return false;
+}
+
+/** Notes where someone is as a turning point for this tick (display only: World.trail). */
+function noteTurn(world: World, person: Person): void {
+  const list = world.trail.get(person.id);
+  const last = list?.[list.length - 1];
+  if (last && last.x === person.x && last.y === person.y) return;
+  if (list) list.push({ x: person.x, y: person.y });
+  else world.trail.set(person.id, [{ x: person.x, y: person.y }]);
+}
+
 /** Sends a person walking to a named point. Returns false if there is no path. */
 export function walkTo(world: World, person: Person, pointId: string): boolean {
   const point = world.points.get(pointId);
   if (!point) throw new Error(`Unknown point "${pointId}"`);
   if (person.move?.destPointId === pointId) return true;
   if (person.atPoint === pointId && !person.move) return true;
-  const goal = standingCell(world, person, point);
+  const goal = standingCell(world, person, spotFor(world, person, point));
   const start = cellAt(world.grid, person.x, person.y);
   const cells = findPath(world.grid, start, goal);
   if (!cells) return false;
@@ -71,6 +111,7 @@ export function walkTo(world: World, person: Person, pointId: string): boolean {
   const end = exact ? { x: point.x, y: point.y } : cellCentre(world.grid, goal);
   if (point.kind === "exit") releaseStand(world, person);
   else claimStand(world, person, goal);
+  if (person.move) noteTurn(world, person); // re-routed mid-walk: they turn here
   person.move = { destPointId: pointId, cells, next: 0, endX: end.x, endY: end.y };
   person.atPoint = null;
   person.posture = "walking";
@@ -90,13 +131,14 @@ export function setRoom(world: World, person: Person, roomId: string | null): vo
 /** Puts a person straight onto a point (initial placement, a hoist transfer), respecting standing spots. */
 export function placeAt(world: World, person: Person, pointId: string): void {
   const point = world.points.get(pointId)!;
-  const cell = standingCell(world, person, point);
+  const cell = standingCell(world, person, spotFor(world, person, point));
   const exact = cell === cellAt(world.grid, point.x, point.y);
   const pos = exact ? { x: point.x, y: point.y } : cellCentre(world.grid, cell);
   claimStand(world, person, cell);
   setRoom(world, person, point.room);
   Object.assign(person, { onMap: true, x: pos.x, y: pos.y, atPoint: pointId, move: null });
-  person.posture = exact && SEATED_POINTS.has(point.kind) ? "sitting" : "standing";
+  person.posture = exact && sitsAt(world, person, point) ? "sitting" : "standing";
+  noteTurn(world, person);
 }
 
 /** A resident at their bedside gets into bed (the bed cell isn't walkable, so no claim). */
@@ -106,6 +148,7 @@ export function getIntoBed(world: World, person: Person): void {
   setRoom(world, person, bed.room);
   Object.assign(person, { x: bed.x, y: bed.y, atPoint: bed.id, move: null, posture: "in_bed" });
   person.resident!.inBed = true;
+  noteTurn(world, person);
 }
 
 /** A resident gets out of bed onto the bedside (or the nearest free cell to it). */
@@ -156,11 +199,21 @@ function stepPerson(world: World, person: Person): boolean {
     const target = isLast ? { x: move.endX, y: move.endY } : cellCentre(world.grid, cell);
     const dist = Math.hypot(target.x - person.x, target.y - person.y);
     if (dist <= budget) {
+      const from = { x: person.x, y: person.y };
       person.x = target.x;
       person.y = target.y;
       budget -= dist;
       move.next += 1;
       enterCell(world, person, cell);
+      // Turning points for the browser: path corners, doorway cells and the end of the walk.
+      if (isLast || world.grid.doorZoneOf[cell]) noteTurn(world, person);
+      else {
+        const nextCell = move.cells[move.next]!;
+        const after = move.next === move.cells.length - 1 ? { x: move.endX, y: move.endY } : cellCentre(world.grid, nextCell);
+        const cross = (target.x - from.x) * (after.y - target.y) - (target.y - from.y) * (after.x - target.x);
+        const dot = (target.x - from.x) * (after.x - target.x) + (target.y - from.y) * (after.y - target.y);
+        if (Math.abs(cross) > 1e-9 || dot < 0) noteTurn(world, person);
+      }
     } else {
       person.x += ((target.x - person.x) / dist) * budget;
       person.y += ((target.y - person.y) / dist) * budget;
@@ -172,7 +225,7 @@ function stepPerson(world: World, person: Person): boolean {
   const exact = person.x === dest.x && person.y === dest.y;
   person.move = null;
   person.atPoint = dest.id;
-  person.posture = exact && SEATED_POINTS.has(dest.kind) ? "sitting" : "standing";
+  person.posture = exact && sitsAt(world, person, dest) ? "sitting" : "standing";
   return true;
 }
 
@@ -203,6 +256,7 @@ export function spawnWaiting(world: World): string[] {
     person.roomId = null;
     emit(world, "person.arrived", [person.id], { pointId: "ExitDoor" });
     enterCell(world, person, cellAt(world.grid, exit.x, exit.y));
+    noteTurn(world, person);
     spawned.push(person.id);
   }
   return spawned;

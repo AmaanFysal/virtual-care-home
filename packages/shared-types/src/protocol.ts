@@ -27,6 +27,13 @@ export interface PersonView {
   /** For display only (choosing a sprite): gender, and the staff role for staff, agency and responders. */
   gender: Gender;
   role?: string;
+  /**
+   * Deltas only: the turning points this person passed since the previous update, in order (path
+   * corners, doorway cells, arrivals, and where they were placed or appeared). The browser slides
+   * through them before sliding to x, y, so a move that turns a corner between two updates isn't
+   * drawn cutting through a wall. Display only.
+   */
+  via?: { x: number; y: number }[];
   /** Residents: their bed point, and where they are if off the wing. */
   bedId?: string;
   away?: "hospital" | null;

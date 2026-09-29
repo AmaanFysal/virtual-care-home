@@ -43,6 +43,8 @@ export interface Sim {
   /** Queues an input; `applyTick` must be in the future. */
   enqueue(input: SimInput): void;
   people(): PersonView[];
+  /** The turning points each person passed in the last tick (display only; see World.trail). */
+  trail(): ReadonlyMap<string, readonly { x: number; y: number }[]>;
   /** Internal state, for tests and the inspector. Treat as read-only. */
   readonly world: World;
 }
@@ -130,6 +132,7 @@ export function createSim(options: SimOptions): Sim {
     zoneOwner: new Map(),
     zoneReleasedTick: new Map(),
     standClaims: new Map(),
+    trail: new Map(),
     tasks: new Map(),
     taskSeq: 0,
     float: { status: "off", arriveT: null, planned: false },
@@ -189,6 +192,7 @@ export function createSim(options: SimOptions): Sim {
     step() {
       world.tick += 1;
       world.t = startT + world.tick * TICK_SECONDS;
+      world.trail.clear();
       applyInputs();
       if (world.t % 60 === 0) {
         rotaMinute(world);
@@ -220,6 +224,9 @@ export function createSim(options: SimOptions): Sim {
     },
     people() {
       return world.order.map((id) => toView(world.people.get(id)!));
+    },
+    trail() {
+      return world.trail;
     },
   };
 }
