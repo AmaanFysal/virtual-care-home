@@ -4,7 +4,7 @@ import type { Badge, DrinkOutcome, DrinkRound, MealName, NeedName } from "@vch/s
 import { act, leaf, sel, seq, until, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
 import { needsHelpToDrink } from "./needs.js";
-import { onDuty, type CareKind, type Person, type Task, type World } from "./state.js";
+import { chairFor, onDuty, type CareKind, type Person, type Task, type World } from "./state.js";
 import { onFloor } from "./floor.js";
 import { isNight } from "./nightcover.js";
 import { absorbInto, createBriefing, finish } from "./tasks.js";
@@ -75,9 +75,7 @@ function wcFor(resident: Person): string {
   return `${resident.resident!.data.room.split(".")[0]}.WC`;
 }
 
-export function chairFor(resident: Person): string {
-  return `${resident.resident!.data.room}.Chair`;
-}
+export { chairFor } from "./state.js";
 
 export function lower(res: Person, need: NeedName, by: number): void {
   const needs = res.resident!.needs;

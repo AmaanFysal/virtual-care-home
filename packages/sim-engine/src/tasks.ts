@@ -9,7 +9,7 @@ import { emit } from "./emit.js";
 import { breakInterruptible, coveredWithout, onBreak, onFloor } from "./floor.js";
 import { supervisedResidents } from "./lounge.js";
 import { coverableOnSite, isNight, requestDeadline } from "./nightcover.js";
-import { isCareStaff, isNurse, onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
+import { chairFor, isCareStaff, isNurse, onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
 import type { Ctx } from "./trees.js";
 import { TREES } from "./treeset.js";
 import { startIdleActivity } from "./idle.js";
@@ -167,7 +167,7 @@ export function createSelfToilet(world: World, resident: Person): Task {
     status: "active",
     startedT: world.t,
     // Their own en-suite, wherever they are (the Lounge has no WC of its own).
-    data: { wc: `${res.data.room.split(".")[0]}.WC`, returnToBed: res.inBed ? 1 : 0, returnTo: res.inBed ? `${res.data.room}.Side` : (resident.atPoint ?? `${res.data.room}.Chair`) },
+    data: { wc: `${res.data.room.split(".")[0]}.WC`, returnToBed: res.inBed ? 1 : 0, returnTo: res.inBed ? `${res.data.room}.Side` : (resident.atPoint ?? chairFor(resident)) },
   });
   res.busyTaskId = task.id;
   resident.task = task.label;

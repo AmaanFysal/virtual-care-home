@@ -52,6 +52,7 @@ Furniture is a labelled rectangle of kind `bed`, `desk`, `table`, `chair`, `armc
 
 - `bed`, `desk`, `table`, `sofa`, `tv` and `bookshelf` **block** movement.
 - `chair`, `armchair` and `wc` do **not** block. Residents and visitors sit on seat and chair points; only residents sit on a WC. Staff sit in the staff room and at reception (breaks, handovers, reception and office work), and in a free seat beside a resident they're sitting with; anywhere else they stand. Staff never use a WC seat.
+- **Bedside seating (checked by the validator):** a resident who sits out in their room has a bedside chair (point `<bed>.Chair` and furniture `<bed>.chair`); a hoisted wheelchair user has a `<bed>.Wheelchair` point instead, with no chair and no furniture other than their bed within 1 m of it; a bed-bound resident has neither.
 - Furniture ids use a lowercase suffix (`Room1.BedA.bed`, `WaitingArea.chair3`, `Lounge.tv`) so they never clash with named point ids.
 - The Lounge has a TV on the east wall with four armchairs facing it, a 2.5 m dining table with six chairs, a bookshelf with a reading chair, and an activity table with four chairs.
 
@@ -64,7 +65,8 @@ Named points are where people go and where interactions happen. Each point has a
 | `Room1.BedA` | Where the resident lies (bed centre; reached only via "get into bed") |
 | `Room1.BedA.Side` | Main bedside standing spot (care, meds, checks, visitors) |
 | `Room1.BedA.Side2` | Opposite side of the bed (second carer for two-person tasks) |
-| `Room1.BedA.Chair` | Bedside chair (resident sits up, meals, visitors) |
+| `Room1.BedA.Chair` | Bedside chair: only for residents who sit out in their room (Peggy, Win, Arthur, Stan), for sitting up and meals. There are no visitor chairs; visitors stand at the bedside |
+| `Room2.BedB.Wheelchair` | Raj's wheelchair spot by his bed (kind `wheelchair`): where he's hoisted to and sits in his own wheelchair. No chair there, clear floor around it for the hoist and wheelchair, and nobody else uses it. Dennis (bed-bound) has no bedside seat |
 | `Room1.WC`, `Room2.WC` | En-suite toilet (residents only) |
 | `Room1.WC.Stand`, `Room2.WC.Stand` | Standing work point beside each toilet (staff) |
 | `Corridor.West`, `Corridor.Mid`, `Corridor.East` | Corridor waypoints |

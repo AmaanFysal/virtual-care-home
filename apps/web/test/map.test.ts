@@ -50,7 +50,9 @@ describe("banded mapping", () => {
 describe("seat facings", () => {
   const facings = seatFacings(plan);
   it("turns chairs to their table or desk, armchairs to the TV, and bedside and reading chairs south, towards the camera", () => {
-    for (const id of ["Room1.BedA.chair", "Room1.BedB.chair", "Room2.BedA.chair", "Room2.BedB.chair", "Room2.BedC.chair", "Room2.BedD.chair"]) expect(facings.get(id), id).toBe("south");
+    for (const id of ["Room1.BedA.chair", "Room1.BedB.chair", "Room2.BedA.chair", "Room2.BedC.chair"]) expect(facings.get(id), id).toBe("south");
+    // Raj sits in his wheelchair and Dennis is bed-bound: no bedside chairs for them.
+    for (const id of ["Room2.BedB.chair", "Room2.BedD.chair"]) expect(facings.has(id), id).toBe(false);
     expect(facings.get("WaitingArea.chair1")).toBe("east");
     expect(facings.get("WaitingArea.chair3")).toBe("west");
     expect(facings.get("WaitingArea.chair5")).toBe("south");

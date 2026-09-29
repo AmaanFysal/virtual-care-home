@@ -76,7 +76,7 @@ Each person view (`PersonView`) carries their id, kind, name, initials, position
   - Render-only decor: bedside cabinets with lamps (which glow at night), wardrobes, rugs at the bed foot, plants in free corners, a sofa drawn in place of the two middle Lounge armchairs (their seat points are unchanged), and trees and a bench in the garden.
 - **People:**
   - They face the way they move; the walk frames advance with distance walked; they stand when still.
-  - Sitting uses the chair pose, or Raj's wheelchair; seated people take their seat's facing. Dozing is the chair pose with a zz icon.
+  - Sitting uses the chair pose, or Raj's wheelchair; seated people take their seat's facing, and anyone seated where there's no chair (Raj in his wheelchair by the bed) faces the camera. Dozing is the chair pose with a zz icon.
   - In bed, the head from the front-facing frame is drawn on the pillow, with the sheet over it. On the floor: the hurt pose with a pulsing red ring.
   - Standing still in a WC area (restocking, helping), they face the toilet.
   - Each has a soft shadow; the selected person has a yellow ring, the hovered person a white one.

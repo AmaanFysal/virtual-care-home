@@ -33,6 +33,9 @@ describe.each(["1", "2", "3"])("a week of staff rest and WC use (seed %s)", (see
   const loungeShort: string[] = [];
   const residentsDisplaced: string[] = [];
   const lounge = new Set(loungeSeats(w));
+  const wheelchair = w.points.get("Room2.BedB.Wheelchair")!;
+  const wheelchairOthers: string[] = [];
+  let rajInWheelchair = 0;
   let nightBreakTicks = 0;
   for (let i = 0; i < 7 * DAY; i++) {
     events.push(...sim.step());
@@ -40,6 +43,15 @@ describe.each(["1", "2", "3"])("a week of staff rest and WC use (seed %s)", (see
     // is kept off their Lounge seat by one.
     const staffInLoungeSeat = [...w.people.values()].filter((q) => q.staff && q.posture === "sitting" && q.atPoint && lounge.has(q.atPoint));
     if (staffInLoungeSeat.length > 0 && loungeSeatsSpare(w) < 0) loungeShort.push(`t=${w.t}`);
+    // Raj's wheelchair spot is his alone: nobody else is ever on it, or walks to it while he isn't
+    // there (carers attending him there stand on the free cell beside it, like beside any seat).
+    const raj = w.people.get("res_raj")!;
+    const rajThere = raj.atPoint === wheelchair.id;
+    for (const q of w.people.values()) {
+      const onIt = q.onMap && q.x === wheelchair.x && q.y === wheelchair.y;
+      if (q.id === "res_raj") rajInWheelchair += onIt && q.posture === "sitting" ? 1 : 0;
+      else if (onIt || (!rajThere && q.move?.destPointId === wheelchair.id)) wheelchairOthers.push(`${q.id} t=${w.t}`);
+    }
     for (const q of w.people.values()) {
       if (!q.resident || q.move || !q.atPoint || !lounge.has(q.atPoint)) continue;
       const seat = w.points.get(q.atPoint)!;
@@ -85,6 +97,11 @@ describe.each(["1", "2", "3"])("a week of staff rest and WC use (seed %s)", (see
   it("keeps Lounge seats free for residents when carers sit there", () => {
     expect(loungeShort.slice(0, 5)).toEqual([]);
     expect(residentsDisplaced.slice(0, 5)).toEqual([]);
+  });
+
+  it("sits Raj in his wheelchair by the bed, a spot nobody else uses", () => {
+    expect(rajInWheelchair).toBeGreaterThan(0);
+    expect(wheelchairOthers.slice(0, 5)).toEqual([]);
   });
 
   it("never has a staff member on a break outside the staff room", () => {

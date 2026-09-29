@@ -11,7 +11,7 @@
 
 import { clockToSeconds, timeOfDay, type LoungeActivity } from "@vch/shared-types";
 import { emit } from "./emit.js";
-import { isCareStaff, onDuty, type Person, type World } from "./state.js";
+import { chairFor, isCareStaff, onDuty, type Person, type World } from "./state.js";
 import { createCare, createLoungeCheck, createSelfMove } from "./tasks.js";
 import { walkTo } from "./world/movement.js";
 
@@ -204,7 +204,7 @@ function routine(world: World, p: Person, sessionDay: boolean): void {
   if (want === "room") {
     if (inLounge) {
       setActivity(p, null, null);
-      trip(world, p, `${res.data.room}.Chair`, "back to their room");
+      trip(world, p, chairFor(p), "back to their room");
     }
     return;
   }

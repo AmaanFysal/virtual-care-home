@@ -259,3 +259,12 @@ export function isNurse(p: Person): boolean {
 export function onDuty(p: Person): boolean {
   return p.onMap && (p.staff?.duty === "on_shift" || p.staff?.duty === "staying");
 }
+
+/**
+ * Where a resident sits out of bed in their room: their bedside chair, or for a hoisted wheelchair
+ * user (Raj) their wheelchair spot by the bed. Bed-bound residents (Dennis) have neither.
+ */
+export function chairFor(resident: Person): string {
+  const room = resident.resident!.data.room;
+  return resident.resident!.data.care.transfer_method === "hoist" ? `${room}.Wheelchair` : `${room}.Chair`;
+}

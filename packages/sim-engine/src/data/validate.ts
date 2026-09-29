@@ -182,6 +182,40 @@ function checkClock(value: string | null, where: string, errors: string[]): void
   }
 }
 
+/** Clear floor needed around a wheelchair spot for the hoist and the wheelchair (metres). */
+const WHEELCHAIR_CLEARANCE_M = 1;
+
+/**
+ * Bedside seating (docs/02): a resident who sits out in their room has their own bedside chair; a
+ * hoisted wheelchair user (Raj) has a wheelchair spot by the bed instead, with clear floor around
+ * it and no chair; a bed-bound resident (Dennis) has neither. There are no visitor chairs.
+ */
+function checkBedsideSeat(r: WorldData["residents"][number], floorplan: WorldData["floorplan"], where: string, errors: string[]): void {
+  const point = (suffix: string) => floorplan.points.find((p) => p.id === `${r.room}${suffix}`);
+  const chair = point(".Chair");
+  const wheelchair = point(".Wheelchair");
+  const chairFurniture = floorplan.furniture.find((f) => f.id === `${r.room}.chair`);
+  const bedRoom = floorplan.points.find((p) => p.id === r.room)?.room;
+  if (r.care.bed_bound) {
+    if (chair || wheelchair || chairFurniture) errors.push(`${where}: bed-bound, so no bedside chair or wheelchair spot`);
+  } else if (r.care.transfer_method === "hoist") {
+    if (chair || chairFurniture) errors.push(`${where}: uses a wheelchair, so no bedside chair`);
+    if (!wheelchair || wheelchair.kind !== "wheelchair" || wheelchair.room !== bedRoom) errors.push(`${where}: needs a wheelchair spot ${r.room}.Wheelchair (kind wheelchair) in ${bedRoom}`);
+    else {
+      const blocking = floorplan.furniture.filter((f) => f.id !== `${r.room}.bed` && f.room === bedRoom).filter((f) => {
+        const dx = Math.max(f.rect.x - wheelchair.x, 0, wheelchair.x - (f.rect.x + f.rect.w));
+        const dy = Math.max(f.rect.y - wheelchair.y, 0, wheelchair.y - (f.rect.y + f.rect.h));
+        return Math.hypot(dx, dy) < WHEELCHAIR_CLEARANCE_M;
+      });
+      for (const f of blocking) errors.push(`${where}: ${f.id} is within ${WHEELCHAIR_CLEARANCE_M} m of the wheelchair spot (hoist and wheelchair space)`);
+    }
+  } else {
+    if (!chair || chair.kind !== "chair" || chair.room !== bedRoom) errors.push(`${where}: needs a bedside chair point ${r.room}.Chair`);
+    if (!chairFurniture || chairFurniture.kind !== "chair") errors.push(`${where}: needs bedside chair furniture ${r.room}.chair`);
+    if (wheelchair) errors.push(`${where}: walks, so no wheelchair spot`);
+  }
+}
+
 function validatePeople(data: WorldData, errors: string[]): void {
   const { residents, staff, visitors, relationships, floorplan } = data;
   const allIds = [...residents, ...staff, ...visitors].map((p) => p.id);
@@ -209,6 +243,7 @@ function validatePeople(data: WorldData, errors: string[]): void {
       const expected = bed.room === "Room1" ? "female" : "male";
       if (r.gender !== expected) errors.push(`${where}: ${bed.room} is a ${expected} room`);
     }
+    checkBedsideSeat(r, floorplan, where, errors);
     for (const t of r.medication_rounds) checkClock(t, where, errors);
     checkClock(r.routine.wake, where, errors);
     checkClock(r.routine.bed, where, errors);
