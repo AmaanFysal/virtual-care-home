@@ -1,0 +1,18 @@
+{
+  "id": "vis_arjun",
+  "name": "Arjun Sandhu",
+  "group": "visitor",
+  "note": "12",
+  "hash": {
+    "sex": "teen",
+    "body": "Body_Color_bronze",
+    "head": "Human_Male_Small_bronze",
+    "expression": "Neutral_bronze",
+    "eyes": "Eye_Color_brown",
+    "hair": "Short_Topknot_black",
+    "clothes": "TShirt_blue",
+    "legs": "Pants_navy",
+    "shoes": "Revised_Shoes_white"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=teen&body=Body_Color_bronze&head=Human_Male_Small_bronze&expression=Neutral_bronze&eyes=Eye_Color_brown&hair=Short_Topknot_black&clothes=TShirt_blue&legs=Pants_navy&shoes=Revised_Shoes_white"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "res_raj",
+  "name": "Raj Sandhu",
+  "group": "resident",
+  "note": "79, post-stroke, wheelchair",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_bronze",
+    "head": "Human_Male_Elderly_bronze",
+    "expression": "Neutral_bronze",
+    "eyes": "Eye_Color_brown",
+    "wrinkles": "Wrinkles_bronze",
+    "hair": "Short_Topknot_white",
+    "beard": "Winter_Beard_white",
+    "clothes": "Longsleeve_2_VNeck_gray",
+    "legs": "Pants_charcoal",
+    "shoes": "Slippers_brown",
+    "wheelchair": "Wheelchair_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_bronze&head=Human_Male_Elderly_bronze&expression=Neutral_bronze&eyes=Eye_Color_brown&wrinkles=Wrinkles_bronze&hair=Short_Topknot_white&beard=Winter_Beard_white&clothes=Longsleeve_2_VNeck_gray&legs=Pants_charcoal&shoes=Slippers_brown&wheelchair=Wheelchair_black"
+}

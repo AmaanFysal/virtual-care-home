@@ -1,0 +1,19 @@
+{
+  "id": "ext_gp",
+  "name": "Dr Rachel Moore",
+  "group": "extra",
+  "note": "visiting GP",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_brown",
+    "hair": "Bob_dark_brown",
+    "facial_eyes": "Glasses_black",
+    "clothes": "Longsleeve_2_Buttoned_white",
+    "legs": "Pants_charcoal",
+    "shoes": "Revised_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_brown&hair=Bob_dark_brown&facial_eyes=Glasses_black&clothes=Longsleeve_2_Buttoned_white&legs=Pants_charcoal&shoes=Revised_Shoes_black"
+}

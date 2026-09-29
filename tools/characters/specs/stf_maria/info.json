@@ -1,0 +1,18 @@
+{
+  "id": "stf_maria",
+  "name": "Maria Santos",
+  "group": "staff",
+  "note": "registered nurse",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_olive",
+    "head": "Human_Female_olive",
+    "expression": "Neutral_olive",
+    "eyes": "Eye_Color_brown",
+    "hair": "Bangs_bun_black",
+    "clothes": "Shortsleeve_Polo_navy",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_olive&head=Human_Female_olive&expression=Neutral_olive&eyes=Eye_Color_brown&hair=Bangs_bun_black&clothes=Shortsleeve_Polo_navy&legs=Pants_navy&shoes=Basic_Shoes_black"
+}

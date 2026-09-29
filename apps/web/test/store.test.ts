@@ -3,7 +3,7 @@ import type { PersonView } from "@vch/shared-types";
 import { initialState, reduce } from "../src/store";
 import { nightFactor } from "../src/canvas/renderer";
 
-const person = (id: string, x: number): PersonView => ({ id, kind: "staff", name: id, initials: "X", onMap: true, x, y: 1, roomId: "Corridor", posture: "standing", badges: [], task: null });
+const person = (id: string, x: number): PersonView => ({ id, kind: "staff", name: id, initials: "X", gender: "female", onMap: true, x, y: 1, roomId: "Corridor", posture: "standing", badges: [], task: null });
 const clock = { t: 108000, tick: 0, paused: false, speed: 60 as const };
 
 describe("store", () => {

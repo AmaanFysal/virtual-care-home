@@ -1,0 +1,18 @@
+{
+  "id": "ext_housekeeper",
+  "name": "Ana Ferreira",
+  "group": "extra",
+  "note": "housekeeper",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_olive",
+    "head": "Human_Female_olive",
+    "expression": "Neutral_olive",
+    "eyes": "Eye_Color_brown",
+    "hair": "Bangs_bun_dark_brown",
+    "clothes": "Shortsleeve_Polo_green",
+    "legs": "Pants_black",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_olive&head=Human_Female_olive&expression=Neutral_olive&eyes=Eye_Color_brown&hair=Bangs_bun_dark_brown&clothes=Shortsleeve_Polo_green&legs=Pants_black&shoes=Basic_Shoes_black"
+}

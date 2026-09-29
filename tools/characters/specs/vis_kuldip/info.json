@@ -1,0 +1,20 @@
+{
+  "id": "vis_kuldip",
+  "name": "Kuldip Kaur Sandhu",
+  "group": "visitor",
+  "note": "76",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_bronze",
+    "head": "Human_Female_Elderly_bronze",
+    "expression": "Neutral_bronze",
+    "eyes": "Eye_Color_brown",
+    "wrinkles": "Wrinkles_bronze",
+    "hair": "Bangs_bun_gray",
+    "clothes": "Longsleeve_2_Scoop_maroon",
+    "legs": "Pants_white",
+    "neck": "Scarf_pink",
+    "shoes": "Sandals_brown"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_bronze&head=Human_Female_Elderly_bronze&expression=Neutral_bronze&eyes=Eye_Color_brown&wrinkles=Wrinkles_bronze&hair=Bangs_bun_gray&clothes=Longsleeve_2_Scoop_maroon&legs=Pants_white&neck=Scarf_pink&shoes=Sandals_brown"
+}

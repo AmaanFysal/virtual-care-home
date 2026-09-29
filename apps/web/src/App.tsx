@@ -38,6 +38,12 @@ export function App() {
         <Inspector />
         <EventLog />
       </aside>
+      <footer className="credits">
+        Character art: Liberated Pixel Cup contributors, CC-BY-SA 3.0 (licensed separately from the code).{" "}
+        <a href="/CREDITS.txt" target="_blank" rel="noreferrer">
+          Credits
+        </a>
+      </footer>
     </div>
   );
 }

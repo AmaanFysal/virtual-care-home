@@ -1,0 +1,19 @@
+{
+  "id": "vis_sarah",
+  "name": "Sarah Evans",
+  "group": "visitor",
+  "note": "61",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_green",
+    "hair": "Wavy_ash",
+    "clothes": "Longsleeve_2_Scoop_navy",
+    "legs": "Pants_gray",
+    "shoes": "Revised_Shoes_black",
+    "neck": "Scarf_red"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_green&hair=Wavy_ash&clothes=Longsleeve_2_Scoop_navy&legs=Pants_gray&shoes=Revised_Shoes_black&neck=Scarf_red"
+}

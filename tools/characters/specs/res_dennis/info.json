@@ -1,0 +1,19 @@
+{
+  "id": "res_dennis",
+  "name": "Dennis Hart",
+  "group": "resident",
+  "note": "87, bed-bound, pyjamas",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_gray",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Balding_white",
+    "clothes": "Longsleeve_2_Buttoned_sky",
+    "legs": "Pants_sky",
+    "shoes": "Slippers_navy"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_Elderly_light&expression=Neutral_light&eyes=Eye_Color_gray&wrinkles=Wrinkles_light&hair=Balding_white&clothes=Longsleeve_2_Buttoned_sky&legs=Pants_sky&shoes=Slippers_navy"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "vis_maureen",
+  "name": "Maureen Brooks",
+  "group": "visitor",
+  "note": "74",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Curly_short_2_platinum",
+    "clothes": "Longsleeve_2_Buttoned_lavender",
+    "legs": "Pants_gray",
+    "shoes": "Revised_Shoes_black",
+    "necklace": "Small_Beaded_Necklace_gold"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_Elderly_light&expression=Neutral_light&eyes=Eye_Color_blue&wrinkles=Wrinkles_light&hair=Curly_short_2_platinum&clothes=Longsleeve_2_Buttoned_lavender&legs=Pants_gray&shoes=Revised_Shoes_black&necklace=Small_Beaded_Necklace_gold"
+}

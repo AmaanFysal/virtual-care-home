@@ -1,0 +1,20 @@
+{
+  "id": "ext_agency_carer_m",
+  "name": "Agency carer (male)",
+  "group": "extra",
+  "agency": true,
+  "note": "agency care assistant",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_taupe",
+    "head": "Human_Male_taupe",
+    "expression": "Neutral_taupe",
+    "eyes": "Eye_Color_brown",
+    "hair": "Buzzcut_black",
+    "beard": "Trimmed_Beard_black",
+    "clothes": "Shortsleeve_Polo_all.lpcr.pink",
+    "legs": "Pants_all.lpcr.pink",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_taupe&head=Human_Male_taupe&expression=Neutral_taupe&eyes=Eye_Color_brown&hair=Buzzcut_black&beard=Trimmed_Beard_black&clothes=Shortsleeve_Polo_all.lpcr.pink&legs=Pants_all.lpcr.pink&shoes=Basic_Shoes_black"
+}

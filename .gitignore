@@ -11,3 +11,7 @@ coverage/
 .idea/
 .claude/settings.local.json
 runs/
+
+# Character generator working files (tools/characters/README.md)
+tools/characters/out/
+tools/characters/scripts/lpc/

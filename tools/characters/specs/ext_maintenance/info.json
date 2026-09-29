@@ -1,0 +1,18 @@
+{
+  "id": "ext_maintenance",
+  "name": "Keith Barnes",
+  "group": "extra",
+  "note": "maintenance",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_gray",
+    "hair": "Balding_gray",
+    "clothes": "TShirt_gray",
+    "overalls": "Overalls_navy",
+    "shoes": "Basic_Boots_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_light&expression=Neutral_light&eyes=Eye_Color_gray&hair=Balding_gray&clothes=TShirt_gray&overalls=Overalls_navy&shoes=Basic_Boots_black"
+}

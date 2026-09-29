@@ -1,0 +1,19 @@
+{
+  "id": "res_peggy",
+  "name": "Peggy Holloway",
+  "group": "resident",
+  "note": "89, zimmer frame",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Curly_short_white",
+    "clothes": "Cardigan_rose",
+    "legs": "Pants_navy",
+    "shoes": "Slippers_maroon"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_Elderly_light&expression=Neutral_light&eyes=Eye_Color_blue&wrinkles=Wrinkles_light&hair=Curly_short_white&clothes=Cardigan_rose&legs=Pants_navy&shoes=Slippers_maroon"
+}

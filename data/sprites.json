@@ -1,0 +1,722 @@
+{
+  "$comment": "Written by tools/characters/import.mjs; don't edit by hand. Character art: LPC, CC-BY-SA 3.0 (see CREDITS.md).",
+  "frame": 64,
+  "columns": 13,
+  "directions": [
+    "north",
+    "west",
+    "south",
+    "east"
+  ],
+  "layout": {
+    "walk": {
+      "row": 8,
+      "frames": 9,
+      "cycle": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "perDirection": true
+    },
+    "stand": {
+      "row": 8,
+      "frame": 0,
+      "perDirection": true
+    },
+    "idle": {
+      "row": 22,
+      "frames": 2,
+      "cycle": [
+        0,
+        0,
+        1
+      ],
+      "perDirection": true
+    },
+    "run": {
+      "row": 38,
+      "frames": 8,
+      "cycle": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "perDirection": true
+    },
+    "emote": {
+      "row": 34,
+      "frames": 3,
+      "cycle": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "perDirection": true
+    },
+    "sit": {
+      "row": 30,
+      "frame": 2,
+      "perDirection": true,
+      "note": "sit rows 30-33 hold three poses: legs out, cross-legged, on a chair (frame 2)"
+    },
+    "floor": {
+      "row": 20,
+      "frame": 5,
+      "perDirection": false,
+      "note": "last frame of the hurt row: lying on the floor after a fall"
+    },
+    "bed": {
+      "row": 10,
+      "frame": 0,
+      "head": {
+        "x": 16,
+        "y": 6,
+        "w": 32,
+        "h": 30
+      },
+      "note": "a head on the pillow, cut from the front-facing standing frame"
+    },
+    "wheelchair": {
+      "y": 3456,
+      "frames": 2,
+      "perDirection": true,
+      "note": "Raj only: below the standard sheet, rows N, W, S, E"
+    }
+  },
+  "overlays": {
+    "zimmer": {
+      "image": "sprites/overlays/zimmer.png",
+      "poses": [
+        "walk",
+        "stand"
+      ],
+      "frames": {
+        "north": {
+          "index": 0,
+          "under": true
+        },
+        "west": {
+          "index": 1
+        },
+        "south": {
+          "index": 2
+        },
+        "east": {
+          "index": 3
+        }
+      },
+      "note": "drawn by tools/characters/zimmer.mjs; the generator has no walking frames"
+    }
+  },
+  "roles": {
+    "$comment": "People without a sheet of their own, chosen at runtime by staff role and gender (agency ids are made up when they're booked)",
+    "agency_carer": {
+      "female": "ext_agency_carer",
+      "male": "ext_agency_carer_m"
+    },
+    "agency_nurse": {
+      "female": "ext_agency_nurse",
+      "male": "ext_agency_nurse"
+    },
+    "paramedic": {
+      "female": "ext_paramedic_f",
+      "male": "ext_paramedic_m"
+    }
+  },
+  "people": {
+    "res_peggy": {
+      "name": "Peggy Holloway",
+      "group": "resident",
+      "sheet": "sprites/characters/res_peggy.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit",
+        "bed",
+        "floor"
+      ],
+      "overlay": "zimmer"
+    },
+    "res_win": {
+      "name": "Win Adeyemi",
+      "group": "resident",
+      "sheet": "sprites/characters/res_win.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit",
+        "bed",
+        "floor"
+      ]
+    },
+    "res_arthur": {
+      "name": "Arthur Pemberton",
+      "group": "resident",
+      "sheet": "sprites/characters/res_arthur.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit",
+        "bed",
+        "floor"
+      ]
+    },
+    "res_raj": {
+      "name": "Raj Sandhu",
+      "group": "resident",
+      "sheet": "sprites/characters/res_raj.png",
+      "poses": [
+        "sit",
+        "bed",
+        "floor"
+      ],
+      "sit": "wheelchair"
+    },
+    "res_stan": {
+      "name": "Stan Brooks",
+      "group": "resident",
+      "sheet": "sprites/characters/res_stan.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit",
+        "bed",
+        "floor"
+      ]
+    },
+    "res_dennis": {
+      "name": "Dennis Hart",
+      "group": "resident",
+      "sheet": "sprites/characters/res_dennis.png",
+      "poses": [
+        "bed",
+        "floor"
+      ]
+    },
+    "stf_joanne": {
+      "name": "Joanne Price",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_joanne.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_maria": {
+      "name": "Maria Santos",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_maria.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_blessing": {
+      "name": "Blessing Mensah",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_blessing.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_dave": {
+      "name": "Dave Collins",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_dave.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_kasia": {
+      "name": "Kasia Nowak",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_kasia.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_aisha": {
+      "name": "Aisha Rahman",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_aisha.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_tom": {
+      "name": "Tom Fletcher",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_tom.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_florin": {
+      "name": "Florin Popescu",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_florin.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_bev": {
+      "name": "Bev Harris",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_bev.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_sanjay": {
+      "name": "Sanjay Mehta",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_sanjay.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_lucy": {
+      "name": "Lucy Brennan",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_lucy.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "stf_shanice": {
+      "name": "Shanice Clarke",
+      "group": "staff",
+      "sheet": "sprites/characters/stf_shanice.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_linda": {
+      "name": "Linda Carter",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_linda.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_mick": {
+      "name": "Mick Carter",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_mick.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_gary": {
+      "name": "Gary Holloway",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_gary.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_chloe": {
+      "name": "Chloe Carter",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_chloe.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_funmi": {
+      "name": "Funmi Adeyemi",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_funmi.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_tunde": {
+      "name": "Tunde Adeyemi",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_tunde.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_kayode": {
+      "name": "Kayode Adeyemi",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_kayode.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_grace": {
+      "name": "Sister Grace Oyelaran",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_grace.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_colin": {
+      "name": "Colin Pemberton",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_colin.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_bernard": {
+      "name": "Bernard Hughes",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_bernard.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_hannah": {
+      "name": "Hannah Ward",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_hannah.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_kuldip": {
+      "name": "Kuldip Kaur Sandhu",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_kuldip.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_harpreet": {
+      "name": "Harpreet Sandhu",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_harpreet.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_simran": {
+      "name": "Simran Sandhu",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_simran.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_arjun": {
+      "name": "Arjun Sandhu",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_arjun.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ],
+      "scale": 0.8
+    },
+    "vis_priya": {
+      "name": "Priya Sandhu",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_priya.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ],
+      "scale": 0.8
+    },
+    "vis_maureen": {
+      "name": "Maureen Brooks",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_maureen.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_tracey": {
+      "name": "Tracey Brooks",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_tracey.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_sheila": {
+      "name": "Sheila Turner",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_sheila.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_terry": {
+      "name": "Terry Mills",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_terry.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_sarah": {
+      "name": "Sarah Evans",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_sarah.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_paul": {
+      "name": "Paul Hart",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_paul.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_mia": {
+      "name": "Mia Evans",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_mia.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_pat": {
+      "name": "Pat Doyle",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_pat.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_father_michael": {
+      "name": "Father Michael O'Connell",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_father_michael.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_agency_carer": {
+      "name": "Precious Moyo",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_agency_carer.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_gp": {
+      "name": "Dr Rachel Moore",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_gp.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_district_nurse": {
+      "name": "Gemma Walsh",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_district_nurse.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_chef": {
+      "name": "Kwame Boateng",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_chef.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_housekeeper": {
+      "name": "Ana Ferreira",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_housekeeper.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_maintenance": {
+      "name": "Keith Barnes",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_maintenance.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_hairdresser": {
+      "name": "Jade Morgan",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_hairdresser.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_night_float": {
+      "name": "Lorna Mitchell",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_night_float.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_oncall_rn": {
+      "name": "On-call nurse",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_oncall_rn.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_agency_carer_m": {
+      "name": "Agency carer (male)",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_agency_carer_m.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_agency_nurse": {
+      "name": "Agency nurse",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_agency_nurse.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_paramedic_m": {
+      "name": "Paramedic (male)",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_paramedic_m.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_paramedic_f": {
+      "name": "Paramedic (female)",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_paramedic_f.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    }
+  }
+}

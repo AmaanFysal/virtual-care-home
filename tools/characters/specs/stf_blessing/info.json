@@ -1,0 +1,18 @@
+{
+  "id": "stf_blessing",
+  "name": "Blessing Mensah",
+  "group": "staff",
+  "note": "senior carer",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_black",
+    "head": "Human_Female_black",
+    "expression": "Neutral_black",
+    "eyes": "Eye_Color_brown",
+    "hair": "Twists_straight_black",
+    "clothes": "Shortsleeve_Polo_blue",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_black&head=Human_Female_black&expression=Neutral_black&eyes=Eye_Color_brown&hair=Twists_straight_black&clothes=Shortsleeve_Polo_blue&legs=Pants_navy&shoes=Basic_Shoes_black"
+}

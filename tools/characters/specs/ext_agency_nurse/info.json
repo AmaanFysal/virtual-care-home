@@ -1,0 +1,19 @@
+{
+  "id": "ext_agency_nurse",
+  "name": "Agency nurse",
+  "group": "extra",
+  "agency": true,
+  "note": "agency registered nurse",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_green",
+    "hair": "Wavy_ginger",
+    "clothes": "Shortsleeve_Polo_all.lpcr.pink",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_green&hair=Wavy_ginger&clothes=Shortsleeve_Polo_all.lpcr.pink&legs=Pants_navy&shoes=Basic_Shoes_black"
+}

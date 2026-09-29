@@ -1,0 +1,19 @@
+{
+  "id": "vis_paul",
+  "name": "Paul Hart",
+  "group": "visitor",
+  "note": "58",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_brown",
+    "hair": "Plain_gray",
+    "beard": "Trimmed_Beard_gray",
+    "clothes": "Longsleeve_2_bluegray",
+    "legs": "Pants_blue",
+    "shoes": "Basic_Boots_brown"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_light&expression=Neutral_light&eyes=Eye_Color_brown&hair=Plain_gray&beard=Trimmed_Beard_gray&clothes=Longsleeve_2_bluegray&legs=Pants_blue&shoes=Basic_Boots_brown"
+}

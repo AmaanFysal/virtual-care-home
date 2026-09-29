@@ -1,0 +1,22 @@
+{
+  "id": "res_arthur",
+  "name": "Arthur Pemberton",
+  "group": "resident",
+  "note": "91, ex-RAF, rollator",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_gray",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Balding_white",
+    "mustache": "Mustache_white",
+    "clothes": "Longsleeve_2_Buttoned_white",
+    "overalls": "Suspenders_navy",
+    "neck": "Necktie_navy",
+    "legs": "Pants_charcoal",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_Elderly_light&expression=Neutral_light&eyes=Eye_Color_gray&wrinkles=Wrinkles_light&hair=Balding_white&mustache=Mustache_white&clothes=Longsleeve_2_Buttoned_white&overalls=Suspenders_navy&neck=Necktie_navy&legs=Pants_charcoal&shoes=Basic_Shoes_black"
+}

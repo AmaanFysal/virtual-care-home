@@ -1,0 +1,19 @@
+{
+  "id": "vis_simran",
+  "name": "Simran Sandhu",
+  "group": "visitor",
+  "note": "48",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_bronze",
+    "head": "Human_Female_bronze",
+    "expression": "Neutral_bronze",
+    "eyes": "Eye_Color_brown",
+    "hair": "Braid_black",
+    "clothes": "Longsleeve_2_Scoop_teal",
+    "legs": "Pants_white",
+    "neck": "Scarf_teal",
+    "shoes": "Sara_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_bronze&head=Human_Female_bronze&expression=Neutral_bronze&eyes=Eye_Color_brown&hair=Braid_black&clothes=Longsleeve_2_Scoop_teal&legs=Pants_white&neck=Scarf_teal&shoes=Sara_Shoes_black"
+}

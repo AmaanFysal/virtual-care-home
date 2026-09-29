@@ -1,0 +1,18 @@
+{
+  "id": "stf_tom",
+  "name": "Tom Fletcher",
+  "group": "staff",
+  "note": "care assistant, 19",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_green",
+    "hair": "Messy2_light_brown",
+    "clothes": "Shortsleeve_Polo_lavender",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_light&expression=Neutral_light&eyes=Eye_Color_green&hair=Messy2_light_brown&clothes=Shortsleeve_Polo_lavender&legs=Pants_navy&shoes=Basic_Shoes_black"
+}

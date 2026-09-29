@@ -1,0 +1,18 @@
+{
+  "id": "vis_hannah",
+  "name": "Hannah Ward",
+  "group": "visitor",
+  "note": "34",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_green",
+    "hair": "Pixie_dark_brown",
+    "clothes": "Longsleeve_2_forest",
+    "legs": "Pants_blue",
+    "shoes": "Basic_Boots_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_green&hair=Pixie_dark_brown&clothes=Longsleeve_2_forest&legs=Pants_blue&shoes=Basic_Boots_black"
+}

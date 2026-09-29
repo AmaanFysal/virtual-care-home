@@ -1,0 +1,20 @@
+{
+  "id": "res_stan",
+  "name": "Stan Brooks",
+  "group": "resident",
+  "note": "82, ex-market trader, shuffling gait",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Unkempt_gray",
+    "clothes": "Longsleeve_2_maroon",
+    "neck": "Scarf_sky",
+    "legs": "Pants_brown",
+    "shoes": "Slippers_navy"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_Elderly_light&expression=Neutral_light&eyes=Eye_Color_blue&wrinkles=Wrinkles_light&hair=Unkempt_gray&clothes=Longsleeve_2_maroon&neck=Scarf_sky&legs=Pants_brown&shoes=Slippers_navy"
+}

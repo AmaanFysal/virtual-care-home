@@ -1,0 +1,20 @@
+{
+  "id": "stf_bev",
+  "name": "Bev Harris",
+  "group": "staff",
+  "note": "activities coordinator",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_green",
+    "hair": "Curly_long_redhead",
+    "clothes": "Cardigan_purple",
+    "legs": "Pants_black",
+    "shoes": "Basic_Boots_maroon",
+    "necklace": "Large_Beaded_Necklace_gold",
+    "facial_eyes": "Round_Glasses_maroon"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_green&hair=Curly_long_redhead&clothes=Cardigan_purple&legs=Pants_black&shoes=Basic_Boots_maroon&necklace=Large_Beaded_Necklace_gold&facial_eyes=Round_Glasses_maroon"
+}
