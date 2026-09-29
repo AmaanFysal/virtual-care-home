@@ -34,11 +34,11 @@ The wing is 26.5 × 13 m. The Lounge (added after the Phase 1 behaviour audit) s
 | `Room2` | Room 2 | bedroom | 7.5, 0, 12.5, 5.5 | 68.75 m² | 2.4 m | Male room: Arthur (A), Raj (B), Stan (C), Dennis (D) |
 | `Lounge` | Lounge | lounge | 20, 0, 6.5, 5.5 | 35.75 m² | 2.4 m | Residents' day room and dining room: TV and armchairs, dining table for six, reading corner, activity table. About 6 m² per resident (the old National Minimum Standards asked for at least 4.1) |
 | `Corridor` | Corridor | corridor | 0, 5.5, 26.5, 2 | 53 m² | 2.4 m | Night lights |
-| `WaitingArea` | Waiting area | waiting | 0, 7.5, 8, 5.5 | 44 m² | 2.4 m | Visitors only (waiting, protected lunch); the night carer's in-wing break seat |
+| `WaitingArea` | Waiting area | waiting | 0, 7.5, 8, 5.5 | 44 m² | 2.4 m | Visitors only (waiting, protected lunch) |
 | `Reception` | Reception | reception | 8, 7.5, 6, 5.5 | 33 m² | 2.4 m | Desk, exit door to outside |
 | `StaffRoom` | Staff room | staff | 14, 7.5, 6, 5.5 | 33 m² | 2.4 m | Handovers and day breaks; no visitors |
 
-**Toilets:** each bedroom has an en-suite WC, modelled as a named point (`Room1.WC`, `Room2.WC`) drawn as a small labelled square inside the room, not as a separate room. The Lounge has no WC: residents there use their own en-suite.
+**Toilets:** each bedroom has an en-suite WC, modelled as a named point (`Room1.WC`, `Room2.WC`) drawn as a small labelled square inside the room, not as a separate room. The Lounge has no WC: residents there use their own en-suite. Beside each WC is a standing work point (`Room1.WC.Stand`, `Room2.WC.Stand`): only residents use the WC seat; anyone else sent to a WC (a carer helping, restocking) stands there, and the validator requires one per WC.
 
 ## Walls and doors
 
@@ -51,7 +51,7 @@ The wing is 26.5 × 13 m. The Lounge (added after the Phase 1 behaviour audit) s
 Furniture is a labelled rectangle of kind `bed`, `desk`, `table`, `chair`, `armchair`, `sofa`, `wc`, `tv` or `bookshelf`.
 
 - `bed`, `desk`, `table`, `sofa`, `tv` and `bookshelf` **block** movement.
-- `chair`, `armchair` and `wc` do **not** block. A person sits on the point.
+- `chair`, `armchair` and `wc` do **not** block. Residents and visitors sit on seat and chair points; only residents sit on a WC. Staff sit in the staff room and at reception (breaks, handovers, reception and office work), and in a free seat beside a resident they're sitting with; anywhere else they stand. Staff never use a WC seat.
 - Furniture ids use a lowercase suffix (`Room1.BedA.bed`, `WaitingArea.chair3`, `Lounge.tv`) so they never clash with named point ids.
 - The Lounge has a TV on the east wall with four armchairs facing it, a 2.5 m dining table with six chairs, a bookshelf with a reading chair, and an activity table with four chairs.
 
@@ -65,9 +65,10 @@ Named points are where people go and where interactions happen. Each point has a
 | `Room1.BedA.Side` | Main bedside standing spot (care, meds, checks, visitors) |
 | `Room1.BedA.Side2` | Opposite side of the bed (second carer for two-person tasks) |
 | `Room1.BedA.Chair` | Bedside chair (resident sits up, meals, visitors) |
-| `Room1.WC`, `Room2.WC` | En-suite toilet |
-| `Corridor.West`, `Corridor.Mid`, `Corridor.East` | Corridor waypoints and night-break spots |
-| `WaitingArea.Seat1`–`Seat8` | Waiting-area seats (visitors; `Seat8` is the night carer's break seat) |
+| `Room1.WC`, `Room2.WC` | En-suite toilet (residents only) |
+| `Room1.WC.Stand`, `Room2.WC.Stand` | Standing work point beside each toilet (staff) |
+| `Corridor.West`, `Corridor.Mid`, `Corridor.East` | Corridor waypoints |
+| `WaitingArea.Seat1`–`Seat8` | Waiting-area seats (visitors only) |
 | `Lounge.Armchair1`–`4` | Armchairs facing the TV (and for dozing at nap time) |
 | `Lounge.Dining1`–`6` | Dining chairs (lunch in the Lounge) |
 | `Lounge.Reading` | Reading chair by the bookshelf |

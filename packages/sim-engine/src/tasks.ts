@@ -201,9 +201,45 @@ export function createBriefing(world: World, lead: string, cover: string): Task 
   return newTask(world, "briefing", { label: "Briefing after handover", members: [lead, cover], data: { lead, cover } });
 }
 
-function createBreak(world: World, interruptible: boolean): Task {
-  const point = interruptible ? "WaitingArea.Seat8" : STAFF_ROOM_SEATS[STAFF_ROOM_SEATS.length - 1]!;
-  return newTask(world, "break", { label: "Break", data: { remainingMins: 30, point, interruptible: interruptible ? 1 : 0, resumed: 0 } });
+/** The lone night carer's break (docs/05 "Night break"). */
+export const NIGHT_BREAK_MINS = 25;
+
+/**
+ * Every break is in the staff room. The lone night carer's is shorter, taken while the floating
+ * night carer covers the wing, and he can be called back from it for two-person or urgent work.
+ */
+function createBreak(world: World, night: boolean): Task {
+  const point = STAFF_ROOM_SEATS[STAFF_ROOM_SEATS.length - 1]!;
+  return newTask(world, "break", { label: "Break", data: { remainingMins: night ? NIGHT_BREAK_MINS : 30, point, interruptible: night ? 1 : 0, night: night ? 1 : 0, resumed: 0 } });
+}
+
+/** The lone night carer's break is on (active, or paused while he's called back). */
+export function nightBreakOn(world: World): boolean {
+  for (const t of world.tasks.values()) if (t.kind === "break" && t.data.night === 1) return true;
+  return false;
+}
+
+/** On a planned round, the lone night carer's break is due and not yet taken: the floating carer waits for it. */
+export function nightBreakWaiting(world: World): boolean {
+  if (!world.float.planned) return false;
+  for (const id of world.order) {
+    const p = world.people.get(id)!;
+    const s = p.staff;
+    if (s?.shift?.shift === "night" && isCareStaff(p) && s.duty === "on_shift" && !s.breakTaken && s.breakDueT !== null && world.t >= s.breakDueT) return true;
+  }
+  return false;
+}
+
+/**
+ * The lone night carer may start his break: the floating carer is here on a planned round and
+ * covering the floor, and the round's two-person work (Dennis's turn, Raj's repositioning) is done.
+ */
+function nightBreakCovered(world: World, p: Person): boolean {
+  const f = world.float;
+  const lorna = world.people.get(world.data.rota.night_float.id)!;
+  if (f.status !== "on_site" || !f.planned || lorna.staff!.duty !== "on_shift" || !onFloor(world, lorna)) return false;
+  for (const t of world.tasks.values()) if (t.staffNeeded >= 2) return false;
+  return coveredWithout(world, p);
 }
 
 /** Open or active scheduled care of a kind for a resident (so it isn't created twice). */
@@ -632,14 +668,15 @@ export function decideStaff(world: World): void {
     if (s.breakTaken || s.breakDueT === null || world.t < s.breakDueT) continue;
     if (reserverOf.has(p.id)) continue; // a partner is on their way
     const sole = s.shift?.shift === "night";
-    // Day staff wait for a two-person turn that's nearly due; the lone night carer's break is in
-    // the wing and interruptible, and night turns are done with the floating carer.
+    // The lone night carer's break waits for the floating carer's round, after its turns.
+    if (sole && isCareStaff(p) && !nightBreakCovered(world, p)) continue;
+    // Day staff wait for a two-person turn that's nearly due.
     if (isCareStaff(p) && !sole && twoPersonTurnSoon(world, p)) continue;
     // Not while there's waiting work only they can do (female-only care, and they're the only woman on).
     if (isCareStaff(p) && onlyOneFor(world, p, open)) continue;
     // With Peggy or Stan in the Lounge, breaks are staggered so two care staff stay on the floor.
     if (isCareStaff(p) && !sole && loungeOccupied && floorStaffExcept(world, [p.id]) < 2) continue;
-    if (!isCareStaff(p) || sole || coveredWithout(world, p, true)) assign(world, createBreak(world, sole), [p]);
+    if (!isCareStaff(p) || sole || coveredWithout(world, p, true)) assign(world, createBreak(world, sole && isCareStaff(p)), [p]);
   }
 
   // 3. Work: repeatedly take the best (task, staff) match.
@@ -684,7 +721,11 @@ export function decideStaff(world: World): void {
         (!briefingHold.has(p.id) || isShort(task));
       // Someone whose shift has ended stays to do what only they can (e.g. the last woman on the wing).
       const onlyThem = (p: Person) => task.request && p.staff!.duty === "staying" && isCareStaff(p) && !p.staff!.taskId && !coverableOnSite(world, task);
-      let pool = staff.filter((p) => eligible(p) && (isFree(world, p, true) || onlyThem(p)));
+      // The lone night carer is called back from his break only for two-person work, anything
+      // urgent, or a fall; the floating carer covers the rest meanwhile.
+      const nightBreakCall = needed >= 2 || world.fallLog.some((f) => f.endT === null) || (task.deadlineT !== null && task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60);
+      const onNightBreak = (p: Person) => world.tasks.get(p.staff!.taskId ?? "")?.data.night === 1;
+      let pool = staff.filter((p) => eligible(p) && ((isFree(world, p, true) && (!onNightBreak(p) || nightBreakCall)) || onlyThem(p)));
       if (urgent && pool.length < needed) pool = [...pool, ...staff.filter((p) => eligible(p) && isCareStaff(p) && interruptibleForUrgent(world, p))];
       // A look-in on the Lounge about to go over its limit, or any work during a fall, calls
       // someone back from a day break (it resumes afterwards).

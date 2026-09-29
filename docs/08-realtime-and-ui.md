@@ -22,7 +22,7 @@
 | `detail` | Reply to `inspect` | Person, persona card, schedule (needs, BT node and workload arrive in M4a) |
 | `error` | Bad or refused command | Message |
 
-Each person view (`PersonView`) carries their id, kind, name, initials, position, room, posture, badges and task. It also carries two display-only fields for choosing a sprite: `gender`, and `role` (staff role) for staff, agency workers and responders.
+Each person view (`PersonView`) carries their id, kind, name, initials, position, room, posture, badges and task. It also carries two display-only fields for choosing a sprite: `gender`, and `role` (staff role) for staff, agency workers and responders. In deltas it may carry `via`: the turning points (path corners, doorway cells, arrivals, placements) the person passed since the previous update, in order, collected by the server from the engine's per-tick trail.
 
 **Browser → server** (`ClientCommand`): `pause`, `resume`, `step` (only while paused; one 5 s tick), `set_speed` (1, 10, 60, 360), `inspect`, `inject_fall`. Commands are validated by `parseCommand`; unknown or malformed ones get an `error`. Every command is written to the `commands` table; `inject_fall` also becomes a logged input (docs/07).
 
@@ -31,6 +31,7 @@ Each person view (`PersonView`) carries their id, kind, name, initials, position
 - **Stack:** Vite + React 19 + `pixi.js` v8 + Zustand. Pixi is driven imperatively from a React ref (`canvas/renderer.ts`) rather than through `@pixi/react`: positions change every frame, and a plain ticker avoids a React re-render per frame. This was the planned fallback.
 - **State:** `store.ts` is a pure fold of server messages (`reduce`). No optimistic updates: buttons change only when the server's `clock` message arrives.
 - **Canvas:** LPC pixel art (ADR-0004), described under "Pixel-art map" below. Everything drawn is derived from server state.
+- **Smooth movement:** each update starts a slide from where the person is drawn now, through any turning points not yet reached, through the update's `via` points, to the new position, at a steady pace over the real time until the next update is expected (`5000 / speed` ms, at least 100 ms). Between turning points it's a straight line. The engine moves people in 5-second ticks of up to about 6 m, and one update can span several ticks, so without `via` about half of all moves were drawn cutting a corner through a wall or furniture at every speed. A test replays the server's pacing at 10x, 60x and 360x and checks every drawn segment stays on walkable floor or in a doorway.
 - **Clock bar:** sim date and time, Play/Pause, Step (enabled while paused), 1x/10x/60x/360x, tick counter, connection status.
 - **Layout (M7):** the canvas on the left; a sidebar with the inspector above the event log. On narrow screens the sidebar goes below the canvas.
 - **Selecting and following:** click a person to select them (yellow ring); click empty floor to clear. Hovering shows a white ring and their name tag. **Follow** zooms in one step and keeps them centred, easing as they move. Drag to pan, scroll to zoom in whole steps. `?select=<id>&follow=1` opens on someone (demos, links), `?view=<roomId>&zoom=<n>` opens on a room, and `?tags=0` hides name tags (screenshots).
@@ -77,6 +78,7 @@ Each person view (`PersonView`) carries their id, kind, name, initials, position
   - They face the way they move; the walk frames advance with distance walked; they stand when still.
   - Sitting uses the chair pose, or Raj's wheelchair; seated people take their seat's facing. Dozing is the chair pose with a zz icon.
   - In bed, the head from the front-facing frame is drawn on the pillow, with the sheet over it. On the floor: the hurt pose with a pulsing red ring.
+  - Standing still in a WC area (restocking, helping), they face the toilet.
   - Each has a soft shadow; the selected person has a yellow ring, the hovered person a white one.
 - **Name tags** (header toggle): initials on the kind colour (the legend), with an icon: meal, drink, meds, care, asleep, notes, chatting, visiting, break or fall. The icon comes from badges, posture and task. Overlapping tags are nudged apart; with tags off, the selected and hovered person still show theirs.
 - **Night:** a navy overlay (up to 55%) from 22:00 to 06:00, ramping 20:00–22:00 and 06:00–07:30, with warm lights along the corridor and at the bedside lamps.

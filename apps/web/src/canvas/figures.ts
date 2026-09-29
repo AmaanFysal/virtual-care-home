@@ -62,6 +62,17 @@ export function seatAt(plan: FloorPlan, x: number, y: number): Furniture | undef
   return plan.furniture.find((f) => (f.kind === "chair" || f.kind === "armchair") && x >= f.rect.x && x <= f.rect.x + f.rect.w && y >= f.rect.y && y <= f.rect.y + f.rect.h);
 }
 
+/**
+ * Someone standing still in a WC area (e.g. restocking it) faces the toilet: the direction from
+ * where they stand to the WC seat point. Null anywhere else, or on the seat itself.
+ */
+export function facingFixture(plan: FloorPlan, x: number, y: number): Dir | null {
+  const wc = plan.furniture.find((f) => f.kind === "wc" && x >= f.rect.x && x <= f.rect.x + f.rect.w && y >= f.rect.y && y <= f.rect.y + f.rect.h);
+  const seat = wc && plan.points.find((p) => p.kind === "wc" && p.room === wc.room);
+  if (!seat || (Math.abs(seat.x - x) < 0.01 && Math.abs(seat.y - y) < 0.01)) return null;
+  return directionOf(seat.x - x, seat.y - y, "south");
+}
+
 /** The name-tag icon for what someone is doing, from their badges, posture and task label. */
 export function activityIcon(view: Pick<PersonView, "kind" | "posture" | "badges" | "task">): IconName | null {
   const b = new Set(view.badges);
@@ -77,6 +88,40 @@ export function activityIcon(view: Pick<PersonView, "kind" | "posture" | "badges
   if (task.startsWith("Visiting") || (view.kind === "visitor" && view.posture === "sitting")) return "visiting";
   if (task === "Chatting" || task.startsWith("Sitting with")) return "chatting";
   return null;
+}
+
+/** A slide along straight segments through turning points (world metres), by distance. */
+export interface Slide {
+  points: { x: number; y: number }[];
+  /** Distance from the first point to each point. */
+  cum: number[];
+}
+
+export function makeSlide(points: { x: number; y: number }[]): Slide {
+  const pts = points.filter((p, i) => i === 0 || p.x !== points[i - 1]!.x || p.y !== points[i - 1]!.y);
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1]! + Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y));
+  return { points: pts, cum };
+}
+
+/** The point a fraction k (0 to 1) of the way along a slide, by distance. */
+export function slideAt(s: Slide, k: number): { x: number; y: number } {
+  const total = s.cum[s.cum.length - 1]!;
+  if (s.points.length === 1 || total === 0 || k >= 1) return s.points[s.points.length - 1]!;
+  const d = Math.max(0, k) * total;
+  let i = 1;
+  while (i < s.cum.length - 1 && s.cum[i]! < d) i++;
+  const a = s.points[i - 1]!, b = s.points[i]!;
+  const seg = s.cum[i]! - s.cum[i - 1]!;
+  const f = seg === 0 ? 1 : (d - s.cum[i - 1]!) / seg;
+  return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+}
+
+/** Where the slide is at k, followed by the turning points still ahead (so a new slide can carry on from there). */
+export function slideRest(s: Slide, k: number): { x: number; y: number }[] {
+  const here = slideAt(s, k);
+  const d = Math.min(1, Math.max(0, k)) * s.cum[s.cum.length - 1]!;
+  return [here, ...s.points.filter((_, i) => s.cum[i]! > d)];
 }
 
 /** Where a figure is drawn and clicked, in world pixels. */

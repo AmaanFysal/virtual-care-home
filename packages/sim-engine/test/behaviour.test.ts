@@ -132,7 +132,7 @@ describe("a week on the wing (seed 1)", () => {
       .map((e) => ({ who: e.actors[0]!, from: e.t, to: ofType(events, "break.ended").find((x) => x.actors[0] === e.actors[0] && x.t > e.t)!.t }));
     for (const a of spans) for (const b of spans) if (a !== b) expect(a.to <= b.from || b.to <= a.from, `${a.who} and ${b.who}`).toBe(true);
     const florin = ofType(events, "break.started").find((e) => e.actors[0] === "stf_florin")!;
-    expect(florin.payload.pointId).toBe("WaitingArea.Seat8"); // sole night carer stays in the wing
+    expect(florin.payload.pointId).toBe("StaffRoom.Seat6"); // every break is in the staff room; the floating carer covers the night one
   });
 
   it("answers help requests, with two staff for Raj and only women for Peggy's personal care", () => {

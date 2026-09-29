@@ -85,16 +85,37 @@ function wanted(world: World, p: Person, sessionDay: boolean): Want | null {
   return "activity";
 }
 
-/** Seats nobody is in, walking to, or being taken to. */
-function freeSeats(world: World, ids: string[]): string[] {
+/** Seats nobody is in, walking to, or being taken to (a carer sitting with a resident included). */
+export function freeSeats(world: World, ids: string[]): string[] {
   const taken = new Set<string>();
   for (const q of world.people.values()) {
     if (!q.onMap) continue;
-    if (q.resident && q.atPoint) taken.add(q.atPoint);
+    if ((q.resident || q.posture === "sitting") && q.atPoint) taken.add(q.atPoint);
     if (q.resident && q.move) taken.add(q.move.destPointId);
   }
-  for (const t of world.tasks.values()) if (t.data.to) taken.add(String(t.data.to));
+  for (const t of world.tasks.values()) {
+    if (t.data.to) taken.add(String(t.data.to));
+    if (t.kind === "idle" && t.data.activity === "sit_with") taken.add(String(t.data.point));
+  }
   return ids.filter((id) => !taken.has(id));
+}
+
+/** Every seat in the Lounge. */
+export function loungeSeats(world: World): string[] {
+  return [...world.points.values()].filter((p) => p.room === LOUNGE && p.kind === "seat").map((p) => p.id).sort();
+}
+
+/**
+ * Free Lounge seats beyond what the residents who use the Lounge could still need (everyone with a
+ * Lounge routine who isn't already sitting there). A carer may take a Lounge seat only while this is
+ * at least 1, so the residents always have seats.
+ */
+export function loungeSeatsSpare(world: World): number {
+  const all = loungeSeats(world);
+  const seated = new Set(all);
+  let mayNeed = 0;
+  for (const q of world.people.values()) if (q.resident?.data.care.lounge && !(q.atPoint && seated.has(q.atPoint) && !q.move)) mayNeed += 1;
+  return freeSeats(world, all).length - mayNeed;
 }
 
 function nearestFree(world: World, ids: string[], to: { x: number; y: number }): string | null {

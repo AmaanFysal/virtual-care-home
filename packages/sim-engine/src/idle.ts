@@ -11,9 +11,11 @@ import { act, leaf, seq, type BtNode } from "./bt.js";
 import { newBtState } from "./bt.js";
 import { emit } from "./emit.js";
 import { needsHelpToDrink } from "./needs.js";
+import { freeSeats, loungeSeatsSpare } from "./lounge.js";
 import { isNight } from "./nightcover.js";
 import { isCareStaff, isNurse, type Person, type Task, type World } from "./state.js";
 import { besideThem, goTo, lower, markChecked, setBadges, type Ctx } from "./trees.js";
+import { cellAt } from "./world/grid.js";
 
 type Activity = "notes" | "tidy" | "restock" | "sit_with" | "supervise" | "checks";
 
@@ -26,7 +28,28 @@ const OFFER_DRINK_FROM = 0.3;
 const SIT_WITH_FROM = 0.4;
 const SOCIAL_RELIEF_PER_MIN = 1 / 25;
 const NOTES_POINTS = ["Reception.Desk", "Reception.Office"];
-const WC_POINTS = ["Room1.WC", "Room2.WC"];
+/** A carer sitting with a resident takes a free seat within this distance of them. */
+const SIT_BESIDE_M = 2;
+/** Restocking an en-suite is done standing beside the toilet, never on it. */
+const WC_POINTS = ["Room1.WC.Stand", "Room2.WC.Stand"];
+
+/**
+ * A free seat next to a resident for a carer sitting with them: a bedside chair, a Lounge seat, a
+ * dining chair; never a WC or the resident's own seat, and in the Lounge only while the residents
+ * still have seats to spare. Null if none: the carer stands beside them.
+ */
+export function seatBeside(world: World, r: Person): string | null {
+  const near = [...world.points.values()]
+    .filter((pt) => (pt.kind === "seat" || pt.kind === "chair") && pt.room === r.roomId && pt.id !== r.atPoint && Math.hypot(pt.x - r.x, pt.y - r.y) <= SIT_BESIDE_M)
+    .sort((a, b) => Math.hypot(a.x - r.x, a.y - r.y) - Math.hypot(b.x - r.x, b.y - r.y) || a.id.localeCompare(b.id));
+  const free = new Set(freeSeats(world, near.map((pt) => pt.id)));
+  for (const pt of near) {
+    if (!free.has(pt.id) || world.standClaims.has(cellAt(world.grid, pt.x, pt.y))) continue;
+    if (pt.room === "Lounge" && loungeSeatsSpare(world) < 1) return null;
+    return pt.id;
+  }
+  return null;
+}
 
 /** Someone the idle carer could sit with: awake, free, wanting company, not already accompanied. */
 function wantsCompany(world: World): Person[] {
@@ -92,7 +115,8 @@ export function startIdleActivity(world: World, p: Person, floorCover = false): 
     options.push({ value: { activity: "restock", residentId: null, point: WC_POINTS[world.rng.decisions.int(0, 1)]! }, weight: WEIGHT.restock });
     const r = lonely[0];
     if (r) {
-      const spot = r.resident!.inBed ? `${r.resident!.data.room}.Side` : r.atPoint ?? `${r.resident!.data.room}.Chair`;
+      // In a free seat next to them if there is one; otherwise standing at their bedside or beside them.
+      const spot = seatBeside(world, r) ?? (r.resident!.inBed || !r.atPoint ? `${r.resident!.data.room}.Side` : r.atPoint);
       options.push({ value: { activity: "sit_with", residentId: r.id, point: spot }, weight: WEIGHT.sit_with * r.resident!.needs.social });
     }
     // Residents in the Lounge: someone keeps an eye on them (unless a carer is already there).
@@ -139,6 +163,10 @@ export const idleTree: BtNode<Ctx> = seq(
   act("start", (c) => {
     c.task.startedT = c.world.t;
     setBadges(c.staff, [], c.task.label);
+    // Sitting with someone: the carer sits down if they reached the seat itself.
+    const me = c.staff[0]!;
+    const seat = c.world.points.get(String(c.task.data.point));
+    if (c.task.data.activity === "sit_with" && seat && (seat.kind === "seat" || seat.kind === "chair") && me.x === seat.x && me.y === seat.y) me.posture = "sitting";
     if (!c.resident) return;
     const checks = c.task.data.activity === "checks";
     markChecked(c.world, c.resident, c.staff, checks);

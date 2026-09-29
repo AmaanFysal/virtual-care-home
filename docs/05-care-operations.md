@@ -60,7 +60,8 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 ## Breaks
 
 - **Day care staff:** one 30-minute break in the staff room, starting at a seeded time in a window: early 10:30–11:45, late 17:30–19:00, RN 11:30–12:15 (outside med rounds). Breaks are staggered between **carers**: nobody starts a break unless another carer (not the RN) is on the floor, and the break waits instead. It also waits while Peggy or Stan is in the Lounge and fewer than two other care staff would stay on the floor, and while female-only work is waiting and they're the only woman on. A break is paused (and resumed later) if they're called back: for a Lounge look-in about to go over its 15 minutes, or for work during a fall.
-- **Night carer (alone):** one 30-minute break around 03:00, taken in the waiting area, not the staff room. They stay interruptible and count as on the floor.
+- **All breaks are in the staff room**, never the waiting area (visitors only) or anywhere else.
+- **Night carer (alone, whoever is on that night: Florin, Aisha or agency):** one 25-minute break in the staff room, taken only while the floating night carer is on the wing. From 01:30 it waits for her next planned round (usually the one around 02:00 to 03:00) and starts **after** that round's two-person work (Dennis's turn, Raj's repositioning), so those still have two people. She stays on the wing until the break ends, covering checks, requests and Peggy's care; while she's there she counts as care staff on the floor, so the floor rule holds at every tick. He's called back from the break (it resumes afterwards) only for two-person work, anything within 10 minutes of its time limit, or a fall.
 - **Office and reception:** 30-minute lunch around 12:30; this doesn't affect the floor rule.
 
 ## Daily routine
@@ -85,7 +86,7 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 | 20:00 | Late drink with a supper snack |
 | 21:00 | Bedtime med round (late lead) |
 | 21:15 | Handover |
-| Night | Checks and repositioning at each resident's interval; night carer's break around 03:00 |
+| Night | Checks and repositioning at each resident's interval; night carer's break in the staff room during the floating carer's round after 01:30 |
 
 ## Resident care profiles (mechanical fields)
 
@@ -162,9 +163,9 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 - **Planned rounds**, aligned with Dennis's 2-hourly turns (the rota's 22:00, 00:00, 02:00, 04:00 and 06:00 are only the fallback if nobody needs turning). She arrives about 10 minutes before (see "Turning") and does checks while she waits. Each round batches whatever is due: Dennis's turn (always), Raj's 4-hourly repositioning (22:00, 02:00, 06:00), and Peggy's personal care (pad change) if it is due, since Peggy has female carers only.
 - **Out-of-round call-outs** only for urgent two-person tasks (a hoist lift after a fall) or urgent same-sex tasks (Peggy's personal care that can't wait for the next round). She arrives within about 10 minutes.
 - Her arrivals and departures are logged (`second_carer.arrived` with `planned`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and counted (`world.metrics.floatCallouts`).
-- While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks).
+- While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks). On the round that covers the night carer's break she also stays until his break is over.
 - On seeds 1 to 8 over a week, the planned rounds cover all night work: 35 visits a week and no call-outs. A call-out is tested directly (a forced 23:00 request from Raj).
-- **Time on site:** 24 to 35% of the 570-minute night across seeds 1 to 8 (up from about 25% with fixed rounds); no night over 50%. `--report` prints it per night and flags any night over 50%.
+- **Time on site:** 24 to 33% of the 570-minute night across seeds 1 to 8 on full nights (19 to 28% before she covered the night break); no night over 50%. `--report` prints it per night and flags any night over 50%.
 
 ## The Lounge (after the behaviour audit, `src/lounge.ts`)
 

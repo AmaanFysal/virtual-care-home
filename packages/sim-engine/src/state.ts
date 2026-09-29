@@ -215,6 +215,12 @@ export interface World {
   zoneReleasedTick: Map<string, number>;
   /** Standing cells claimed by stationary people or people walking to them. */
   standClaims: Map<number, string>;
+  /**
+   * Display only: the turning points each person passed this tick, in order (path corners,
+   * doorway cells, arrivals, placements). Cleared every tick; the server hands them to browsers so
+   * a turn between two updates isn't drawn through a wall (docs/08). The simulation never reads it.
+   */
+  trail: Map<string, { x: number; y: number }[]>;
   tasks: Map<string, Task>;
   taskSeq: number;
   shiftLog: Map<string, ShiftLog>;

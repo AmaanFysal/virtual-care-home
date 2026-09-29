@@ -155,6 +155,11 @@ function validateFloorPlan(fp: FloorPlan, errors: string[]): void {
     }
   }
   if (!fp.points.some((p) => p.id === "ExitDoor")) errors.push("floorplan: missing ExitDoor point");
+  // Staff never use a WC seat: each WC has a standing work point beside it (docs/02).
+  for (const wc of fp.points.filter((p) => p.kind === "wc")) {
+    const stand = fp.points.find((p) => p.id === `${wc.id}.Stand`);
+    if (!stand || stand.room !== wc.room || stand.kind !== "waypoint") errors.push(`floorplan: WC point ${wc.id} has no standing point ${wc.id}.Stand (a waypoint in ${wc.room})`);
+  }
 
   // The residents' Lounge: one room, off the corridor, with seats for everyone who uses it (docs/02).
   const lounges = fp.rooms.filter((r) => r.kind === "lounge");
