@@ -365,7 +365,7 @@ function isShort(task: Task): boolean {
 
 const MORNING_ROUND = { noNurseFrom: clockToSeconds("07:45"), at: clockToSeconds("08:00"), until: clockToSeconds("12:00") };
 
-/** From 07:45 until the 08:00 medication round is done, the nurse doesn't take two-person morning care. */
+/** From 07:45 until the 08:00 medication round is done, the day nurse doesn't start any resident care. */
 export function morningRoundPending(world: World): boolean {
   const tod = timeOfDay(world.t);
   if (tod < MORNING_ROUND.noNurseFrom || tod >= MORNING_ROUND.until) return false;
@@ -469,6 +469,11 @@ function onlyOneFor(world: World, p: Person, open: Task[]): boolean {
     const q = world.people.get(id)!;
     return q.id !== p.id && q.gender === "female" && isCareStaff(q) && q.staff!.duty === "on_shift" && q.onMap;
   });
+}
+
+/** Care with residents: scheduled care, help requests and drinks rounds (not a Lounge look-in or the door). */
+function isResidentCare(task: Task): boolean {
+  return task.kind === "care" || task.kind === "assist" || task.kind === "round";
 }
 
 /** A turn: a reposition, or a bed-bound resident's morning care that has taken on a turn falling due. */
@@ -604,7 +609,7 @@ export function decideStaff(world: World): void {
     const by = t.data.reservedBy ? world.people.get(String(t.data.reservedBy)) : undefined;
     const doing = by?.staff?.taskId ? world.tasks.get(by.staff.taskId) : undefined;
     // Lapses if they've gone off shift or are doing anything longer than short work (a handover, a round).
-    const barred = !!by && isNurse(by) && morningRoundPending(world) && t.data.care === "morning" && t.staffNeeded === 2;
+    const barred = !!by && isNurse(by) && morningRoundPending(world) && isResidentCare(t);
     if (!by || barred || by.staff?.duty !== "on_shift" || !by.onMap || (doing && doing.kind !== "idle" && !isShort(doing) && !breakInterruptible(world, by))) t.data.reservedBy = null;
     else reserverOf.set(by.id, t);
   }
@@ -669,7 +674,7 @@ export function decideStaff(world: World): void {
       // turns don't (they're reserved ahead and the floating carer comes for them).
       const targetTask = task.request || task.kind === "lounge_check" || (task.kind === "care" && task.data.care === "check");
       const urgent = targetTask && task.deadlineT !== null && task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60;
-      const nurseOnMeds = medsPending && task.kind === "care" && task.data.care === "morning" && task.staffNeeded === 2;
+      const nurseOnMeds = medsPending && isResidentCare(task);
       const eligible = (p: Person) =>
         (!task.femaleOnly || p.gender === "female") &&
         !(nurseOnMeds && isNurse(p)) &&

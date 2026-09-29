@@ -52,7 +52,7 @@ In the Lounge and audit-fixes round (M8) these narrow rules were added, beyond w
 | Lounge: a two-person job that would leave nobody able to look in waits up to 10 minutes (not during a fall); breaks staggered so two stay on the floor; an urgent look-in calls someone back from a break | `tasks.ts` | Nurse on break plus Raj's two-person pad change left Peggy and Stan unsupervised |
 | Tea has a hard deadline; the nurse gives a drink with the 08:00 tablets to anyone who hasn't had tea | `tasks.ts`, `meds.ts` | Stan's tea at 08:00 while both carers did Dennis's wash (largely moot since Dennis's wash moved to 08:30) |
 
-**Remaining clashes, reported rather than patched** (seeds 1 to 8, no falls, after Dennis's wash moved to 08:30):
-- 4 service breaches in 56 days: Dennis's turn due about 08:21 (3), and Peggy's toilet request at 13:03 (1).
-- The 08:00 round started 17 to 20 minutes late on 16 mornings: the nurse started a one-person wash (Peggy's) just before 08:00. The 07:45 rule covers only two-person care.
+**Remaining clashes, reported rather than patched** (seeds 1 to 8, no falls, with Dennis's wash at 08:30 and the RN doing no resident care from 07:45 until the 08:00 round is done):
+- 2 service breaches in 56 days: one of Peggy's toilet requests (Sat 19:50, seed 3) and one of Raj's (Fri 20:19, seed 4), both in the evening crunch.
+- First food is over 60 minutes after waking for Win, Peggy and Arthur on most mornings. The nurse no longer helps with breakfasts from 07:45, and breakfast opens at 07:30.
 - The week tests allow up to 2 reported breaches per no-fall week (user decision).

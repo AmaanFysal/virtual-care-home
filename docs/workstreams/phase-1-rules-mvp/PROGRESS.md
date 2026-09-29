@@ -65,10 +65,8 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 ## Blockers and open questions
 
 - Remaining audit flags (user to decide):
-  - First food is over 60 minutes after waking for Arthur and Peggy on most mornings.
-  - Dennis's first sips come at his next hourly check.
-  - The 08:00 round starts about 17 minutes late when the nurse starts a one-person wash just before 08:00.
-- 4 service breaches in 56 no-fall days since Dennis's wash moved to 08:30. Accepted as realistic (user decision); the week tests allow up to 2 per week.
+  - First food is over 60 minutes after waking for Win, Peggy and Arthur on most mornings.
+- 2 service breaches in 56 no-fall days (evening toilet requests). Accepted as realistic (user decision); the week tests allow up to 2 per week.
 - Fall runs breach more service targets than before (20 against 7). Falls now land in busier spells.
 - Tuning debt: the special-case scheduling rules listed in docs/12, to revisit with the scenario director.
 - None blocking. Note: the Sunday visitor peak averages 4.00, exactly the lower edge of its 4 to 8 target; a small data change would move it.
@@ -94,3 +92,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 | 2026-09-29 | Weekly visitor quota; acceptance passes on seeds 1 to 8; Phase 1 complete; PR opened | 05, 06, 10, 11, PROGRESS |
 | 2026-09-29 | Behaviour audit command; Lounge room and routine; `lounge_supervision` target; audit fixes (tea on waking, breakfast 07:30, nurse and 08:00 round, Dennis comfort care, supper snack, reserved two-person tasks, left drinks, requests during care); every room change logged | spec, plan, 02, 04, 05, 07, 11, ADR-0003, CLAUDE.md, PROGRESS |
 | 2026-09-29 | Audit: first food within 60 min (not breakfast); Dennis's wash at 08:30; week tests allow up to 2 reported breaches; tuning debt listed | 05, 11, 12, PROGRESS |
+| 2026-09-29 | RN does no resident care from 07:45 until the 08:00 round is done; audit judges Dennis's sips by his comfort interval; PR description updated | 04, 05, 11, 12, PROGRESS |

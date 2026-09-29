@@ -32,11 +32,11 @@ describe("a week of mornings and drinks (seed 1)", () => {
     const day = Math.floor(w.t / 86400);
     for (const e of step) {
       if (e.type === "med_round.completed" && e.payload.round === "08:00") roundDone.add(day);
-      if (e.type === "task.assigned" && e.payload.staffIds.length === 2) {
+      if (e.type === "task.assigned") {
         const task = w.tasks.get(e.payload.taskId);
         const tod = timeOfDay(e.t);
         const nurse = e.payload.staffIds.some((id) => isNurse(w.people.get(id)!));
-        if (task?.data.care === "morning" && nurse && tod >= at(7, 45) && !roundDone.has(day)) nurseOnTwoPersonMorning.push(`${e.t} ${task.label}`);
+        if (task && nurse && tod >= at(7, 45) && tod < at(12) && !roundDone.has(day)) nurseOnTwoPersonMorning.push(`${e.t} ${task.label}`);
       }
     }
     for (const t of w.tasks.values()) {
@@ -71,7 +71,7 @@ describe("a week of mornings and drinks (seed 1)", () => {
     expect(breakfasts.some((b) => timeOfDay(b.t) < at(8))).toBe(true);
   });
 
-  it("keeps the nurse off two-person morning care from 07:45 until the 08:00 round is done", () => {
+  it("keeps the nurse off all resident care from 07:45 until the 08:00 round is done", () => {
     expect(nurseOnTwoPersonMorning).toEqual([]);
   });
 

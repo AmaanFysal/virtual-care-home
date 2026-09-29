@@ -761,7 +761,9 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
       // Morning.
       if (d.wakeT !== null) {
         const drink = d.firstDrinkT;
-        if (drink === null || drink - d.wakeT > cfg.morning.firstDrinkWithinMins * 60)
+        // Dennis is on a comfort plan: his sips are judged against his mouth-care interval (comfort.mouth_care_gap).
+        const comfortPlan = res.data.care.eating_support === "mouth_care_only";
+        if (!comfortPlan && (drink === null || drink - d.wakeT > cfg.morning.firstDrinkWithinMins * 60))
           flag("morning.late_first_drink", r.id, d.wakeT, `${first(r)} woke ${hm(d.wakeT)}, first drink ${drink ? `${hm(drink)} (+${m(drink - d.wakeT)}m)` : "none that morning"}`);
         const food = d.firstFoodT;
         const bk = d.meals.breakfast;
