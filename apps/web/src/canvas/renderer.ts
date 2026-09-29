@@ -370,7 +370,8 @@ export class WingRenderer {
     const seated = posture === "sitting" || posture === "dozing";
     if (seated && !moving) {
       const seat = seatAt(this.plan!, pos.x, pos.y);
-      if (seat) fig.dir = this.facings.get(seat.id) ?? fig.dir;
+      // No chair there (Raj in his wheelchair by the bed): face the camera.
+      fig.dir = seat ? (this.facings.get(seat.id) ?? fig.dir) : "south";
     }
     if (posture === "standing" && !moving) fig.dir = facingFixture(this.plan!, pos.x, pos.y) ?? fig.dir;
     const scale = entry?.scale ?? 1;

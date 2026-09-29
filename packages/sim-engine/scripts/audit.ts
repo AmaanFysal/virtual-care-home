@@ -232,7 +232,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
     const res = p.resident!;
     if (!p.onMap) return "away";
     if (res.inBed) return "bed";
-    if (p.atPoint === `${res.data.room}.Chair`) return "chair";
+    if (p.atPoint === `${res.data.room}.Chair` || p.atPoint === `${res.data.room}.Wheelchair`) return "chair";
     if (p.atPoint?.endsWith(".WC")) return "wc";
     if (p.roomId === res.data.room.split(".")[0]) return "bedroom";
     if (p.roomId === "Lounge") return p.posture === "dozing" ? "lounge (dozing)" : "lounge";

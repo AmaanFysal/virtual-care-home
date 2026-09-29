@@ -12,7 +12,7 @@ import type { Person, World } from "../state.js";
 import { cellAt, cellCentre, neighbours } from "./grid.js";
 import { findPath } from "./pathfind.js";
 
-const SEATED_POINTS = new Set(["seat", "chair", "wc"]);
+const SEATED_POINTS = new Set(["seat", "chair", "wheelchair", "wc"]);
 /** Rooms where staff sit at seats: breaks and handovers, reception and office work. */
 const STAFF_SEAT_ROOMS = new Set(["staff", "reception"]);
 
@@ -23,7 +23,7 @@ const STAFF_SEAT_ROOMS = new Set(["staff", "reception"]);
  */
 function sitsAt(world: World, person: Person, point: NamedPoint): boolean {
   if (!SEATED_POINTS.has(point.kind)) return false;
-  if (point.kind === "wc") return !!person.resident;
+  if (point.kind === "wc" || point.kind === "wheelchair") return !!person.resident;
   if (!person.staff) return true;
   const kind = world.data.floorplan.rooms.find((r) => r.id === point.room)?.kind;
   return !!kind && STAFF_SEAT_ROOMS.has(kind);

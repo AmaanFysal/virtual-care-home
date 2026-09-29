@@ -61,7 +61,8 @@ export interface Furniture {
   blocks: boolean;
 }
 
-export type PointKind = "bed" | "bedside" | "chair" | "wc" | "seat" | "desk" | "waypoint" | "exit";
+/** "wheelchair": where a hoisted resident sits in their own wheelchair by the bed (Raj); no chair there, and nobody else uses it. */
+export type PointKind = "bed" | "bedside" | "chair" | "wheelchair" | "wc" | "seat" | "desk" | "waypoint" | "exit";
 
 export interface NamedPoint {
   id: string;
