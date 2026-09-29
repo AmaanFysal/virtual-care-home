@@ -18,8 +18,8 @@ const STAFF_SEAT_ROOMS = new Set(["staff", "reception"]);
 
 /**
  * Whether someone sits on arriving exactly at a point. Only residents use a WC seat. Staff sit
- * only in the staff room and at reception; everywhere else they stand (beside a resident's chair,
- * tidying, restocking). Visitors sit where they're shown.
+ * in the staff room and at reception; anywhere else they stand (tidying, restocking), unless
+ * they're sitting with a resident (idle.ts sits them down on arrival). Visitors sit where they're shown.
  */
 function sitsAt(world: World, person: Person, point: NamedPoint): boolean {
   if (!SEATED_POINTS.has(point.kind)) return false;

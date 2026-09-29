@@ -51,7 +51,7 @@ The wing is 26.5 × 13 m. The Lounge (added after the Phase 1 behaviour audit) s
 Furniture is a labelled rectangle of kind `bed`, `desk`, `table`, `chair`, `armchair`, `sofa`, `wc`, `tv` or `bookshelf`.
 
 - `bed`, `desk`, `table`, `sofa`, `tv` and `bookshelf` **block** movement.
-- `chair`, `armchair` and `wc` do **not** block. Residents and visitors sit on seat and chair points; only residents sit on a WC. Staff sit only in the staff room and at reception (breaks, handovers, reception and office work); anywhere else they stand.
+- `chair`, `armchair` and `wc` do **not** block. Residents and visitors sit on seat and chair points; only residents sit on a WC. Staff sit in the staff room and at reception (breaks, handovers, reception and office work), and in a free seat beside a resident they're sitting with; anywhere else they stand. Staff never use a WC seat.
 - Furniture ids use a lowercase suffix (`Room1.BedA.bed`, `WaitingArea.chair3`, `Lounge.tv`) so they never clash with named point ids.
 - The Lounge has a TV on the east wall with four armchairs facing it, a 2.5 m dining table with six chairs, a bookshelf with a reading chair, and an activity table with four chairs.
 
