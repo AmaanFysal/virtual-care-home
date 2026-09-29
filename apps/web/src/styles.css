@@ -41,6 +41,7 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .dot.agency { background: #8a8f98; }
 .dot.external { background: #8e5bd6; }
 .status { font-size: 12px; color: var(--muted); }
+.toggle { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); cursor: pointer; }
 .status.closed, .error { color: var(--alert); font-size: 12px; }
 main { position: relative; min-height: 0; }
 .canvas-host { position: absolute; inset: 0; }

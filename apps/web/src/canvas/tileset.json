@@ -1,0 +1,141 @@
+{
+  "$comment": "Which tile art draws the wing (docs/08 'Pixel-art map'). Rects are in source-image pixels. Swap a tileset by pointing these at other art; the map itself is generated from data/floorplan.json. Credits and licences: CREDITS.md.",
+  "images": {
+    "walls": "tiles/lpc-walls/walls.png",
+    "floors": "tiles/lpc-floors/floors.png",
+    "wood": "tiles/lpc-wooden-furniture/blonde-wood.png",
+    "upholstery": "tiles/lpc-upholstery/upholstery.png",
+    "toilet": "tiles/lpc-simple-modern-furniture/toilet.png",
+    "tv": "tiles/props/tv.png",
+    "books": "tiles/props/books.png",
+    "icons": "tiles/props/icons.png",
+    "pictures": "tiles/props/pictures.png",
+    "plants": "tiles/props/plants.png",
+    "lamp": "tiles/props/lamp.png",
+    "trees": "tiles/lpc-trees/trees-green.png",
+    "terrain": "tiles/lpc-terrains/terrain-v7.png"
+  },
+  "floors": {
+    "$comment": "One seamless 32x32 tile per room kind, repeated.",
+    "bedroom": { "image": "floors", "x": 192, "y": 1216, "w": 64, "h": 32, "note": "warm wood planks" },
+    "lounge": { "image": "floors", "x": 32, "y": 576, "w": 32, "h": 32, "note": "warm gold carpet" },
+    "corridor": { "image": "floors", "x": 64, "y": 1600, "w": 32, "h": 32, "note": "plain light lino" },
+    "waiting": { "image": "floors", "x": 32, "y": 416, "w": 32, "h": 32, "note": "green carpet" },
+    "reception": { "image": "floors", "x": 0, "y": 1600, "w": 32, "h": 32, "note": "beige tiles" },
+    "staff": { "image": "floors", "x": 0, "y": 1792, "w": 32, "h": 32, "note": "blue-grey lino" },
+    "wc": { "image": "floors", "x": 32, "y": 1600, "w": 32, "h": 32, "note": "small white tiles under each en-suite WC" },
+    "wood": { "image": "floors", "x": 128, "y": 1184, "w": 64, "h": 64, "note": "wood boards, for floor patches" },
+    "grass": { "image": "terrain", "x": 32, "y": 384, "w": 32, "h": 32, "note": "outside" },
+    "path": { "image": "terrain", "x": 608, "y": 768, "w": 32, "h": 32, "note": "flagstone path" }
+  },
+  "floorPatches": [
+    { "$comment": "The Lounge's dining area on wood boards, apart from the carpeted sitting area.", "around": ["Lounge.diningTable", "Lounge.diningChair1", "Lounge.diningChair6"], "margin": 0.5, "floor": "wood" }
+  ],
+  "rugs": [
+    { "around": ["Lounge.armchair1", "Lounge.armchair4", "Lounge.tv"], "margin": 0.25, "image": "floors", "x": 192, "y": 64, "w": 188, "h": 96, "slice": { "l": 16, "r": 16, "t": 16, "b": 16 }, "note": "the sitting area round the TV" }
+  ],
+  "walls": {
+    "$comment": "face: the 96 px LPC face, cut to the 56 px below each 8 px wall top (its top rows, then its last keepBottom rows) and repeated along each south-facing wall. top: a 9-slice ring whose 4 px edges draw every wall top and trim.",
+    "face": { "image": "walls", "x": 32, "y": 1600, "w": 32, "h": 96, "keepBottom": 40, "note": "pale cream wallpaper with skirting" },
+    "exterior": { "image": "walls", "x": 32, "y": 640, "w": 32, "h": 96, "keepBottom": 40, "southHeight": 24, "note": "light brick, where the building's outside walls face us" },
+    "top": { "image": "walls", "x": 0, "y": 544, "w": 96, "h": 96, "slice": { "l": 4, "r": 4, "t": 4, "b": 10 } },
+    "door": { "frame": "#6b4a2f", "note": "door jambs, drawn as 3 px posts either side of each opening" },
+    "outside": "#3a3f36",
+    "window": {
+      "$comment": "On the outer wall face of every room: one over each bed, otherwise one per 'spacing' metres. The window and its sill are cut from an LPC face.",
+      "image": "walls",
+      "parts": [
+        { "x": 1804, "y": 1514, "w": 72, "h": 44, "dy": 2 },
+        { "x": 1804, "y": 1566, "w": 72, "h": 4, "dy": 46 }
+      ],
+      "spacing": 3
+    },
+    "pictures": { "image": "pictures", "w": 18, "h": 14, "count": 3, "dy": 12, "spacing": 4, "clear": 0.9, "note": "on the inner wall faces, clear of doors and wall ends" }
+  },
+  "furniture": {
+    "$comment": "Anchored bottom-centre on the footprint (data/floorplan.json furniture rect), dy px lower. 'slice' stretches a piece to its footprint by repeating its middle; 'lift' is how far it stands above the floor.",
+    "bed": { "image": "wood", "x": 480, "y": 417, "w": 32, "h": 63, "dy": 0, "pillow": { "x": 16, "y": 15 }, "blanketFrom": 21, "note": "single bed, white sheets" },
+    "chair": {
+      "image": "wood",
+      "w": 32,
+      "h": 32,
+      "dy": 8,
+      "facings": { "south": [448, 480], "north": [480, 480], "east": [448, 512], "west": [480, 512] },
+      "facesTowards": ["table", "desk"],
+      "within": 1,
+      "note": "Chairs at a table or desk face it; others (the bedside chairs) face south, towards the camera, so whoever sits there is recognisable. LPC stools are 25 px wide against 26 px for these chairs, so side-by-side chairs keep the chair and overlap slightly"
+    },
+    "armchair": {
+      "image": "upholstery",
+      "w": 32,
+      "h": 32,
+      "dy": 8,
+      "facings": { "south": [128, 160], "east": [160, 160], "north": [128, 192], "west": [160, 192] },
+      "facesTowards": ["tv"],
+      "within": 2.5
+    },
+    "table": [
+      { "maxSize": 1, "image": "wood", "x": 416, "y": 224, "w": 32, "h": 32, "dy": 0, "note": "small octagonal table" },
+      { "image": "wood", "x": 0, "y": 233, "w": 96, "h": 43, "lift": 18, "slice": { "l": 16, "r": 16, "t": 8, "b": 26 }, "note": "long table" }
+    ],
+    "desk": { "image": "wood", "x": 64, "y": 767, "w": 64, "h": 33, "lift": 17, "slice": { "l": 12, "r": 20, "t": 6, "b": 20 }, "note": "front-facing desk, drawers on the right" },
+    "wc": { "image": "toilet", "x": 0, "y": 0, "w": 24, "h": 34, "at": "top", "dy": 2, "partition": "west", "note": "LPC toilet on a tiled patch, with a partition" },
+    "bookshelf": {
+      "image": "wood",
+      "x": 224,
+      "y": 133,
+      "w": 20,
+      "h": 88,
+      "lift": 40,
+      "slice": { "l": 0, "r": 0, "t": 12, "b": 44 },
+      "overlay": { "image": "books", "x": 0, "y": 0, "w": 16, "h": 48, "dx": 1, "dy": 0 },
+      "note": "LPC side-view cupboard with CC0 book tops"
+    },
+    "tv": {
+      "image": "wood",
+      "x": 270,
+      "y": 133,
+      "w": 20,
+      "h": 88,
+      "lift": 16,
+      "parts": [
+        { "sy": 0, "sh": 48, "dy": -64 },
+        { "sy": 72, "sh": 16, "dy": -16 }
+      ],
+      "overlay": { "image": "tv", "x": 0, "y": 0, "w": 24, "h": 48, "dx": -2, "dy": -30, "note": "CC0 flat screen turned towards us; frame 0 faces west, frame 1 east" },
+      "note": "LPC side-view cupboard cut down to a low cabinet, with a CC0 flat-screen TV"
+    }
+  },
+  "sofas": {
+    "$comment": "Render-only: neighbouring armchairs drawn as one sofa. Their seat points in data/floorplan.json are unchanged.",
+    "pairs": [["Lounge.armchair2", "Lounge.armchair3"]],
+    "facings": { "east": { "image": "upholstery", "x": 64, "y": 320, "w": 31, "h": 70 }, "west": { "image": "upholstery", "x": 96, "y": 320, "w": 31, "h": 70 } }
+  },
+  "decor": {
+    "$comment": "Render-only props placed by rule from the floor plan; none of them block movement.",
+    "bedside": {
+      "cabinet": { "image": "wood", "x": 200, "y": 769, "w": 18, "h": 30 },
+      "lamp": { "image": "lamp", "x": 0, "y": 0, "w": 10, "h": 14, "dy": -24 },
+      "note": "at the head of each bed, on the side of its chair"
+    },
+    "bedRug": { "image": "floors", "x": 453, "y": 836, "w": 85, "h": 57, "slice": { "l": 10, "r": 10, "t": 8, "b": 8 }, "size": [1.25, 0.5], "note": "at the foot of each bed" },
+    "wardrobe": { "image": "wood", "x": 288, "y": 64, "w": 32, "h": 72, "rooms": ["bedroom"], "note": "against the outer wall, in the widest gap between beds" },
+    "plants": { "image": "plants", "w": 20, "h": 30, "count": 2, "rooms": ["lounge", "reception", "waiting"], "clear": 0.6, "clearTall": 1, "tall": ["tv", "bookshelf"], "inset": 0.35, "note": "in free corners, not the one holding the room label" }
+  },
+  "garden": {
+    "$comment": "Outside the building: grass, a path from the exit to the garden, trees and a bench (render-only).",
+    "margin": 2.5,
+    "trees": [
+      { "image": "trees", "x": 128, "y": 104, "w": 95, "h": 118, "at": [0.25, 0.3] },
+      { "image": "trees", "x": 518, "y": 1, "w": 58, "h": 93, "at": [0.8, 0.25] },
+      { "image": "trees", "x": 200, "y": 7, "w": 48, "h": 54, "at": [0.9, 0.85] },
+      { "image": "trees", "x": 200, "y": 7, "w": 48, "h": 54, "at": [0.12, 0.58] }
+    ],
+    "bench": { "image": "wood", "x": 334, "y": 232, "w": 69, "h": 20, "at": [0.55, 0.62] },
+    "pathWidth": 1
+  },
+  "icons": {
+    "size": 12,
+    "order": ["meal", "drink", "meds", "care", "asleep", "notes", "chatting", "visiting", "break", "fall"]
+  }
+}

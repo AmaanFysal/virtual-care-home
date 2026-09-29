@@ -390,3 +390,35 @@ Parts used:
     https://opengameart.org/content/lpc-revised-character-basics, https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing, https://opengameart.org/content/lpc-expanded-sit-run-jump-more, https://opengameart.org/content/lpc-expanded-simple-shirts
 
 Each character's full credits: /sprites/characters/<personId>.credits.txt
+
+Map art (rooms, furniture, garden):
+- [LPC] Walls by bluecarrot16, Lanea Zimmerman (Sharm), Daniel Armstrong (HughSpectrum), William Thompson (William.Thompsonj), Hyptosis, Zabin, Daniel Cook, Guido Bos, SpiderDave, Cougarmint, Stephen Challener (Redshrike), Matthew Nash, Wolthera van Hövell tot Westerflier (TheraHedwig), Reemax, bleutailfly, NaRNeRZz, Sir Spummington, Casper Nilsson, KnoblePersona
+    licence: CC-BY-SA 3.0
+    https://opengameart.org/content/lpc-walls
+    full credits: /tiles/lpc-walls/CREDITS-walls.txt
+- [LPC] Floors by bluecarrot16, Lanea Zimmerman (Sharm), William Thompson (William.Thompsonj), Hyptosis, SpiderDave, Cougarmint, Stephen Challener (Redshrike), Bonsaiheldin, Tyler Olsen (Roots), Jetrel, jestan, The Open Surge team, Gaurav Munjal, Reemax, Silveira Neto, bleutailfly, Casper Nilsson, NaRNeRZz, Buch, keith karnage, Arthur Carvalho, Guilherme Vieira (n2liquid), Chris Hamons (maintainer)
+    licence: CC-BY-SA 4.0
+    https://opengameart.org/content/lpc-floors
+    full credits: /tiles/lpc-floors/CREDITS-floors.txt
+- [LPC] Wooden Furniture by bluecarrot16, Baŝto, Lanea Zimmerman (Sharm), William Thompson, Tuomo Untinen (Reemax), Janna/Lilius/Jannax
+    licence: CC-BY-SA 4.0 / CC-BY-SA 3.0 / GPL 3.0
+    https://opengameart.org/content/lpc-wooden-furniture
+    full credits: /tiles/lpc-wooden-furniture/CREDITS-furniture.txt
+- [LPC] Upholstery by bluecarrot16, Lanea Zimmerman (Sharm); based on LPC: Interior Castle Tiles (https://opengameart.org/content/lpc-interior-castle-tiles)
+    licence: CC-BY 4.0 / CC-BY 3.0 / CC-BY-SA 4.0 / CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0
+    https://opengameart.org/content/lpc-upholstery
+    full credits: /tiles/lpc-upholstery/CREDITS-upholstery.txt
+- [LPC] Simple Modern Furniture by o10001771, based on art by Lanea Zimmerman (Sharm)
+    licence: CC-BY-SA 3.0 / GPL 3.0
+    https://opengameart.org/content/lpc-simple-modern-furniture
+    full credits: /tiles/lpc-simple-modern-furniture/CREDITS-simple-modern-furniture.txt
+- [LPC] Trees by bluecarrot16 and the authors listed in CREDITS-trees.txt
+    licence: CC-BY-SA 3.0
+    https://opengameart.org/content/lpc-trees
+    full credits: /tiles/lpc-trees/CREDITS-trees.txt
+- [LPC] Terrains by bluecarrot16, Lanea Zimmerman (Sharm), Daniel Eddeland (Daneeklu), Richard Kettering (Jetrel), Zachariah Husiar (Zabin), Hyptosis, Casper Nilsson, Buko Studios, Nushio, ZaPaper, billknye, William Thompson, caeles, Redshrike, Bertram, Rayane Félix (RayaneFLX)
+    licence: CC-BY-SA 4.0 / CC-BY-SA 3.0
+    https://opengameart.org/content/lpc-terrains
+    full credits: /tiles/lpc-terrains/CREDITS-terrain.txt
+
+Drawn for this project and released under CC0, by tools/tiles/props.mjs: the flat-screen TV, the book tops on the Lounge bookshelf, the name-tag icons, the framed pictures, the potted plants and the bedside lamp (apps/web/public/tiles/props/).

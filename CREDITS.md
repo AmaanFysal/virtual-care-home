@@ -1,5 +1,21 @@
 # Credits
 
+## Map art
+
+The rooms, furniture and garden in `apps/web/public/tiles/` come from these Liberated Pixel Cup packs on OpenGameArt. **Each pack keeps its own licence**, and all of them are licensed separately from the code. Each pack's full credits file ships next to its image and must stay with it.
+
+| Pack | Authors | Licence | Used for | Files |
+|---|---|---|---|---|
+| [[LPC] Walls](https://opengameart.org/content/lpc-walls) | bluecarrot16, Lanea Zimmerman (Sharm), Daniel Armstrong (HughSpectrum), William Thompson (William.Thompsonj), Hyptosis, Zabin, Daniel Cook, Guido Bos, SpiderDave, Cougarmint, Stephen Challener (Redshrike), Matthew Nash, Wolthera van Hövell tot Westerflier (TheraHedwig), Reemax, bleutailfly, NaRNeRZz, Sir Spummington, Casper Nilsson, KnoblePersona | CC-BY-SA 3.0 | wall faces, windows, wall tops | `lpc-walls/walls.png`, `lpc-walls/CREDITS-walls.txt` |
+| [[LPC] Floors](https://opengameart.org/content/lpc-floors) | bluecarrot16, Lanea Zimmerman (Sharm), William Thompson (William.Thompsonj), Hyptosis, SpiderDave, Cougarmint, Stephen Challener (Redshrike), Bonsaiheldin, Tyler Olsen (Roots), Jetrel, jestan, The Open Surge team, Gaurav Munjal, Reemax, Silveira Neto, bleutailfly, Casper Nilsson, NaRNeRZz, Buch, keith karnage, Arthur Carvalho, Guilherme Vieira (n2liquid), Chris Hamons (maintainer) | CC-BY-SA 4.0 | floors, rugs | `lpc-floors/floors.png`, `lpc-floors/CREDITS-floors.txt` |
+| [[LPC] Wooden Furniture](https://opengameart.org/content/lpc-wooden-furniture) | bluecarrot16, Baŝto, Lanea Zimmerman (Sharm), William Thompson, Tuomo Untinen (Reemax), Janna/Lilius/Jannax | CC-BY-SA 4.0 / CC-BY-SA 3.0 / GPL 3.0 | beds, chairs, tables, desks, cupboards, bedside cabinets, wardrobes, bench | `lpc-wooden-furniture/blonde-wood.png`, `lpc-wooden-furniture/CREDITS-furniture.txt` |
+| [[LPC] Upholstery](https://opengameart.org/content/lpc-upholstery) | bluecarrot16, Lanea Zimmerman (Sharm); based on LPC: Interior Castle Tiles (https://opengameart.org/content/lpc-interior-castle-tiles) | CC-BY 4.0 / CC-BY 3.0 / CC-BY-SA 4.0 / CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0 | armchairs, sofa | `lpc-upholstery/upholstery.png`, `lpc-upholstery/CREDITS-upholstery.txt` |
+| [[LPC] Simple Modern Furniture](https://opengameart.org/content/lpc-simple-modern-furniture) | o10001771, based on art by Lanea Zimmerman (Sharm) | CC-BY-SA 3.0 / GPL 3.0 | toilets | `lpc-simple-modern-furniture/toilet.png`, `lpc-simple-modern-furniture/CREDITS-simple-modern-furniture.txt` |
+| [[LPC] Trees](https://opengameart.org/content/lpc-trees) | bluecarrot16 and the authors listed in CREDITS-trees.txt | CC-BY-SA 3.0 | garden trees and shrubs | `lpc-trees/trees-green.png`, `lpc-trees/CREDITS-trees.txt` |
+| [[LPC] Terrains](https://opengameart.org/content/lpc-terrains) | bluecarrot16, Lanea Zimmerman (Sharm), Daniel Eddeland (Daneeklu), Richard Kettering (Jetrel), Zachariah Husiar (Zabin), Hyptosis, Casper Nilsson, Buko Studios, Nushio, ZaPaper, billknye, William Thompson, caeles, Redshrike, Bertram, Rayane Félix (RayaneFLX) | CC-BY-SA 4.0 / CC-BY-SA 3.0 | grass, garden path | `lpc-terrains/terrain-v7.png`, `lpc-terrains/CREDITS-terrain.txt` |
+
+Drawn for this project and released under CC0, by tools/tiles/props.mjs: the flat-screen TV, the book tops on the Lounge bookshelf, the name-tag icons, the framed pictures, the potted plants and the bedside lamp (apps/web/public/tiles/props/).
+
 ## Character art
 
 The character sprites in `apps/web/public/sprites/characters/` were made with the [Universal LPC Spritesheet Character Generator](https://github.com/liberatedpixelcup/Universal-LPC-Spritesheet-Character-Generator) from Liberated Pixel Cup (LPC) art.

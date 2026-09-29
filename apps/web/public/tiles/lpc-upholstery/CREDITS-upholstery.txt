@@ -1,0 +1,7 @@
+"[LPC] Upholstery" by bluecarrot16 and Lanea Zimmerman (Sharm).
+Licences: CC-BY 4.0 / CC-BY 3.0 / CC-BY-SA 4.0 / CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0
+https://opengameart.org/content/lpc-upholstery
+Based on "LPC: Interior Castle Tiles" by Lanea Zimmerman (Sharm):
+https://opengameart.org/content/lpc-interior-castle-tiles
+
+File used: upholstery_3.png (saved here as upholstery.png), unmodified.

@@ -9,7 +9,8 @@
 //                      for each character's credits to ship with it)
 //   character.json, info.json -> tools/characters/specs/<personId>/
 // and writes data/sprites.json (layout, people, runtime roles, render workarounds), CREDITS.md
-// and apps/web/public/CREDITS.txt (linked from the app footer).
+// and apps/web/public/CREDITS.txt (linked from the app footer), then adds the map art credits
+// (tools/tiles/credits.mjs).
 
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -167,3 +168,6 @@ const txt = [
 writeFileSync(join(repo, "apps/web/public/CREDITS.txt"), txt.join("\n"));
 
 console.log(`imported ${folders.length} characters; ${rows.length} credited parts by ${authors.size} artists`);
+
+// The map art credits live in their own section; put them back after rewriting the files above.
+await import("../tiles/credits.mjs");
