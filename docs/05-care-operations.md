@@ -59,7 +59,7 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 
 ## Breaks
 
-- **Day care staff:** one 30-minute break in the staff room, starting at a seeded time in a window: early 10:30–11:45, late 17:30–19:00, RN 11:30–12:15 (outside med rounds). Breaks are staggered between **carers**: nobody starts a break unless another carer (not the RN) is on the floor, and the break waits instead.
+- **Day care staff:** one 30-minute break in the staff room, starting at a seeded time in a window: early 10:30–11:45, late 17:30–19:00, RN 11:30–12:15 (outside med rounds). Breaks are staggered between **carers**: nobody starts a break unless another carer (not the RN) is on the floor, and the break waits instead. It also waits while Peggy or Stan is in the Lounge and fewer than two other care staff would stay on the floor, and while female-only work is waiting and they're the only woman on. A break is paused (and resumed later) if they're called back: for a Lounge look-in about to go over its 15 minutes, or for work during a fall.
 - **Night carer (alone):** one 30-minute break around 03:00, taken in the waiting area, not the staff room. They stay interruptible and count as on the floor.
 - **Office and reception:** 30-minute lunch around 12:30; this doesn't affect the floor rule.
 
@@ -67,19 +67,22 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 
 | Time | What |
 |---|---|
-| 06:30–10:00 | Waking and morning personal care, staggered by each resident's wake time |
+| 06:30–10:00 | Waking: tea on waking for each resident (its own short visit), then morning personal care, staggered by wake time |
 | 07:00 | Handover |
-| 08:00 | Morning med round (RN); Win's blood glucose check before breakfast |
-| 08:00–09:30 | Breakfast at the bedside, served as each resident is up |
+| 07:30–10:30 | Breakfast at the chair (or in bed, first, for anyone whose care is more than 30 minutes away) |
+| 08:00 | Morning med round (RN; time-critical medication first); Win's blood glucose check before breakfast |
 | 10:30 | Mid-morning drinks |
-| 12:15–13:30 | Lunch (main meal), protected mealtime |
+| 10:45–11:45 | Bev's music and reminiscence session in the Lounge (days she's on: Monday to Thursday) |
+| 11:50 | Lunch-goers to the Lounge (Peggy and Stan walked by a carer; Win alone) |
+| 12:15–13:30 | Lunch (main meal), protected mealtime: in the Lounge for those who choose it, otherwise at the chair |
 | 13:00 | Lunchtime med round (RN) |
+| 13:30–16:00 | Afternoon in the Lounge (TV, reading, puzzles, chatting); naps in an armchair; back to rooms by 14:45, or 16:00 after tea |
 | 14:00 | Handover |
 | 15:00 | Afternoon tea |
 | 17:00 | Teatime med round (RN) |
-| 17:30 | Supper |
+| 17:30 | Supper at the chair |
 | 19:30–22:30 | Bedtime care, staggered by each resident's bedtime |
-| 20:00 | Late drink |
+| 20:00 | Late drink with a supper snack |
 | 21:00 | Bedtime med round (late lead) |
 | 21:15 | Handover |
 | Night | Checks and repositioning at each resident's interval; night carer's break around 03:00 |
@@ -93,7 +96,18 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 | Arthur | Room2.BedA | Rollator, 0.45 m/s, medium falls risk | Independent with prompting; 1 staff for shower | 06:30 / 22:30 | 120 / 240 min | — | Has capacity; chose 4-hourly night checks; few visitors |
 | Raj | Room2.BedB | Non-ambulant, hoist | **2 staff** for all transfers and personal care | 06:30 / 20:00 | 120 / 120 min | 4-hourly at night | Aphasia; soft diet, needs help to eat |
 | Stan | Room2.BedC | Walks unaided, shuffling, 0.6 m/s, high falls risk | 1 staff, prompting | 08:00 / 22:00 | 60 / 60 min | — | Lewy body: night wandering, hallucinations; sundowns from 16:30 |
-| Dennis | Room2.BedD | Bed-bound | **2 staff** in bed | — (in bed) | 60 / 60 min | 2-hourly day and night | End of life; mouth care with checks; cannot ask for help |
+| Dennis | Room2.BedD | Bed-bound | **2 staff** in bed | — (in bed) | 60 / 60 min | 2-hourly day and night | End of life: comfort feeding only (no hunger need, no meals; mouth care and sips at least every 120 min, usually at checks and turns); cannot ask for help |
+
+**Lounge habits** (`care.lounge` on each card; Raj and Dennis stay in their room for now):
+
+| Resident | Lunch in the Lounge | Stays for tea | Walked by a carer | Likes |
+|---|---|---|---|---|
+| Peggy | yes | yes | yes (zimmer, high falls risk) | chatting, TV |
+| Win | yes | yes | no | chatting, reading |
+| Arthur | no (prefers his room) | no | no | puzzles (the crossword), reading |
+| Stan | yes | yes | yes (Lewy body, high falls risk) | TV (West Ham), chatting |
+
+Arthur's Parkinson's medication is time-critical (`care.time_critical_meds`): he is first on every round.
 
 Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/s (Bernard and Pat 0.6), children 1.1 m/s.
 
@@ -108,9 +122,11 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 
 | When | What |
 |---|---|
-| Wake time (07:30 for Dennis) | Morning personal care (two-person care for Raj and Dennis waits for the day shift at 07:00) (with a cup of tea and a biscuit), then up to the chair: Raj by hoist with two staff, others walk; Dennis stays in bed |
-| 08:00–10:30 | Breakfast at the chair once they are up; 12:15 lunch; 17:30 supper. Raj is helped to eat (15 min), Peggy prompted (5), Dennis gets mouth care and sips; intake is charted for Peggy, Win and Dennis |
-| 10:30, 15:00, 20:00 | Drinks round: one carer takes tea and a biscuit to each resident in turn (2 min each); left by the bed or chair for anyone asleep or busy |
+| Wake time | **Tea on waking** (audit): its own visit by any carer, 2 minutes (5 for Raj, who needs help to drink), due within 15 minutes. Anyone still waiting for morning care 30 minutes after waking and before 07:30 gets **tea and toast**. The nurse also gives a drink with the 08:00 tablets to anyone awake who hasn't had their tea yet |
+| Wake time (07:30 for Dennis) | Morning personal care (two-person care for Raj and Dennis waits for the day shift at 07:00), then up to the chair: Raj by hoist with two staff, others walk; Dennis stays in bed. Morning care rises in priority the longer they've been awake |
+| 07:30–10:30 | **Breakfast from 07:30** (audit), at the chair once they're up; if their morning care is more than 30 minutes away (estimated from the care queued ahead of them and the carers free), breakfast comes first, in bed or at the chair, and care waits until they've eaten. 12:15 lunch (in the Lounge for lunch-goers); 17:30 supper. Raj is helped to eat (15 min), Peggy prompted (5); intake is charted for Peggy and Win, and Dennis's sips |
+| Every 2 hours at least | Dennis's comfort care: mouth care and sips (usually done at his hourly checks and 2-hourly turns; a `comfort` task if the interval would lapse) |
+| 10:30, 15:00, 20:00 | Drinks round: one carer takes tea and a biscuit (a supper snack at 20:00) to each resident in turn (2 min each). Anyone asleep or busy has it left by the bed or chair, except those who need help to drink (Raj, Dennis): theirs is owed and given at the next contact while awake. A left drink goes stale after 2 hours and is replaced at the next contact (`drink.served` with `outcome` and round `top_up`) |
 | Every 2 hours awake | Peggy's prompted toileting: walked to the WC and back by a female carer |
 | Every 2 hours, day and night | Dennis turned by two staff, with a pad change, fluids and mouth care (see "Turning" below) |
 | Bed time | Bedtime care with a warm drink, then into bed (Raj by hoist) |
@@ -119,8 +135,8 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 
 **Turning** (service target `reposition`, after the M6 review):
 - A turn counts from when it starts; personal care in bed also turns Dennis; being put to bed starts Raj's night clock.
-- **By day** turns are scheduled from when each is due (created 20 minutes before, with deadline pressure). A turn that would fall due in the evening crunch (20:00 to 21:00: Raj's bedtime, the drinks round, then the 21:00 med round) is brought forward to 19:45.
-- **From 21:00 to 08:00** the floating carer's rounds cover turns: she comes 30 minutes before the next night turn is due (so rounds follow Dennis's turns, roughly every 2 hours) and batches anyone else due within 70 minutes (Raj's 4-hourly turn). She stays until the round's turns are done.
+- **By day** turns are scheduled from when each is due (created 30 minutes before, with deadline pressure; reserved 25 minutes before so nobody starts a long job just before one). A turn that would fall due in the evening crunch (20:00 to 21:30: Raj's bedtime, the drinks round, the 21:00 med round, the 21:15 handover) is brought forward to 19:45. If Dennis's morning care is still waiting when a turn falls due, the care takes the turn on.
+- **From 21:30 to 08:00** the floating carer's rounds cover turns: she comes **about 10 minutes before** the latest time that still lets the turns falling due together each start on time one after another (so rounds follow Dennis's turns, roughly every 2 hours), and batches anyone else due within 70 minutes (Raj's 4-hourly turn). Turns due during the 07:00 handover (06:45 to 07:30) are planned for 06:45. While she waits she does a round of checks. She stays until the round's turns are done. Turns don't interrupt a medication round.
 - A carer won't start a day break if a two-person turn is due within 45 minutes and fewer than two others would be free; the floor cover for a handover keeps working past their shift end until the handover is done.
 - Result: zero turning breaches over 8 no-fall weeks (seeds 1 to 8).
 
@@ -130,9 +146,9 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 
 Full node-level trees are in [04](04-agents-and-behaviour.md). The care content they must follow:
 
-1. **Morning personal care.** In wake-time order, a carer goes to the bedside, helps with washing and dressing (20 minutes; 25 for Raj with two staff and the hoist; 30 for Dennis in bed with two staff), then helps the resident to their chair (Raj via the hoist). Peggy gets female carers only. Arthur is prompted and only helped on his shower day (Monday).
-2. **Medication round** (M5, `src/meds.ts`). The meds-trained giver (the day RN at 08:00, 13:00 and 17:00; the late lead at 21:00) goes bed to bed in a fixed order, 3 minutes per resident; anyone busy is visited at the end. A fall, or a help request within 10 minutes of its limit that nobody else can take, pauses the round; it resumes where it stopped (`task.interrupted`, `task.resumed`). Each interruption adds 5 percentage points to the chance each remaining dose is **missed** (capped at 40%); a dose given more than 60 minutes after the round time is **late**. Both are logged (`med.missed`, `med.late`) and counted in the handover summary. The 21:15 handover waits for the 21:00 round to finish. Night PRN requests (`med.prn_requested`) are defined but not generated in Phase 1: nothing yet causes pain.
-3. **Meal service.** At meal times a carer takes a tray (badge) to each resident at their chair, or in bed for Dennis. Raj needs a carer with him for about 15 minutes to eat. Peggy needs prompting. Dennis gets mouth care and sips only. Intake is recorded for Peggy, Win and Dennis.
+1. **Morning personal care.** Roughly in wake-time order, a carer goes to the bedside, helps with washing and dressing (20 minutes; 25 for Raj with two staff and the hoist; 30 for Dennis in bed with two staff), then helps the resident to their chair (Raj via the hoist). Peggy gets female carers only. Arthur is prompted and only helped on his shower day (Monday).
+2. **Medication round** (M5, `src/meds.ts`). The meds-trained giver (the day RN at 08:00, 13:00 and 17:00; the late lead at 21:00) gives time-critical medication first (Arthur's Parkinson's), then goes bed to bed, 3 minutes per resident; anyone busy is visited at the end, wherever they are (the Lounge included). From 07:45 until the 08:00 round is done the RN doesn't take two-person morning care, so the round starts on time. A fall, or a help request within 10 minutes of its limit that nobody else can take, pauses the round; it resumes where it stopped (`task.interrupted`, `task.resumed`). Each interruption adds 5 percentage points to the chance each remaining dose is **missed** (capped at 40%); a dose given more than 60 minutes after the round time is **late**. Both are logged (`med.missed`, `med.late`) and counted in the handover summary. The 21:15 handover waits for the 21:00 round to finish. Night PRN requests (`med.prn_requested`) are defined but not generated in Phase 1: nothing yet causes pain.
+3. **Meal service.** At meal times a carer takes a tray (badge) to each resident where they are: their chair, bed (breakfast first), or the Lounge dining table. Raj needs a carer with him for about 15 minutes to eat. Peggy needs prompting. Dennis has no meals (comfort care). Intake is recorded for Peggy and Win, and Dennis's sips.
 4. **Fall response** (M5, `src/falls.ts`; falls come only from `inject_fall`).
    - **Day (an RN on the wing):** the nearest carer (not in a handover) is pulled off whatever they were doing, finds the resident and stays; the RN is pulled in (pausing a med round) and assesses (10 minutes). Nobody moves the resident before assessment. For a minor fall the nearest other carer joins and two staff lift with the hoist, back to bed or chair.
    - **Night, or evening once the RN is on call:** the carer finds them and phones the on-call RN; the call is the assessment (3 to 5 minutes, seeded). If cleared, the floating night carer is called out (or joins if on site) and the two lift. If "wait for ambulance", the carer keeps the resident comfortable on the floor and stays with them; the floating carer is called out to cover the rest of the wing, and **the on-call RN comes over from the main building** (8 to 12 minutes, `on_call_rn.called` / `.arrived` / `.departed`, a purple "RN" circle) and works on the wing until the paramedics have gone. Paramedics arrive after a seeded 30 to 90 minutes. Minor night falls stay phone-only.
@@ -143,12 +159,23 @@ Full node-level trees are in [04](04-agents-and-behaviour.md). The care content 
 
 Lorna Mitchell (`ext_night_float`, female) covers the night from the main building and is off the map except when visiting.
 
-- **Planned rounds** at 22:00, 00:00, 02:00, 04:00 and 06:00, aligned with Dennis's 2-hourly turns. Each round batches whatever is due: Dennis's turn (always), Raj's 4-hourly repositioning (22:00, 02:00, 06:00), and Peggy's personal care (pad change) if it is due, since Peggy has female carers only.
+- **Planned rounds**, aligned with Dennis's 2-hourly turns (the rota's 22:00, 00:00, 02:00, 04:00 and 06:00 are only the fallback if nobody needs turning). She arrives about 10 minutes before (see "Turning") and does checks while she waits. Each round batches whatever is due: Dennis's turn (always), Raj's 4-hourly repositioning (22:00, 02:00, 06:00), and Peggy's personal care (pad change) if it is due, since Peggy has female carers only.
 - **Out-of-round call-outs** only for urgent two-person tasks (a hoist lift after a fall) or urgent same-sex tasks (Peggy's personal care that can't wait for the next round). She arrives within about 10 minutes.
 - Her arrivals and departures are logged (`second_carer.arrived` with `planned`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and counted (`world.metrics.floatCallouts`).
 - While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks).
 - On seeds 1 to 8 over a week, the planned rounds cover all night work: 35 visits a week and no call-outs. A call-out is tested directly (a forced 23:00 request from Raj).
 - **Time on site:** 24 to 35% of the 570-minute night across seeds 1 to 8 (up from about 25% with fixed rounds); no night over 50%. `--report` prints it per night and flags any night over 50%.
+
+## The Lounge (after the behaviour audit, `src/lounge.ts`)
+
+The residents' day room and dining room (docs/02). The waiting area is for visitors only.
+
+- **Who and how:** Peggy, Win, Arthur and Stan (each card's `care.lounge`); Raj and Dennis stay in their room for now. Peggy and Stan are walked there and back by a carer (`care.escort` task); Win and Arthur go on their own (`self_move`). Nobody moves while asleep, busy with care, or on the floor.
+- **When:** on Bev's days, her music and reminiscence session from 10:45 to 11:45 (`activity.started` / `activity.ended`), everyone going at 10:40; lunch-goers from 11:50 at the dining table; everyone for the afternoon from 13:30, back to their room at 14:45, or at 16:00 for those who stay for afternoon tea (served in the Lounge by the 15:00 round).
+- **What they do:** after lunch each chooses an activity from their likes (seeded): TV (an armchair), reading (the reading chair), puzzles (the activity table), or chatting (a seat near another resident). At nap time they move to an armchair and doze there (posture `dozing`, `resident.fell_asleep` with `where: "lounge"`). Sitting near another awake resident meets some social need (docs/04).
+- **Supervision (service target `lounge_supervision`):** while Peggy or Stan is in the Lounge (and not with a carer), a care worker is in the Lounge or has looked in within the last 15 minutes. A carer in the Lounge counts as on the floor. Idle carers keep an eye on it from `Lounge.Post`; after 5 minutes without one, a `lounge_check` task (priority 80, hard deadline) sends someone to look in; one about to go over can call someone back from a break. Two-person work that would leave nobody able to look in waits up to 10 minutes (not during a fall), and breaks are staggered so two care staff stay on the floor. A miss is logged as `sla.breached` with what each carer was doing. Result: zero misses over 8 no-fall weeks.
+- **Visitors** sit with their resident wherever they are (the Lounge or the bedside) and follow if the resident moves.
+- **Room changes** are all logged (`person.entered_room`, `person.departed`), so occupancy can be rebuilt from the event log for the air module.
 
 ## Care rules (hard constraints)
 
@@ -163,7 +190,7 @@ Lorna Mitchell (`ext_night_float`, female) covers the night from the main buildi
 - **Weekly quota** (user decision after M7): every Monday (and at the start of a run, over the days left in that week) each lead visitor gets a quota of `floor(reliability × pattern days)` visits, plus one more with the leftover fraction as its probability: Linda (0.85 × 5 days) comes 4 of her 5 days, sometimes 5; rare visitors keep rare visits (Gary 0.04: about 1 week in 25). Which days is a seeded shuffle of their pattern days (`visitors` stream). This replaced independent daily rolls, which could give a regular visitor a very bad week (Linda missing 4 of 5 days on seed 8). In Phase 3 the director can cancel a week with a cause (docs/10).
 - **Planning each day:** at 00:00 a lead on one of their quota days arrives at a random minute in their window and stays their `duration_mins` ± 20% (`visit.planned`). Companions (`accompanies`: Mick with Linda, Simran and the grandchildren with Harpreet) come with their lead with probability `reliability`, arriving and leaving together.
 - **Arriving:** when Sanjay is at the reception desk (weekdays 08:30 to 16:30, not on his break), visitors come in, sign in with him at the desk (`visitor.signed_in`). Otherwise they ring the bell (`visitor.rang_bell`): a care worker takes an "answer the door" task (priority 80), goes to reception, lets them in and signs them in (`visitor.let_in`, `visitor.signed_in`).
-- **Visiting:** visitors go to the resident (beside their chair, or the far side of the bed) and the visit starts (`visit.started`); company settles the resident's social need over about half an hour.
+- **Visiting:** visitors go to the resident (beside their chair, the far side of the bed, or next to them in the Lounge) and the visit starts (`visit.started`); company settles the resident's social need over about half an hour. If the resident moves (to or from the Lounge), the visitor follows once they've settled.
 - **Soft friction:** during protected lunch (12:15 to 13:30), while personal care is going on with the resident (morning or bedtime care, a pad change, a turn, help to the toilet), or while the resident is on the floor after a fall, visitors wait in the waiting area and go back afterwards. A visitor who helps at meals (`may_help_at_meals`: Kuldip with Raj) stays; when she's there, staff only bring Raj's tray (2 minutes instead of 15).
 - **Leaving:** when the visit time is up (`visit.ended`), visitors sign out at the desk (`visitor.signed_out`; with the visitors' book out of hours) and leave by the exit.
 - **Hospital:** nobody comes to see a resident who is in hospital, and anyone visiting leaves.

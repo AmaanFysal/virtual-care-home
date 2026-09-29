@@ -14,6 +14,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm dev`: run the sim server (:8787) and the web app (http://localhost:5173) together
 - `pnpm --filter @vch/sim-engine <script>`: run a script in one package
 - `pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--positions] [--report]`: headless run printing the event log (`--report`: requests per day, longest waits, call-outs)
+- `pnpm --filter @vch/sim-engine sim --seed 1 --hours 168 --audit`: behaviour audit per resident, staff shift and day, with flags (`--seeds 1-8` for the combined flag table; thresholds in `packages/sim-engine/scripts/audit.config.ts`)
 
 ## Layout
 
@@ -29,6 +30,8 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - Engine tick = 5 sim seconds; needs, rota and decisions run once a sim minute (ADR-0001).
 - Sim time = integer seconds since Mon 2026-11-02 00:00; runs start Tue 06:00 (t = 108000).
 - Phase 1 event log is SQLite via `node:sqlite`, owned by `apps/server` (ADR-0002).
+- The wing has 7 rooms: Room 1, Room 2, the residents' Lounge (day and dining room), corridor, waiting area (visitors only), reception and staff room (docs/02).
+- Two-person tasks are reserved, never held by one carer (ADR-0003); every room change is logged (`person.entered_room`).
 
 ## Non-negotiables (full text: docs/00-constitution.md)
 

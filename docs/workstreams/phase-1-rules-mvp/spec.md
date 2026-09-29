@@ -73,7 +73,7 @@ One sim day (Tue 06:00 → Wed 06:00), run headless and unpaced on seed 1:
 
 - all three handovers happen, with at least one carer on the floor during each;
 - four med rounds complete, and a meds-trained carer does the 21:00 round;
-- three meals are served and every resident gets morning personal care;
+- three meals are served to everyone who eats (Dennis has end-of-life comfort care instead) and every resident gets morning personal care;
 - Raj's transfers always use two staff;
 - visitors (across seeds 1 to 8, a week each, visitor data as written): the weekday mid-afternoon (14:30 to 16:30) peak averages 2 to 4 visitors, the Sunday peak averages 4 to 8, and every resident except Arthur gets at least 2 visits a week;
 - night checks happen at each resident's interval;
@@ -82,6 +82,35 @@ One sim day (Tue 06:00 → Wed 06:00), run headless and unpaced on seed 1:
 - running the same seed twice gives a byte-identical event log.
 
 Manual check: watching 30 sim minutes at 10x around 07:30 (care rush) and 15:00 (visiting peak) shows no teleporting, no people stacking in doorways and nobody walking through walls.
+
+## Follow-up: behaviour audit fixes and the Lounge (2026-09-29)
+
+A behaviour audit (`sim --audit`, thresholds in `packages/sim-engine/scripts/audit.config.ts`) over seeds 1 to 8 found late first drinks and breakfasts, Dennis flagged hungry all day, residents who never left their bed area, and carers holding two-person tasks in the corridor. Agreed with the user:
+
+- **Lounge:** a 35.75 m² residents' day room and dining room east of Room 2, off an extended corridor (the wing is now 26.5 m wide). It has armchairs facing a TV, a dining table for six, a reading chair and an activity table. The waiting area is for visitors only.
+- **Lounge use:**
+  - Peggy, Win, Arthur and Stan have lunch (Arthur prefers his room), an afternoon there, and optionally tea, from each card's `care.lounge`.
+  - Bev's session runs from 10:45 to 11:45 on her days.
+  - Peggy and Stan are walked there by a carer; Win and Arthur go alone. Raj and Dennis stay in their room for now.
+  - Residents doze in an armchair at nap time, and company meets some social need.
+- **New service target `lounge_supervision`:** while Peggy or Stan is in the Lounge, a carer is there or has looked in within 15 minutes.
+- **Morning:**
+  - Tea on waking is its own visit; early risers get tea and toast.
+  - Breakfast is served from 07:30, first if care is more than 30 minutes away.
+  - Morning care and breakfast rise in priority with time awake, and a request is met on the same visit as care that's due.
+  - The nurse doesn't take two-person morning care from 07:45 until the 08:00 round is done.
+  - Medication rounds give time-critical medication first.
+- **Dennis:** no hunger need and no meals; mouth care and sips at least every 120 minutes.
+- **Overnight hunger:** a supper snack on the 20:00 round. The rates themselves are unchanged (docs/04).
+- **Two-person tasks** are reserved, not held (ADR-0003). The floating carer arrives about 10 minutes before a turn and does checks while she waits. The handover floor cover does a round of checks.
+- **Drinks:** anyone who needs help to drink never has a drink left. Other left drinks go stale after 2 hours and are replaced at the next contact.
+- **Every room change is logged** (for the future air module).
+
+Acceptance for this follow-up:
+- All tests pass.
+- Zero hard and zero service breaches on 8 no-fall weeks, including the new target.
+- Zero hard violations in fall runs.
+- The audit's before and after flag table is reported to the user.
 
 ## Out of scope
 

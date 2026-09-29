@@ -5,11 +5,13 @@
 //   `sla.breached` with the likely cause (e.g. during a serious fall).
 // Tests call both functions every tick.
 
+import type { ServiceTarget } from "@vch/shared-types";
+import { SUPERVISION_MINS, supervisedResidents } from "./lounge.js";
 import { cellAt } from "./world/grid.js";
 import { floorCovered } from "./floor.js";
 import { isMedsTrained } from "./meds.js";
 import { checkInterval, isNight } from "./nightcover.js";
-import { isNurse, onDuty, type World } from "./state.js";
+import { isCareStaff, isNurse, onDuty, type World } from "./state.js";
 
 export interface Violation {
   rule: string;
@@ -56,13 +58,17 @@ export function checkInvariants(world: World): Violation[] {
 }
 
 export interface Breach {
-  target: "request_wait" | "resident_check" | "reposition";
+  target: ServiceTarget;
   residentId: string;
   key: string;
   details: string;
 }
 
-/** Service targets: every request helped within its limit; everyone checked within their interval. */
+/**
+ * Service targets: every request helped within its limit; everyone checked within their interval;
+ * turns on time; and while Peggy or Stan is in the Lounge, a carer there or looking in at least
+ * every 15 minutes.
+ */
 export function checkServiceTargets(world: World): Breach[] {
   const out: Breach[] = [];
   for (const p of world.order.map((id) => world.people.get(id)!)) {
@@ -87,6 +93,11 @@ export function checkServiceTargets(world: World): Breach[] {
     if (!task.request || task.startedT !== null || task.deadlineT === null || world.t <= task.deadlineT) continue;
     out.push({ target: "request_wait", residentId: task.residentId!, key: task.id, details: `${task.label} waiting ${Math.round((world.t - task.createdT) / 60)} min` });
   }
+  const unsupervised = supervisedResidents(world);
+  if (unsupervised.length > 0 && world.t - world.loungeSeenT > SUPERVISION_MINS * 60) {
+    const names = unsupervised.map((p) => p.name.split(" ")[0]).join(" and ");
+    out.push({ target: "lounge_supervision", residentId: unsupervised[0]!.id, key: "lounge", details: `${names} in the Lounge with no carer for ${Math.round((world.t - world.loungeSeenT) / 60)} min` });
+  }
   return out;
 }
 
@@ -100,5 +111,17 @@ export function breachCause(world: World): string {
   const observing = world.order.find((id) => (world.people.get(id)!.resident?.postFallUntil ?? 0) > world.t);
   if (observing) return `during post-fall observations (${name(observing)})`;
   return "no emergency";
+}
+
+/** What the care staff were doing, for a missed target with no emergency behind it. */
+export function staffBusyCause(world: World): string {
+  const doing = world.order
+    .map((id) => world.people.get(id)!)
+    .filter((p) => isCareStaff(p) && onDuty(p))
+    .map((p) => {
+      const task = p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined;
+      return `${p.name.split(" ")[0]}: ${task ? task.label : p.roomId === "StaffRoom" ? "in the staff room" : "free"}`;
+    });
+  return `no emergency; ${doing.join(", ")}`;
 }
 

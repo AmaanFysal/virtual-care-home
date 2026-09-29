@@ -48,18 +48,19 @@ Clock commands (pause, step, set_speed) and inspect requests are not inputs: the
 | Area | Types |
 |---|---|
 | Run | `sim.started` {seed, startT, dataVersion} |
-| Presence | `person.arrived`, `person.departed` (on/off the map via ExitDoor), `person.entered_room` {roomId}, `person.waited_at_door` {doorId} |
+| Presence | `person.arrived`, `person.departed` (on/off the map via ExitDoor; a resident conveyed to hospital departs from their bed), `person.entered_room` {roomId, fromRoomId} (every room change: walking, a hoist or transfer, arriving), `person.waited_at_door` {doorId}. Room occupancy can be rebuilt exactly from these (the audit checks it every tick) |
 | Rota | `shift.started`, `shift.ended` {staffId, shift}, `agency.spawned` {role, shift}, `break.started`, `break.ended`, `rn.on_call_started`, `rn.on_call_ended` |
 | Handover | `handover.started`, `handover.completed` {from, to, floorCover, summary} |
 | Needs and tasks | `resident.requested_help` {need}, `task.created`, `task.assigned`, `task.started`, `task.interrupted`, `task.resumed`, `task.completed` {taskId, kind, residentId?, waitMins}. Scheduled care kinds are `care.morning`, `care.bedtime`, `care.check`, `care.reposition`, `care.meal`, `care.pad_change`; also `round`, `handover`, `briefing` |
-| Care | `resident.woke` {reason}, `resident.fell_asleep`, `care.personal_care_done`, `resident.got_up`, `resident.went_to_bed`, `resident.checked`, `resident.repositioned`, `resident.transferred` {staffIds, method} |
-| Meals | `meal.served` {meal}, `drink.served`, `intake.recorded` {mealPct?, fluidsMl?} |
+| Care | `resident.woke` {reason}, `resident.fell_asleep` {where: bed, chair or lounge}, `care.personal_care_done`, `resident.got_up`, `resident.went_to_bed`, `resident.checked`, `resident.repositioned`, `resident.transferred` {staffIds, method} |
+| Meals | `meal.served` {meal}, `drink.served` {round: a drinks round, `waking` (tea on waking), `with_meds` or `top_up` (replacing a stale or owed drink); outcome: `drunk`, `left` (by the bed, stale after 2 hours) or `owed` (needs help to drink, given at the next contact)}, `intake.recorded` {mealPct?, fluidsMl?} |
+| Activities | `activity.started`, `activity.ended` {staffId, activity, roomId, residentIds} (Bev's Lounge sessions) |
 | Meds | `med_round.started`, `med_round.completed`, `med.administered`, `med.late`, `med.missed`, `med.prn_requested` |
 | Falls | `resident.fell` {severity} (source of the input, `user` in Phase 1), `fall.found`, `fall.rn_called`, `fall.assessed` {outcome}, `fall.lifted`, `ambulance.called`, `paramedics.arrived`, `resident.conveyed_to_hospital`, `family.informed`, `incident.recorded`, `cqc.notification_flagged` {regulation, reason} |
 | On-call RN | `on_call_rn.called` {residentId, reason}, `on_call_rn.arrived` {personId, residentId}, `on_call_rn.departed` (serious falls with no RN on the wing) |
 | Off-map help | `second_carer.called` {reason, residentIds, outOfRound}, `second_carer.arrived` {personId, planned}, `second_carer.departed` (the floating night carer) |
 | Visitors | `visit.planned` {visitorId, residentId, arriveT, durationMins}, `visitor.rang_bell`, `visitor.let_in` {staffId}, `visitor.signed_in` {staffId: the receptionist, the carer who let them in, or `visitors_book`}, `visit.started`, `visit.ended`, `visitor.signed_out`; the "answer the door" task is `task.created` with kind `let_in` |
-| Checks | `invariant.violated` {rule, details}: a hard safety rule broke (must never happen); `sla.breached` {target, residentId, details, cause}: a service target was missed (reported). Both logged by the engine when the condition starts |
+| Checks | `invariant.violated` {rule, details}: a hard safety rule broke (must never happen); `sla.breached` {target: `request_wait`, `resident_check`, `reposition` or `lounge_supervision`, residentId, details, cause}: a service target was missed (reported; for the Lounge the cause lists what each carer was doing). Both logged by the engine when the condition starts |
 
 New types follow the `new-event-type` skill and are added here.
 

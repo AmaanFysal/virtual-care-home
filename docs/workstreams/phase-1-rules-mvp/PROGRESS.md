@@ -4,10 +4,22 @@
 
 ## Status
 
-M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).** All acceptance criteria pass on seeds 1 to 8; PR open into `main`, pending the user's manual 10x check. Next: Phase 2 (minds).
+M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).** All acceptance criteria pass on seeds 1 to 8; PR open into `main`, pending the user's manual 10x check. **M8 (behaviour audit fixes and the Lounge) done the same day**, on the same branch. Next: Phase 2 (minds).
 
 ## Done
 
+- M8: behaviour audit (`sim --audit`, thresholds in `scripts/audit.config.ts`). Also:
+  - The Lounge: room, furniture, residents' routine, Bev's sessions, dozing, visitors, and the `lounge_supervision` service target.
+  - Every room change logged.
+  - Audit fixes A to G:
+    - morning: tea on waking, breakfast from 07:30, and the nurse kept free for the 08:00 round, which gives time-critical meds first
+    - Dennis's comfort care
+    - a supper snack
+    - reserved two-person tasks (ADR-0003)
+    - left drinks
+    - requests absorbed during care
+  - Audit flags on seeds 1 to 8: 1,378 before, 304 after.
+  - 118 tests. 8 no-fall weeks: 0 hard / 0 service. 120 fall runs: 0 hard / 20 service (7 before on the same set).
 - M0: spec, plan, ADR-0001 (5 s tick), ADR-0002 (SQLite); docs 01, 02, 03, 05, 07 filled; Node pinned to >= 22.13.
 - M6: visitors: daily sampling from patterns (seeded), companions with their lead, sign-in with the receptionist or a carer answering the bell out of hours, visits beside the resident, protected lunch and personal-care friction (Kuldip may help Raj at lunch), sign-out and leaving, none for residents in hospital; visitor numbers in `--report`. 85 tests. Stress re-run: 65 fall runs 0 hard / 1 service breach; 8 no-fall weeks 0 / 0.
 - M5 review: on-call RN comes over for serious falls with no RN on the wing; invariants split into hard safety rules (`invariant.violated`, must be zero) and service targets (`sla.breached` with cause, reported). 65 fall runs: 0 hard, 1 service breach; 8 no-fall weeks: 0 and 0.
@@ -51,7 +63,13 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 
 ## Blockers and open questions
 
-- None. Note: the Sunday visitor peak averages 4.00, exactly the lower edge of its 4 to 8 target; a small data change would move it.
+- Remaining audit flags (user to decide):
+  - Arthur's and Raj's breakfast can't be within 60 minutes of a 06:30 wake while breakfast opens at 07:30.
+  - Stan's first drink is late on busy mornings.
+  - Dennis's first sips come at his next hourly check.
+  - Raj's toilet need peaks during his assisted supper.
+- Fall runs breach more service targets than before (20 against 7). Falls now land in busier spells.
+- None blocking. Note: the Sunday visitor peak averages 4.00, exactly the lower edge of its 4 to 8 target; a small data change would move it.
 - Manual check before merge (user): 30 sim minutes at 10x around 07:30 and 15:00.
 
 
@@ -72,3 +90,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 | 2026-09-28 | M7 part 1: idle behaviour; break guard for waiting two-person tasks | 04, 11, PROGRESS |
 | 2026-09-28 | M7 part 2: inspector, follow, event log panel, acceptance test | 08, 11, spec, plan, PROGRESS |
 | 2026-09-29 | Weekly visitor quota; acceptance passes on seeds 1 to 8; Phase 1 complete; PR opened | 05, 06, 10, 11, PROGRESS |
+| 2026-09-29 | Behaviour audit command; Lounge room and routine; `lounge_supervision` target; audit fixes (tea on waking, breakfast 07:30, nurse and 08:00 round, Dennis comfort care, supper snack, reserved two-person tasks, left drinks, requests during care); every room change logged | spec, plan, 02, 04, 05, 07, 11, ADR-0003, CLAUDE.md, PROGRESS |

@@ -3,7 +3,7 @@
 // It only interpolates between positions the server sent; it never invents state.
 
 import { Application, Container, Graphics, Text } from "pixi.js";
-import { timeOfDay, type Badge, type ClockView, type FloorPlan, type PersonKind, type PersonView, type RoomKind } from "@vch/shared-types";
+import { timeOfDay, type Badge, type ClockView, type FloorPlan, type FurnitureKind, type PersonKind, type PersonView, type RoomKind } from "@vch/shared-types";
 
 export const PERSON_COLOURS: Record<PersonKind, number> = {
   staff: 0x2f6fdb,
@@ -16,9 +16,19 @@ export const PERSON_COLOURS: Record<PersonKind, number> = {
 const ROOM_FILL: Record<RoomKind, number> = {
   bedroom: 0xfbf7ee,
   corridor: 0xeceae4,
-  lounge: 0xf4efe2,
+  lounge: 0xf3ecd8,
+  waiting: 0xf4efe2,
   reception: 0xeef1f4,
   staff: 0xf1ebe4,
+};
+
+const FURNITURE_FILL: Partial<Record<FurnitureKind, number>> = {
+  bed: 0xd9d5cc,
+  wc: 0xd8e6ee,
+  chair: 0xcfc8bb,
+  armchair: 0xc9b89c,
+  tv: 0x5d6168,
+  bookshelf: 0xa98c6a,
 };
 
 const BADGE_TEXT: Record<Badge, string> = {
@@ -286,7 +296,7 @@ export class WingRenderer {
       g.rect(X(room.rect.x), Y(room.rect.y), px(room.rect.w), px(room.rect.h)).fill(ROOM_FILL[room.kind]);
     }
     for (const f of plan.furniture) {
-      const colour = f.kind === "bed" ? 0xd9d5cc : f.kind === "wc" ? 0xd8e6ee : f.kind === "chair" ? 0xcfc8bb : 0xcbbba6;
+      const colour = FURNITURE_FILL[f.kind] ?? 0xcbbba6;
       g.rect(X(f.rect.x), Y(f.rect.y), px(f.rect.w), px(f.rect.h)).fill(colour).stroke({ width: 1, color: 0xa9a397 });
     }
     // Walls minus their door gaps.

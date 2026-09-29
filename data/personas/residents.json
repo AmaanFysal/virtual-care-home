@@ -57,6 +57,7 @@
       "toileting": "prompted",
       "prompted_toileting_hours": 2,
       "eating_support": "prompting",
+      "lounge": { "lunch": true, "tea": true, "escort": true, "likes": ["chatting", "tv"] },
       "next_of_kin": "vis_linda"
     }
   },
@@ -119,6 +120,7 @@
       "toileting": "independent",
       "eating_support": "independent",
       "glucose_check_before_breakfast": true,
+      "lounge": { "lunch": true, "tea": true, "escort": false, "likes": ["chatting", "reading"] },
       "next_of_kin": "vis_funmi"
     }
   },
@@ -180,6 +182,8 @@
       "toileting": "independent",
       "eating_support": "independent",
       "shower_day": "Mon",
+      "time_critical_meds": true,
+      "lounge": { "lunch": false, "tea": false, "escort": false, "likes": ["puzzles", "reading"] },
       "next_of_kin": "vis_colin"
     }
   },
@@ -302,6 +306,7 @@
       "toileting": "independent",
       "eating_support": "independent",
       "night_wandering": true,
+      "lounge": { "lunch": true, "tea": true, "escort": true, "likes": ["tv", "chatting"] },
       "next_of_kin": "vis_maureen"
     }
   },
@@ -361,6 +366,7 @@
       "can_request_help": false,
       "toileting": "in_bed",
       "eating_support": "mouth_care_only",
+      "mouth_care_interval_mins": 120,
       "next_of_kin": "vis_sarah"
     }
   }

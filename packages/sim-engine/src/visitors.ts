@@ -224,6 +224,10 @@ export function visitorsMinute(world: World): void {
     if (v.phase === "visiting") {
       const res = r.resident!;
       res.needs.social = Math.max(0, res.needs.social - SOCIAL_RELIEF_PER_MIN);
+      // They sit with the resident wherever they are: if the resident has moved (to or from the
+      // Lounge), the visitor follows once they've settled.
+      const spot = spotBy(world, p);
+      if (!r.move && !res.busyTaskId && !p.move && p.atPoint !== spot) walkTo(world, p, spot);
       if (mustWait(world, p)) {
         v.phase = "waiting";
         walkTo(world, p, WAITING_SEATS[(v.data.id.length + world.order.indexOf(p.id)) % WAITING_SEATS.length]!);

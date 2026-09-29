@@ -298,6 +298,8 @@ export const fallTree: BtNode<Ctx> = seq(
         informFamily(c, "fall, taken to hospital");
         cleanUp(c);
         releaseStand(world, r);
+        // Leaves with the crew: logged as a departure so room occupancy stays right (docs/07).
+        emit(world, "person.departed", [r.id], { pointId: r.resident!.data.room });
         Object.assign(r, { onMap: false, move: null, atPoint: null, roomId: null, posture: "in_bed", task: null });
         r.resident!.away = "hospital";
         r.resident!.busyTaskId = null;

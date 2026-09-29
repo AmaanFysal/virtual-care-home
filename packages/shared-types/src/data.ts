@@ -17,7 +17,8 @@ export interface Rect {
   h: number;
 }
 
-export type RoomKind = "bedroom" | "corridor" | "lounge" | "reception" | "staff";
+/** "lounge" is the residents' day and dining room; "waiting" is for visitors only. */
+export type RoomKind = "bedroom" | "corridor" | "lounge" | "waiting" | "reception" | "staff";
 
 export interface Room {
   id: string;
@@ -48,7 +49,7 @@ export interface Door {
   rooms: [string, string];
 }
 
-export type FurnitureKind = "bed" | "desk" | "table" | "chair" | "sofa" | "wc";
+export type FurnitureKind = "bed" | "desk" | "table" | "chair" | "armchair" | "sofa" | "wc" | "tv" | "bookshelf";
 
 export interface Furniture {
   id: string;
@@ -56,7 +57,7 @@ export interface Furniture {
   room: string;
   rect: Rect;
   label?: string;
-  /** Beds, desks, tables and sofas block movement; chairs and WCs do not. */
+  /** Beds, desks, tables, sofas, TVs and bookshelves block movement; chairs, armchairs and WCs do not. */
   blocks: boolean;
 }
 
@@ -93,6 +94,19 @@ export interface BigFive {
 }
 
 /** Mechanical care fields the rules read. See docs/05 "Resident care profiles". */
+export type LoungeActivity = "tv" | "reading" | "puzzles" | "chatting";
+
+export interface LoungePrefs {
+  /** Has lunch at the Lounge dining table (otherwise in their room). */
+  lunch: boolean;
+  /** Stays for afternoon tea (15:00) in the Lounge. */
+  tea: boolean;
+  /** Needs a carer to walk them there and back. */
+  escort: boolean;
+  /** What they like to do there, most liked first. */
+  likes: LoungeActivity[];
+}
+
 export interface ResidentCare {
   /** Staff needed for washing and dressing. */
   personal_care_staff: 1 | 2;
@@ -113,6 +127,12 @@ export interface ResidentCare {
   shower_day?: Weekday;
   glucose_check_before_breakfast?: boolean;
   night_wandering?: boolean;
+  /** Medication that must be given on time (Parkinson's): first on every round. */
+  time_critical_meds?: boolean;
+  /** End-of-life comfort care (mouth care and sips) at least this often; required for mouth_care_only. */
+  mouth_care_interval_mins?: number;
+  /** Lounge habits for residents who can walk there; absent means they stay in their room. */
+  lounge?: LoungePrefs;
   /** Visitor id phoned after a fall. */
   next_of_kin: string;
 }

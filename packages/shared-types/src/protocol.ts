@@ -5,7 +5,8 @@ import type { FloorPlan } from "./data.js";
 import type { AnySimEvent, FallSeverity, NeedName } from "./events.js";
 
 export type PersonKind = "resident" | "staff" | "agency" | "visitor" | "external";
-export type Posture = "standing" | "walking" | "sitting" | "in_bed" | "on_floor";
+/** "dozing": asleep in a Lounge armchair (a nap away from their room). */
+export type Posture = "standing" | "walking" | "sitting" | "dozing" | "in_bed" | "on_floor";
 export type Badge = "pill" | "tray" | "cup" | "towel" | "hoist" | "asleep" | "confused" | "break" | "handover" | "phone" | "alert";
 export type ClockSpeed = 1 | 10 | 60 | 360;
 

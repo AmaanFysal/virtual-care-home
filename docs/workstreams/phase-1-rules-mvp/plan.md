@@ -21,6 +21,7 @@ Tooling defaults: hand-written A* on a 0.5 m grid (stable tie-breaks; easystar's
 | M5 | Interruptible med round with errors; `inject_fall`; day and night fall response; paramedics and hospital; golden tests | 04, 05, 11 | Golden fall tests pass |
 | M6 | Visitors: daily sampling, reception sign-in, doorbell out of hours, visits and leaving | 05, 06 | 3 to 8 visitors on site mid-afternoon on seed 1 |
 | M7 | Idle behaviour; follow, inspector, filtered event log panel; watch-a-day acceptance test; `pre-pr`; PROGRESS | 04, 08, 11 | Acceptance criteria in spec.md pass (one visitor criterion awaiting a decision) |
+| M8 | Behaviour audit (`sim --audit`); the Lounge (room, routine, supervision target, room-change logging); audit fixes A to G (morning rush, Dennis's comfort care, supper snack, reserved two-person tasks, left drinks, requests during care); ADR-0003 | 00 (unchanged), 02, 04, 05, 07, 11, ADR-0003, CLAUDE.md | Tests pass; 8 no-fall weeks 0 hard / 0 service; before/after audit reported |
 
 ## Risks and dependencies
 

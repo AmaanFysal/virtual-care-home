@@ -26,6 +26,21 @@ const WAKE_FOR_TOILET = 0.9;
 const NAP_MINUTES = 45;
 /** Bed-bound residents with no routine doze through the night. */
 const DEFAULT_SLEEP = { bed: "22:00", wake: "07:00" };
+/** A drink left by the bed goes stale after this long and is never drunk (docs/05 "Drinks"). */
+export const DRINK_STALE_MINS = 120;
+/** "Their day" starts (for tea on waking) once they're awake past their wake time, before noon. */
+const DAY_FROM = clockToSeconds("04:00");
+const DAY_UNTIL = clockToSeconds("12:00");
+
+/** End-of-life comfort feeding only (Dennis): no appetite, so no hunger need; mouth care instead. */
+export function noAppetite(r: Resident): boolean {
+  return r.care.eating_support === "mouth_care_only";
+}
+
+/** Needs someone to help them drink (Raj, Dennis): a drink is never just left with them. */
+export function needsHelpToDrink(r: Resident): boolean {
+  return r.care.eating_support === "assisted" || r.care.eating_support === "mouth_care_only";
+}
 
 export function initialNeeds(rng: Rng): Record<NeedName, number> {
   const around = (v: number) => Math.round((v + (rng.next() - 0.5) * 0.2) * 1000) / 1000;
@@ -63,16 +78,18 @@ function updateSleep(world: World, p: Person): void {
   const res = p.resident!;
   const needsSettled = NEEDS.every((n) => res.needs[n] < ACT_THRESHOLD[n]);
   if (res.asleep) {
-    if (res.needs.toileting >= WAKE_FOR_TOILET) {
+    const reason = res.needs.toileting >= WAKE_FOR_TOILET ? "toilet" : !sleepTime(res.data, world.t) ? "routine" : null;
+    if (reason) {
       res.asleep = false;
-      emit(world, "resident.woke", [p.id], { residentId: p.id, reason: "toilet" });
-    } else if (!sleepTime(res.data, world.t)) {
-      res.asleep = false;
-      emit(world, "resident.woke", [p.id], { residentId: p.id, reason: "routine" });
+      if (p.posture === "dozing") p.posture = "sitting";
+      emit(world, "resident.woke", [p.id], { residentId: p.id, reason });
     }
   } else if (sleepTime(res.data, world.t) && needsSettled && (res.inBed || p.posture === "sitting") && !res.busyTaskId && !p.move) {
     res.asleep = true;
-    emit(world, "resident.fell_asleep", [p.id], { residentId: p.id });
+    // A nap in the Lounge is a doze in the armchair; in their room they nap in bed or their chair as before.
+    const where = res.inBed ? "bed" : p.roomId === "Lounge" ? "lounge" : "chair";
+    if (where === "lounge") p.posture = "dozing";
+    emit(world, "resident.fell_asleep", [p.id], { residentId: p.id, where });
   }
   setBadge(p, "asleep", res.asleep);
 }
@@ -83,13 +100,23 @@ function decay(p: Person): void {
     const hours = hoursToFull(need, res.asleep);
     res.needs[need] = Math.min(1, Math.max(0, res.needs[need] + 1 / (hours * 60)));
   }
+  if (noAppetite(res.data)) res.needs.hunger = 0;
 }
 
-/** A drink left by the bed or chair is drunk once the resident is awake and free. */
-function drinkWhatWasLeft(p: Person): void {
+/**
+ * A drink left by the bed or chair is drunk once the resident is awake and free, if it's still
+ * fresh. After DRINK_STALE_MINS it's stale: never drunk, and replaced at the next contact.
+ */
+function drinkWhatWasLeft(world: World, p: Person): void {
   const res = p.resident!;
-  if (!res.drinkLeft || res.asleep || res.busyTaskId) return;
-  res.drinkLeft = false;
+  if (res.drinkLeftT === null) return;
+  if (world.t - res.drinkLeftT >= DRINK_STALE_MINS * 60) {
+    res.drinkLeftT = null;
+    res.drinkStale = true;
+    return;
+  }
+  if (res.asleep || res.busyTaskId) return;
+  res.drinkLeftT = null;
   res.needs.thirst = Math.max(0, res.needs.thirst - 0.7);
   res.needs.hunger = Math.max(0, res.needs.hunger - 0.2);
   res.fluidsMlToday += 200;
@@ -128,7 +155,11 @@ export function residentsMinute(world: World): void {
     if (!p.resident || !p.onMap) continue;
     decay(p);
     updateSleep(world, p);
-    drinkWhatWasLeft(p);
+    // Their day starts when they're first awake past their wake time (tea on waking, care.ts).
+    const r = p.resident;
+    const tod = timeOfDay(world.t);
+    if (r.wokeT === null && !r.asleep && !sleepTime(r.data, world.t) && tod >= DAY_FROM && tod < DAY_UNTIL) r.wokeT = world.t;
+    drinkWhatWasLeft(world, p);
     act(world, p);
   }
 }

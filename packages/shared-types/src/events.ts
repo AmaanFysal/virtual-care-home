@@ -6,7 +6,10 @@ import type { ShiftName } from "./data.js";
 export type Source = "engine" | "director" | "user" | "llm" | "external";
 
 export type MealName = "breakfast" | "lunch" | "supper";
-export type DrinkRound = "mid_morning" | "afternoon_tea" | "late_drink";
+/** Drinks rounds, plus tea on waking, a drink with tablets, and a top-up that replaces an old or missed drink. */
+export type DrinkRound = "mid_morning" | "afternoon_tea" | "late_drink" | "waking" | "with_meds" | "top_up";
+/** Drunk now, left by the resident, or owed (someone who needs help to drink was asleep or busy). */
+export type DrinkOutcome = "drunk" | "left" | "owed";
 export type NeedName = "hunger" | "thirst" | "toileting" | "fatigue" | "social";
 export type FallSeverity = "minor" | "serious";
 
@@ -50,7 +53,8 @@ export interface EventPayloads {
 
   "care.personal_care_done": { residentId: string; staffIds: string[]; period: "morning" | "evening" };
   "resident.woke": { residentId: string; reason: "routine" | "toilet" };
-  "resident.fell_asleep": { residentId: string };
+  /** `where`: in bed, dozing in their bedside chair, or dozing in a Lounge armchair. */
+  "resident.fell_asleep": { residentId: string; where: "bed" | "chair" | "lounge" };
   "resident.got_up": { residentId: string; to: string };
   "resident.went_to_bed": { residentId: string };
   "resident.checked": { residentId: string; staffId: string; sinceLastMins: number; via: "check" | "care" };
@@ -58,7 +62,7 @@ export interface EventPayloads {
   "resident.transferred": { residentId: string; staffIds: string[]; method: "hoist" | "standby" | "assist"; from: string; to: string };
 
   "meal.served": { residentId: string; meal: MealName; staffId: string };
-  "drink.served": { residentId: string; round: DrinkRound; staffId: string };
+  "drink.served": { residentId: string; round: DrinkRound; staffId: string; outcome: DrinkOutcome };
   "intake.recorded": { residentId: string; mealPct?: number; fluidsMl?: number };
 
   "med_round.started": { round: string; staffId: string };
@@ -84,6 +88,10 @@ export interface EventPayloads {
   "second_carer.arrived": { personId: string; planned: boolean };
   "second_carer.departed": { personId: string };
 
+  /** A group activity in the Lounge (Bev's sessions). */
+  "activity.started": { staffId: string; activity: string; roomId: string; residentIds: string[] };
+  "activity.ended": { staffId: string; activity: string; roomId: string; residentIds: string[] };
+
   "visit.planned": { visitorId: string; residentId: string; arriveT: number; durationMins: number };
   "visitor.rang_bell": { visitorId: string };
   "visitor.let_in": { visitorId: string; staffId: string };
@@ -99,8 +107,11 @@ export interface EventPayloads {
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
   /** A service target was missed: reported, not a failure (docs/11). */
-  "sla.breached": { target: "request_wait" | "resident_check" | "reposition"; residentId: string; details: string; cause: string };
+  "sla.breached": { target: ServiceTarget; residentId: string; details: string; cause: string };
 }
+
+/** Service targets (docs/11): reported when missed, not failures. */
+export type ServiceTarget = "request_wait" | "resident_check" | "reposition" | "lounge_supervision";
 
 export type EventType = keyof EventPayloads;
 

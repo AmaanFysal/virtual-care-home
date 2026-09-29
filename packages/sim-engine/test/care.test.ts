@@ -29,6 +29,8 @@ const hhmm = (t: number) => {
 
 const residents = data.residents.map((r) => r.id);
 const upAndAbout = data.residents.filter((r) => !r.care.bed_bound).map((r) => r.id);
+/** Everyone but Dennis, who is on end-of-life comfort care (mouth care and sips, no meals). */
+const eats = data.residents.filter((r) => r.care.eating_support !== "mouth_care_only").map((r) => r.id);
 
 describe("the care day (seed 1, Tue 06:00 to Wed 06:00)", () => {
   const sim = createSim({ seed: "1", data });
@@ -44,13 +46,20 @@ describe("the care day (seed 1, Tue 06:00 to Wed 06:00)", () => {
     expect(raj.payload.staffIds).toHaveLength(2);
   });
 
-  it("serves three meals to everyone and charts intake for Peggy, Win and Dennis", () => {
+  it("serves three meals to everyone who eats and charts intake for Peggy, Win and Dennis", () => {
     const meals = ofType(events, "meal.served");
     for (const meal of ["breakfast", "lunch", "supper"] as const) {
-      expect(meals.filter((m) => m.payload.meal === meal).map((m) => m.payload.residentId).sort(), meal).toEqual([...residents].sort());
+      expect(meals.filter((m) => m.payload.meal === meal).map((m) => m.payload.residentId).sort(), meal).toEqual([...eats].sort());
     }
     const charted = new Set(ofType(events, "intake.recorded").map((e) => e.payload.residentId));
     expect([...charted].sort()).toEqual(["res_dennis", "res_peggy", "res_win"]);
+  });
+
+  it("gives Dennis end-of-life comfort care (mouth care and sips) at least every 120 minutes, not meals", () => {
+    const sips = ofType(events, "intake.recorded").filter((e) => e.payload.residentId === "res_dennis").map((e) => e.t);
+    expect(sips.length).toBeGreaterThan(12);
+    for (let i = 1; i < sips.length; i++) expect(sips[i]! - sips[i - 1]!).toBeLessThanOrEqual(120 * 60);
+    expect(sim.world.people.get("res_dennis")!.resident!.needs.hunger).toBe(0);
   });
 
   it("runs drinks rounds at 10:30, 15:00 and 20:00", () => {

@@ -25,7 +25,7 @@ describe("Runner", () => {
     const snapshot = received[0] as Extract<ServerMessage, { type: "snapshot" }>;
     expect(snapshot.clock.paused).toBe(true);
     expect(snapshot.people.filter((p) => p.onMap).map((p) => p.id)).toContain("stf_florin");
-    expect(snapshot.floorplan.rooms).toHaveLength(6);
+    expect(snapshot.floorplan.rooms).toHaveLength(7); // two bedrooms, corridor, Lounge, waiting area, reception, staff room
   });
 
   it("paces ticks by speed and real time", () => {

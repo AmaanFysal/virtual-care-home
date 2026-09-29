@@ -5,6 +5,7 @@ import type {
   Badge,
   Competency,
   Gender,
+  LoungeActivity,
   NamedPoint,
   NeedName,
   PersonKind,
@@ -71,8 +72,21 @@ export interface ResidentState {
   /** Task currently being done with or for this resident (assist, own trip to the WC). */
   busyTaskId: string | null;
   fluidsMlToday: number;
-  /** A drink left by their bed or chair while they were asleep or busy; drunk when they're free. */
-  drinkLeft: boolean;
+  /** When a drink was left by their bed or chair (asleep or busy); drunk when they're free, stale after 2 hours. */
+  drinkLeftT: number | null;
+  /** A left drink went stale: the next member of staff with them replaces it. */
+  drinkStale: boolean;
+  /** Someone who needs help to drink missed a drink (asleep or busy): it's given at the next contact while awake. */
+  drinkOwed: boolean;
+  /** When they woke for the day (first seen awake after their wake time); null until then. */
+  wokeT: number | null;
+  /** Tea on waking given today (and toast, for early risers). */
+  teaDone: boolean;
+  toastDone: boolean;
+  /** Last mouth care or sips (end-of-life comfort care, Dennis). */
+  lastMouthCareT: number;
+  /** What they're doing in the Lounge, if they're there. */
+  loungeActivity: LoungeActivity | null;
   /** A fall in progress: the resident stays on the floor until it has been assessed. */
   fall: { t: number; severity: "minor" | "serious"; assessed: boolean; taskId: string } | null;
   /** Post-fall observations: checks every 30 minutes until this time. */
@@ -96,7 +110,7 @@ export interface FloatState {
   planned: boolean;
 }
 
-export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "care" | "round" | "med_round" | "fall" | "let_in" | "idle";
+export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "self_move" | "care" | "round" | "med_round" | "fall" | "let_in" | "idle" | "lounge_check";
 
 /** A visitor's progress through a visit (docs/05 "Visiting"). */
 export interface VisitorState {
@@ -115,7 +129,8 @@ export interface VisitorState {
 }
 
 /** Scheduled care done at the bedside (or chair). */
-export type CareKind = "morning" | "bedtime" | "check" | "reposition" | "meal" | "pad_change";
+/** tea: tea on waking (with toast for early risers); comfort: mouth care and sips; escort: walk them to or from the Lounge. */
+export type CareKind = "morning" | "bedtime" | "check" | "reposition" | "meal" | "pad_change" | "tea" | "comfort" | "escort";
 
 export interface Task {
   id: string;
@@ -210,6 +225,10 @@ export interface World {
   onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
   /** Recent falls, for explaining missed service targets. */
   fallLog: { residentId: string; severity: "minor" | "serious"; t: number; endT: number | null }[];
+  /** Last time a carer was in the Lounge (the lounge_supervision service target). */
+  loungeSeenT: number;
+  /** A group activity running in the Lounge. */
+  session: { staffId: string; activity: string; residentIds: string[]; endT: number } | null;
   /** Paramedics on their way to a fall (off-map until due). */
   paramedics: { taskId: string; dueT: number } | null;
   metrics: { floatCallouts: number; medInterruptions: number };

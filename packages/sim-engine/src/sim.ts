@@ -18,8 +18,9 @@ import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.j
 import { medsMinute } from "./meds.js";
 import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
 import { floatMinute } from "./float.js";
-import { breachCause, checkInvariants, checkServiceTargets } from "./invariants.js";
-import { initialNeeds, residentsMinute } from "./needs.js";
+import { breachCause, checkInvariants, checkServiceTargets, staffBusyCause } from "./invariants.js";
+import { noteLoungeSupervision } from "./lounge.js";
+import { initialNeeds, noAppetite, residentsMinute } from "./needs.js";
 import { createStreams, hashString } from "./rng.js";
 import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaLeaving, rotaMinute, sendIdleToPosts, staffPerson } from "./rota.js";
 import type { Person, World } from "./state.js";
@@ -71,13 +72,20 @@ function residentPerson(r: Resident, world: World): Person {
     staff: null,
     resident: {
       data: r,
-      needs: initialNeeds(world.rng.needs),
+      needs: { ...initialNeeds(world.rng.needs), ...(noAppetite(r) ? { hunger: 0 } : {}) },
       asleep: true,
       inBed: true,
       requestId: null,
       busyTaskId: null,
       fluidsMlToday: 0,
-      drinkLeft: false,
+      drinkLeftT: null,
+      drinkStale: false,
+      drinkOwed: false,
+      wokeT: null,
+      teaDone: false,
+      toastDone: false,
+      lastMouthCareT: world.startT - world.rng.needs.int(0, 60) * 60,
+      loungeActivity: null,
       fall: null,
       postFallUntil: 0,
       away: null,
@@ -126,6 +134,8 @@ export function createSim(options: SimOptions): Sim {
     taskSeq: 0,
     float: { status: "off", arriveT: null, planned: false },
     paramedics: null,
+    loungeSeenT: startT,
+    session: null,
     onCallRn: { status: "off", arriveT: null, residentId: null },
     fallLog: [],
     metrics: { floatCallouts: 0, medInterruptions: 0 },
@@ -197,6 +207,7 @@ export function createSim(options: SimOptions): Sim {
       const arrived = moveAll(world);
       rotaArrivals(world, spawned, arrived);
       visitorsTick(world, spawned, arrived);
+      noteLoungeSupervision(world);
       logInvariants(world);
       const events = world.pending;
       world.pending = [];
@@ -224,7 +235,9 @@ function logInvariants(world: World): void {
   for (const b of checkServiceTargets(world)) {
     const key = `${b.target}:${b.key}`;
     now.add(key);
-    if (!world.failing.has(key)) emit(world, "sla.breached", [b.residentId], { target: b.target, residentId: b.residentId, details: b.details, cause: breachCause(world) });
+    if (world.failing.has(key)) continue;
+    const cause = breachCause(world);
+    emit(world, "sla.breached", [b.residentId], { target: b.target, residentId: b.residentId, details: b.details, cause: cause === "no emergency" && b.target === "lounge_supervision" ? staffBusyCause(world) : cause });
   }
   world.failing = now;
 }

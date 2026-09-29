@@ -1,6 +1,6 @@
 // Medication rounds (docs/05 "Medication round", spec decision 9). The day RN gives the 08:00,
-// 13:00 and 17:00 rounds; the late lead gives 21:00 before handover. A round goes bed to bed
-// and can be interrupted (a fall, or an urgent request nobody else can take); it resumes where
+// 13:00 and 17:00 rounds; the late lead gives 21:00 before handover. A round gives time-critical
+// medication first, then goes bed to bed, and can be interrupted (a fall, or an urgent request nobody else can take); it resumes where
 // it stopped. Each interruption adds 5 points to the chance each remaining dose is missed
 // (capped at 40%), following the CHUMS finding that interrupted rounds cause errors. A dose given
 // more than 60 minutes after the round time is late. Nothing here is clinical advice.
@@ -45,7 +45,8 @@ export function medsMinute(world: World): void {
     const queue = world.order
       .map((id) => world.people.get(id)!)
       .filter((p) => p.resident)
-      .sort((a, b) => a.resident!.data.room.localeCompare(b.resident!.data.room))
+      // Time-critical medication first (Arthur's Parkinson's), then bed by bed.
+      .sort((a, b) => Number(!!b.resident!.data.care.time_critical_meds) - Number(!!a.resident!.data.care.time_critical_meds) || a.resident!.data.room.localeCompare(b.resident!.data.room))
       .map((p) => p.id);
     world.taskSeq += 1;
     const task = {
@@ -89,6 +90,13 @@ function giveDose(c: Ctx, r: Person): void {
     log.lateOrMissedDoses += 1;
   }
   emit(world, "med.administered", [r.id, giver.id], { residentId: r.id, round, staffId: giver.id, lateMins });
+  // Tablets go down with a drink: someone awake who hasn't had their tea yet gets one now.
+  const res = r.resident!;
+  if (!res.asleep && res.wokeT !== null && !res.teaDone && res.data.care.eating_support !== "mouth_care_only") {
+    res.needs.thirst = Math.max(0, res.needs.thirst - 0.3);
+    res.fluidsMlToday += 100;
+    emit(world, "drink.served", [r.id, giver.id], { residentId: r.id, round: "with_meds", staffId: giver.id, outcome: "drunk" });
+  }
 }
 
 /** Bed to bed. Progress lives in task.data, so a paused round resumes where it stopped. */

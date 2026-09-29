@@ -77,14 +77,25 @@ export function walkTo(world: World, person: Person, pointId: string): boolean {
   return true;
 }
 
-/** Puts a person straight onto a point (initial placement), respecting standing spots. */
+/**
+ * Moves a person's room, logging `person.entered_room` whenever it changes (docs/07: room
+ * occupancy is rebuilt from these events). The initial placement, before the first tick, is silent.
+ */
+export function setRoom(world: World, person: Person, roomId: string | null): void {
+  if (roomId === person.roomId) return;
+  if (roomId !== null && world.tick > 0) emit(world, "person.entered_room", [person.id], { roomId, fromRoomId: person.roomId });
+  person.roomId = roomId;
+}
+
+/** Puts a person straight onto a point (initial placement, a hoist transfer), respecting standing spots. */
 export function placeAt(world: World, person: Person, pointId: string): void {
   const point = world.points.get(pointId)!;
   const cell = standingCell(world, person, point);
   const exact = cell === cellAt(world.grid, point.x, point.y);
   const pos = exact ? { x: point.x, y: point.y } : cellCentre(world.grid, cell);
   claimStand(world, person, cell);
-  Object.assign(person, { onMap: true, x: pos.x, y: pos.y, roomId: point.room, atPoint: pointId, move: null });
+  setRoom(world, person, point.room);
+  Object.assign(person, { onMap: true, x: pos.x, y: pos.y, atPoint: pointId, move: null });
   person.posture = exact && SEATED_POINTS.has(point.kind) ? "sitting" : "standing";
 }
 
@@ -92,7 +103,8 @@ export function placeAt(world: World, person: Person, pointId: string): void {
 export function getIntoBed(world: World, person: Person): void {
   const bed = world.points.get(person.resident!.data.room)!;
   releaseStand(world, person);
-  Object.assign(person, { x: bed.x, y: bed.y, roomId: bed.room, atPoint: bed.id, move: null, posture: "in_bed" });
+  setRoom(world, person, bed.room);
+  Object.assign(person, { x: bed.x, y: bed.y, atPoint: bed.id, move: null, posture: "in_bed" });
   person.resident!.inBed = true;
 }
 
@@ -121,10 +133,7 @@ export function releaseZone(world: World, person: Person): void {
 
 function enterCell(world: World, person: Person, cell: number): void {
   const roomId = world.grid.roomOf[cell] ?? null;
-  if (roomId && roomId !== person.roomId) {
-    emit(world, "person.entered_room", [person.id], { roomId, fromRoomId: person.roomId });
-    person.roomId = roomId;
-  }
+  if (roomId) setRoom(world, person, roomId);
   if (person.heldZone && world.grid.doorZoneOf[cell] !== person.heldZone) releaseZone(world, person);
 }
 

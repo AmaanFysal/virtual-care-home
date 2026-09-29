@@ -16,6 +16,9 @@ import {
 
 const EPS = 1e-6;
 
+/** Named points the Lounge routine uses (src/lounge.ts). */
+const LOUNGE_POINTS = ["Lounge.Post", "Lounge.Reading", ...[1, 2, 3, 4, 5, 6].map((n) => `Lounge.Dining${n}`), ...[1, 2, 3, 4].map((n) => `Lounge.Armchair${n}`), ...[1, 2, 3, 4].map((n) => `Lounge.Activity${n}`)];
+
 const ROLES = new Set(["wing_manager", "registered_nurse", "senior_carer", "care_assistant", "activities_coordinator", "receptionist"]);
 const COMPETENCIES = new Set<Competency>([
   "meds_trained",
@@ -152,6 +155,15 @@ function validateFloorPlan(fp: FloorPlan, errors: string[]): void {
     }
   }
   if (!fp.points.some((p) => p.id === "ExitDoor")) errors.push("floorplan: missing ExitDoor point");
+
+  // The residents' Lounge: one room, off the corridor, with seats for everyone who uses it (docs/02).
+  const lounges = fp.rooms.filter((r) => r.kind === "lounge");
+  if (lounges.length !== 1) errors.push(`floorplan: expected exactly one lounge room, found ${lounges.length}`);
+  const lounge = lounges[0];
+  if (lounge) {
+    if (!fp.doors.some((d) => d.rooms.includes(lounge.id) && d.rooms.includes("Corridor"))) errors.push(`floorplan: lounge ${lounge.id} needs a door to the Corridor`);
+    for (const id of LOUNGE_POINTS) if (!fp.points.some((p) => p.id === id && p.room === lounge.id)) errors.push(`floorplan: lounge is missing point ${id}`);
+  }
 }
 
 // ---------------------------------------------------------------- people
@@ -216,6 +228,11 @@ function validatePeople(data: WorldData, errors: string[]): void {
     }
     if (care.bed_bound && r.routine.wake !== null) errors.push(`${where}: bed-bound residents have no wake time`);
     if (!care.bed_bound && (r.routine.wake === null || r.routine.bed === null)) errors.push(`${where}: needs wake and bed times`);
+    if (care.eating_support === "mouth_care_only" && !(care.mouth_care_interval_mins! > 0)) errors.push(`${where}: mouth-care-only residents need mouth_care_interval_mins`);
+    if (care.lounge) {
+      if (!ambulant) errors.push(`${where}: only residents who can walk have lounge habits`);
+      if (care.lounge.likes.length === 0) errors.push(`${where}: lounge likes can't be empty`);
+    }
     const relatedVisitor = (id: string | null) => !!id && visitorById.get(id)?.relation_to_resident.some((rel) => rel.resident === r.id);
     if (!relatedVisitor(care.next_of_kin)) errors.push(`${where}: next_of_kin "${care.next_of_kin}" is not one of their visitors`);
     if (r.legal.lpa_health !== null && !relatedVisitor(r.legal.lpa_health)) {

@@ -1,11 +1,14 @@
 // Headless run: prints the event log to the terminal.
 //   pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--fall res_peggy@06:40[:serious]] [--positions] [--report]
 // --report prints help requests per day by need, the longest wait per resident and call-outs.
+// --audit prints a behaviour audit per resident, staff shift and day (thresholds in scripts/audit.config.ts);
+//   add --seeds 1-8 to audit several seeds and print only the combined flag summary.
 
 import { parseArgs } from "node:util";
 import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, type AnySimEvent } from "@vch/shared-types";
 import { createSim } from "../src/index.js";
 import { loadWorldData } from "../tools/load-data.js";
+import { runAudit, summarise, type Flag } from "./audit.js";
 
 const { values } = parseArgs({
   options: {
@@ -15,8 +18,35 @@ const { values } = parseArgs({
     fall: { type: "string" },
     positions: { type: "boolean", default: false },
     report: { type: "boolean", default: false },
+    audit: { type: "boolean", default: false },
+    seeds: { type: "string" },
   },
 });
+
+if (values.audit) {
+  if (values.fall) throw new Error("--audit runs without injected falls");
+  if (values.seeds) {
+    const [from, to] = values.seeds.split("-").map(Number);
+    const all: (Flag & { seed: number })[] = [];
+    for (let s = from!; s <= (to ?? from)!; s++) {
+      const { flags } = runAudit(String(s), Number(values.hours), loadWorldData());
+      all.push(...flags.map((f) => ({ ...f, seed: s })));
+      console.error(`seed ${s}: ${flags.length} flags`);
+    }
+    console.log(`Flags across seeds ${values.seeds}, ${values.hours} h each (by type, most frequent first; who: count):`);
+    for (const line of summarise(all)) console.log(line);
+    const types = new Map<string, number[]>();
+    for (const f of all) types.set(f.type, [...(types.get(f.type) ?? []), f.seed]);
+    console.log("\nPer seed:");
+    for (const [type, seeds] of [...types].sort((a, b) => b[1].length - a[1].length)) {
+      const per = Array.from({ length: (to ?? from)! - from! + 1 }, (_, i) => seeds.filter((x) => x === from! + i).length);
+      console.log(`  ${type.padEnd(40)} ${per.map((n) => String(n).padStart(4)).join("")}`);
+    }
+  } else {
+    for (const line of runAudit(values.seed!, Number(values.hours), loadWorldData()).lines) console.log(line);
+  }
+  process.exit(0);
+}
 
 const sim = createSim({ seed: values.seed!, data: loadWorldData() });
 if (values.fall) {

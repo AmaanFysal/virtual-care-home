@@ -1,12 +1,13 @@
 // Behaviour trees for every task kind (docs/04 "Behaviour trees", docs/05 "Procedures").
 
-import type { Badge, DrinkRound, MealName, NeedName } from "@vch/shared-types";
+import type { Badge, DrinkOutcome, DrinkRound, MealName, NeedName } from "@vch/shared-types";
 import { act, leaf, sel, seq, until, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
+import { needsHelpToDrink } from "./needs.js";
 import { onDuty, type CareKind, type Person, type Task, type World } from "./state.js";
 import { onFloor } from "./floor.js";
 import { isNight } from "./nightcover.js";
-import { createBriefing, finish } from "./tasks.js";
+import { absorbInto, createBriefing, finish } from "./tasks.js";
 import { getIntoBed, getOutOfBed, placeAt, walkTo } from "./world/movement.js";
 
 export interface Ctx {
@@ -20,7 +21,7 @@ const NEED_BADGE: Record<NeedName, Badge> = { hunger: "tray", thirst: "cup", toi
 /** Minutes at the bedside for each need (in-bed toileting is a pad change). */
 const NEED_MINUTES: Record<NeedName, number> = { hunger: 5, thirst: 3, toileting: 15, fatigue: 5, social: 10 };
 const STAFF_ROOM_SEATS = ["StaffRoom.Seat1", "StaffRoom.Seat2", "StaffRoom.Seat3", "StaffRoom.Seat4", "StaffRoom.Seat5", "StaffRoom.Seat6"];
-/** Residents whose food and fluid intake is charted (docs/05 "Meal service"). */
+/** Residents whose food and fluid intake is charted (docs/05 "Meal service"; Dennis's sips at mouth care). */
 const CHARTED = new Set(["res_peggy", "res_win", "res_dennis"]);
 
 // ---------------------------------------------------------------- helpers
@@ -96,9 +97,10 @@ export function bedsideOnly(world: World, resident: Person): boolean {
  * required, is logged as `resident.checked`; daytime care for others counts silently. Where a
  * bedside check is required, it only counts if a carer is within BEDSIDE_M.
  */
-export function markChecked(world: World, resident: Person, staff: Person[], explicit: boolean): void {
+export function markChecked(world: World, resident: Person, staff: Person[], explicit: boolean, topUp = true): void {
   const res = resident.resident!;
   lower(resident, "social", 0.15); // any contact helps a little
+  if (topUp) topUpDrink(world, resident, staff);
   const strict = bedsideOnly(world, resident);
   const near = staff.find((s) => Math.hypot(s.x - resident.x, s.y - resident.y) <= BEDSIDE_M);
   if (strict && !near) return;
@@ -108,6 +110,31 @@ export function markChecked(world: World, resident: Person, staff: Person[], exp
     world.shiftLog.get(resident.id)!.checksDone += 1;
   }
   res.lastCheckedT = world.t;
+}
+
+/**
+ * Contact replaces a missed or stale drink (docs/05 "Drinks"): an owed drink is given while
+ * they're awake; a stale one is drunk now, or a fresh one left if they're asleep.
+ */
+function topUpDrink(world: World, resident: Person, staff: Person[]): void {
+  const res = resident.resident!;
+  if (!res.drinkOwed && !res.drinkStale) return;
+  let outcome: DrinkOutcome | null = null;
+  if (!res.asleep) {
+    lower(resident, "thirst", 0.5);
+    res.fluidsMlToday += 150;
+    Object.assign(res, { drinkOwed: false, drinkStale: false, drinkLeftT: null });
+    outcome = "drunk";
+  } else if (res.drinkStale && !needsHelpToDrink(res.data)) {
+    Object.assign(res, { drinkStale: false, drinkLeftT: world.t });
+    outcome = "left";
+  }
+  if (outcome) emit(world, "drink.served", [resident.id, staff[0]!.id], { residentId: resident.id, round: "top_up", staffId: staff[0]!.id, outcome });
+}
+
+/** Any drink given in person settles an owed or stale one. */
+function drank(res: Person): void {
+  Object.assign(res.resident!, { drinkOwed: false, drinkStale: false });
 }
 
 function toileted(world: World, resident: Person): void {
@@ -198,6 +225,12 @@ function careMinutes(c: Ctx): number {
       return 10;
     case "pad_change":
       return 10;
+    case "tea":
+      return r.care.eating_support === "assisted" ? 5 : 2;
+    case "comfort":
+      return 5;
+    case "escort":
+      return 0;
     case "meal": {
       // A visitor who helps at meals (Kuldip with Raj) takes over the feeding; staff just bring the tray.
       const helper = [...c.world.people.values()].some((p) => p.visitor?.data.may_help_at_meals && p.visitor.residentId === c.resident!.id && p.visitor.phase === "visiting");
@@ -211,7 +244,11 @@ function careBadge(c: Ctx): Badge[] {
   switch (careKind(c)) {
     case "meal":
       return ["tray"];
+    case "tea":
+    case "comfort":
+      return ["cup"];
     case "check":
+    case "escort":
       return [];
     case "reposition":
       return ["hoist"];
@@ -220,11 +257,14 @@ function careBadge(c: Ctx): Badge[] {
   }
 }
 
-/** Sips and mouth care for someone who can no longer eat or drink much (Dennis). */
-function sipsAndMouthCare(r: Person): void {
-  if (r.resident!.data.care.eating_support !== "mouth_care_only") return;
-  r.resident!.fluidsMlToday += 50;
+/** Sips and mouth care for someone who can no longer eat or drink much (Dennis): end-of-life comfort care. */
+export function sipsAndMouthCare(world: World, r: Person): void {
+  const res = r.resident!;
+  if (res.data.care.eating_support !== "mouth_care_only") return;
+  res.fluidsMlToday += 50;
+  res.lastMouthCareT = world.t;
   lower(r, "thirst", 0.3);
+  if (CHARTED.has(r.id)) emit(world, "intake.recorded", [r.id], { residentId: r.id, fluidsMl: 50 });
 }
 
 function careEffects(c: Ctx): void {
@@ -233,16 +273,12 @@ function careEffects(c: Ctx): void {
   const res = r.resident!;
   const staffIds = [...c.task.assigned];
   c.task.data.phase = null;
+  c.task.data.effectsDone = 1;
   switch (careKind(c)) {
     case "morning":
+      // Tea on waking is its own visit now (care "tea"), not part of washing and dressing.
       toileted(world, r);
       res.morningDone = true;
-      // A cup of tea and a biscuit on waking.
-      if (res.data.care.eating_support !== "mouth_care_only") {
-        lower(r, "thirst", 0.5);
-        lower(r, "hunger", 0.2);
-        res.fluidsMlToday += 150;
-      }
       emit(world, "care.personal_care_done", [r.id, ...staffIds], { residentId: r.id, staffIds, period: "morning" });
       break;
     case "bedtime":
@@ -251,14 +287,34 @@ function careEffects(c: Ctx): void {
       // A warm drink at bedtime.
       lower(r, "thirst", 0.5);
       res.fluidsMlToday += 150;
+      drank(r);
       emit(world, "care.personal_care_done", [r.id, ...staffIds], { residentId: r.id, staffIds, period: "evening" });
       break;
+    case "tea": {
+      // Tea on waking; early risers waiting for care get toast with it.
+      lower(r, "thirst", 0.5);
+      res.fluidsMlToday += 150;
+      res.teaDone = true;
+      if (c.task.data.toast === 1) {
+        lower(r, "hunger", 0.4);
+        res.toastDone = true;
+      }
+      drank(r);
+      emit(world, "drink.served", [r.id, staffIds[0]!], { residentId: r.id, round: "waking", staffId: staffIds[0]!, outcome: "drunk" });
+      break;
+    }
+    case "comfort":
+      sipsAndMouthCare(world, r);
+      break;
+    case "escort":
+      lower(r, "social", 0.1); // a chat on the way
+      break;
     case "check":
-      sipsAndMouthCare(r);
+      sipsAndMouthCare(world, r);
       return;
     case "reposition":
       toileted(world, r); // turns include a pad change
-      sipsAndMouthCare(r);
+      sipsAndMouthCare(world, r);
       emit(world, "resident.repositioned", [r.id, ...staffIds], { residentId: r.id, staffIds });
       break;
     case "pad_change":
@@ -270,6 +326,7 @@ function careEffects(c: Ctx): void {
       lower(r, "thirst", 0.6); // a drink with every meal
       const fluids = res.data.care.eating_support === "mouth_care_only" ? 50 : 200;
       res.fluidsMlToday += fluids;
+      drank(r);
       res.mealsServed.push(meal);
       emit(world, "meal.served", [r.id, staffIds[0]!], { residentId: r.id, meal, staffId: staffIds[0]! });
       if (CHARTED.has(r.id)) {
@@ -322,30 +379,11 @@ const settleResident: BtNode<Ctx> = leaf("settle the resident", (c, mem) => {
   return "success";
 });
 
-/** Which waiting requests each kind of scheduled care can meet. */
-const MEETS: Record<CareKind, NeedName[]> = {
-  morning: ["toileting", "thirst", "hunger", "social"],
-  bedtime: ["toileting", "thirst", "hunger", "social"],
-  reposition: ["toileting", "thirst", "social"],
-  pad_change: ["toileting", "thirst", "social"],
-  meal: ["hunger", "thirst", "social"],
-  check: ["thirst", "social"],
-};
-
-/**
- * A waiting help request is dealt with by whoever is doing scheduled care with the resident, if
- * that care can meet it with the people there (a one-person check can't do a two-person change).
- */
+/** A waiting help request is met by the scheduled care now under way, if it can be (tasks.ts `absorbInto`). */
 function absorbRequest(c: Ctx): void {
   const requestId = c.resident!.resident!.requestId;
   const request = requestId ? c.world.tasks.get(requestId) : undefined;
-  if (!request || request.status !== "open" || request.startedT !== null) return;
-  if (!MEETS[careKind(c)].includes(request.need!)) return;
-  if (c.staff.length < request.staffNeeded) return;
-  if (request.femaleOnly && c.staff.some((s) => s.gender !== "female")) return;
-  request.startedT = c.world.t;
-  request.data.absorbedBy = c.task.id;
-  c.task.data.absorbed = request.id;
+  if (request) absorbInto(c.world, c.task, request);
 }
 
 function meetAbsorbedRequest(c: Ctx): void {
@@ -359,7 +397,28 @@ function meetAbsorbedRequest(c: Ctx): void {
   finish(c.world, request, "success");
 }
 
-const careTree: BtNode<Ctx> = seq(
+/** Walking a resident to or from the Lounge (Peggy with her frame, Stan): the carer walks beside them. */
+const escortTree: BtNode<Ctx> = seq(
+  "escort",
+  leaf("is an escort?", (c) => (careKind(c) === "escort" ? "success" : "failure")),
+  goTo("go to resident", (c) => c.staff, (c) => besideThem(c.resident!)),
+  act("set off", (c) => {
+    begin(c, careBadge(c));
+    markChecked(c.world, c.resident!, c.staff, false);
+    absorbRequest(c);
+    const r = c.resident!;
+    if (r.resident!.inBed) getOutOfBed(c.world, r);
+    walkTo(c.world, r, String(c.task.data.to));
+  }),
+  goTo("walk with them", (c) => [c.resident!, ...c.staff], (c) => [String(c.task.data.to)]),
+  act("settle", (c) => {
+    c.resident!.posture = "sitting";
+    careEffects(c);
+    meetAbsorbedRequest(c);
+  }),
+);
+
+const careAtResident: BtNode<Ctx> = seq(
   "care",
   goTo("go to resident", (c) => c.staff, (c) => besideThem(c.resident!)),
   act("begin", (c) => {
@@ -378,6 +437,8 @@ const careTree: BtNode<Ctx> = seq(
   }),
   settleResident,
 );
+
+const careTree: BtNode<Ctx> = sel("care", escortTree, careAtResident);
 
 // ---------------------------------------------------------------- drinks round
 
@@ -407,18 +468,31 @@ const roundTree: BtNode<Ctx> = seq(
         }
         mem.phase = 1;
         mem.start = c.world.t;
-        markChecked(c.world, r, [staff], false);
+        markChecked(c.world, r, [staff], false, false);
       }
       if (c.world.t - mem.start! < ROUND_MINUTES_EACH * 60) return "running";
+      const round = c.task.data.round as DrinkRound;
       const mouthCare = res.data.care.eating_support === "mouth_care_only";
-      // Anyone asleep or busy has the drink left with them for later (Dennis still gets sips).
-      if (!mouthCare && (res.asleep || res.busyTaskId)) res.drinkLeft = true;
-      else {
-        lower(r, "thirst", mouthCare ? 0.3 : 0.7);
-        if (!mouthCare) lower(r, "hunger", 0.2); // a biscuit
-        res.fluidsMlToday += mouthCare ? 50 : 200;
+      let outcome: DrinkOutcome = "drunk";
+      if (mouthCare) sipsAndMouthCare(c.world, r); // Dennis gets sips, asleep or not
+      else if (res.asleep || res.busyTaskId) {
+        // Asleep or busy: someone who needs help to drink is owed it at the next contact; anyone
+        // else has it left by them (stale after 2 hours, replaced at the next contact).
+        if (needsHelpToDrink(res.data)) {
+          res.drinkOwed = true;
+          outcome = "owed";
+        } else {
+          Object.assign(res, { drinkLeftT: c.world.t, drinkStale: false });
+          outcome = "left";
+        }
+      } else {
+        lower(r, "thirst", 0.7);
+        // A biscuit; the 20:00 round brings a supper snack (toast or a sandwich) to last the night.
+        lower(r, "hunger", round === "late_drink" ? 0.4 : 0.2);
+        res.fluidsMlToday += 200;
+        drank(r);
       }
-      emit(c.world, "drink.served", [r.id, staff.id], { residentId: r.id, round: c.task.data.round as DrinkRound, staffId: staff.id });
+      emit(c.world, "drink.served", [r.id, staff.id], { residentId: r.id, round, staffId: staff.id, outcome });
       mem.i = i + 1;
       mem.phase = 0;
     }
@@ -440,6 +514,28 @@ const selfToiletTree: BtNode<Ctx> = seq(
     if (c.task.data.returnToBed === 1) getIntoBed(c.world, c.resident!);
     else c.resident!.posture = "sitting";
   }),
+);
+
+// ---------------------------------------------------------------- self-move, Lounge check
+
+/** A resident who walks alone goes to or from the Lounge. */
+const selfMoveTree: BtNode<Ctx> = seq(
+  "self_move",
+  act("get up", (c) => {
+    if (c.resident!.resident!.inBed) getOutOfBed(c.world, c.resident!);
+  }),
+  goTo("walk there", (c) => [c.resident!], (c) => [String(c.task.data.to)]),
+  act("sit down", (c) => {
+    c.resident!.posture = "sitting";
+  }),
+);
+
+/** A carer looks in on the Lounge while residents who need supervision are there (docs/05). */
+const loungeCheckTree: BtNode<Ctx> = seq(
+  "lounge_check",
+  goTo("go to the Lounge", (c) => c.staff, () => ["Lounge.Post"]),
+  act("begin", (c) => begin(c, [])),
+  waitMins("look in", () => 2),
 );
 
 // ---------------------------------------------------------------- handover, briefing, break
@@ -541,4 +637,4 @@ const breakTree: BtNode<Ctx> = seq(
   }),
 );
 
-export { assistTree, selfToiletTree, careTree, roundTree, handoverTree, briefingTree, breakTree };
+export { assistTree, selfToiletTree, selfMoveTree, careTree, roundTree, handoverTree, briefingTree, breakTree, loungeCheckTree };

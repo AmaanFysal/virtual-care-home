@@ -34,7 +34,7 @@ const POSTS: Record<string, string> = {
 /** Office and reception staff have fixed workplaces; the staff room stays for handovers and breaks. */
 const WORKPLACES: Record<string, string> = {
   stf_joanne: "Reception.Office",
-  stf_bev: "WaitingArea.Seat1",
+  stf_bev: "Lounge.Post",
   stf_sanjay: "Reception.DeskStaff",
 };
 const STAFF_ROOM_SEATS = ["StaffRoom.Seat1", "StaffRoom.Seat2", "StaffRoom.Seat3", "StaffRoom.Seat4", "StaffRoom.Seat5", "StaffRoom.Seat6"];

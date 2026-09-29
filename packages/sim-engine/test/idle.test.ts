@@ -30,7 +30,20 @@ describe("idle behaviour", () => {
     }
     expect(counts.idle / counts.total).toBeGreaterThan(0.2);
     expect(counts.standing / counts.total).toBeLessThan(0.05);
-    expect([...activities].sort()).toEqual(["notes", "restock", "sit_with", "tidy"]);
+    // Plus the floor cover's round of checks during handovers, and keeping an eye on the Lounge.
+    // Sitting with a lonely resident is checked over a week below: company in the Lounge now meets
+    // most social need, so whether it happens on day 1 is down to chance.
+    expect([...activities].filter((a) => a !== "sit_with").sort()).toEqual(["checks", "notes", "restock", "supervise", "tidy"]);
+  });
+
+  it("still sits with lonely residents over a week", () => {
+    const sim = createSim({ seed: "1", data });
+    const sitWith = new Set<string>();
+    for (let i = 0; i < 7 * DAY; i++) {
+      sim.step();
+      for (const t of sim.world.tasks.values()) if (t.kind === "idle" && t.data.activity === "sit_with") sitWith.add(t.id);
+    }
+    expect(sitWith.size).toBeGreaterThanOrEqual(5);
   });
 
   it("drops an idle activity at once for a help request", () => {

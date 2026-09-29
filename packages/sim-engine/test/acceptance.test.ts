@@ -54,9 +54,10 @@ describe("acceptance: one day on seed 1", () => {
     expect(ofType(events, "med.administered")).toHaveLength(24);
   });
 
-  it("serves three meals and gives everyone morning personal care", () => {
+  it("serves three meals to everyone who eats (Dennis has comfort care) and gives everyone morning personal care", () => {
+    const eats = data.residents.filter((r) => r.care.eating_support !== "mouth_care_only").map((r) => r.id).sort();
     for (const meal of ["breakfast", "lunch", "supper"] as const) {
-      expect(ofType(events, "meal.served").filter((e) => e.payload.meal === meal).map((e) => e.payload.residentId).sort(), meal).toEqual(residents);
+      expect(ofType(events, "meal.served").filter((e) => e.payload.meal === meal).map((e) => e.payload.residentId).sort(), meal).toEqual(eats);
     }
     expect(ofType(events, "care.personal_care_done").filter((e) => e.payload.period === "morning").map((e) => e.payload.residentId).sort()).toEqual(residents);
   });
