@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-09-29
-- **Deciders:** Amaan (user), with Claude
+- **Deciders:** Amaan (project owner)
 - **Affected docs:** docs/04-agents-and-behaviour.md, docs/05-care-operations.md
 
 ## Context
