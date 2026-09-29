@@ -1,0 +1,18 @@
+{
+  "id": "ext_hairdresser",
+  "name": "Jade Morgan",
+  "group": "extra",
+  "note": "visiting hairdresser",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_amber",
+    "head": "Human_Female_amber",
+    "expression": "Neutral_amber",
+    "eyes": "Eye_Color_brown",
+    "hair": "Long_center_part_pink",
+    "clothes": "TShirt_black",
+    "legs": "Leggings_black",
+    "shoes": "Basic_Boots_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_amber&head=Human_Female_amber&expression=Neutral_amber&eyes=Eye_Color_brown&hair=Long_center_part_pink&clothes=TShirt_black&legs=Leggings_black&shoes=Basic_Boots_black"
+}

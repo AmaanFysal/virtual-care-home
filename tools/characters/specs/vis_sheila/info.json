@@ -1,0 +1,20 @@
+{
+  "id": "vis_sheila",
+  "name": "Sheila Turner",
+  "group": "visitor",
+  "note": "80",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_gray",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Bob_side_part_white",
+    "facial_eyes": "Halfmoon_Glasses_maroon",
+    "clothes": "Cardigan_teal",
+    "legs": "Pants_charcoal",
+    "shoes": "Basic_Shoes_brown"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_Elderly_light&expression=Neutral_light&eyes=Eye_Color_gray&wrinkles=Wrinkles_light&hair=Bob_side_part_white&facial_eyes=Halfmoon_Glasses_maroon&clothes=Cardigan_teal&legs=Pants_charcoal&shoes=Basic_Shoes_brown"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "vis_mia",
+  "name": "Mia Evans",
+  "group": "visitor",
+  "note": "30",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_green",
+    "hair": "Long_messy_chestnut",
+    "clothes": "Cardigan_yellow",
+    "legs": "Leggings_charcoal",
+    "shoes": "Basic_Boots_tan"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_green&hair=Long_messy_chestnut&clothes=Cardigan_yellow&legs=Leggings_charcoal&shoes=Basic_Boots_tan"
+}

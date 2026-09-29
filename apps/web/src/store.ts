@@ -15,6 +15,8 @@ export interface ViewState {
   detail: PersonDetail | null;
   /** Camera follows the selected person. */
   following: boolean;
+  /** Name tags over everyone (otherwise only the selected and hovered person). */
+  showTags: boolean;
   error: string | null;
 }
 
@@ -27,6 +29,7 @@ export const initialState: ViewState = {
   selectedId: null,
   detail: null,
   following: false,
+  showTags: true,
   error: null,
 };
 

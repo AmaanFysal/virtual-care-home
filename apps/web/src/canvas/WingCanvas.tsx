@@ -14,6 +14,7 @@ export function WingCanvas() {
       renderer.setPeople(state.people, state.clock);
       renderer.setSelected(state.selectedId);
       renderer.setFollowing(state.following);
+      renderer.setShowTags(state.showTags);
     };
     let unsubscribe = () => {};
     void renderer.init(host.current!).then(() => {
@@ -23,6 +24,7 @@ export function WingCanvas() {
         if (state.people !== prev.people || state.clock !== prev.clock) renderer.setPeople(state.people, state.clock);
         if (state.selectedId !== prev.selectedId) renderer.setSelected(state.selectedId);
         if (state.following !== prev.following) renderer.setFollowing(state.following);
+        if (state.showTags !== prev.showTags) renderer.setShowTags(state.showTags);
       });
     });
     return () => {

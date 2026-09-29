@@ -1,0 +1,19 @@
+{
+  "id": "vis_linda",
+  "name": "Linda Carter",
+  "group": "visitor",
+  "note": "62",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "hair": "Lob_ash",
+    "clothes": "Longsleeve_2_Scoop_teal",
+    "legs": "Pants_navy",
+    "shoes": "Revised_Shoes_brown",
+    "neck": "Scarf_rose"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_blue&hair=Lob_ash&clothes=Longsleeve_2_Scoop_teal&legs=Pants_navy&shoes=Revised_Shoes_brown&neck=Scarf_rose"
+}

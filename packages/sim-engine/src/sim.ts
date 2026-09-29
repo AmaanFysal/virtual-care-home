@@ -248,6 +248,8 @@ export function toView(p: Person): PersonView {
     kind: p.kind,
     name: p.name,
     initials: p.initials,
+    gender: p.gender,
+    ...(p.staff ? { role: p.staff.role } : {}),
     onMap: p.onMap,
     x: Math.round(p.x * 1000) / 1000,
     y: Math.round(p.y * 1000) / 1000,

@@ -1,0 +1,18 @@
+{
+  "id": "ext_paramedic_f",
+  "name": "Paramedic (female)",
+  "group": "extra",
+  "note": "ambulance paramedic",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_brown",
+    "head": "Human_Female_brown",
+    "expression": "Neutral_brown",
+    "eyes": "Eye_Color_brown",
+    "hair": "High_ponytail_black",
+    "clothes": "Shortsleeve_Polo_forest",
+    "legs": "Pants_forest",
+    "shoes": "Basic_Boots_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_brown&head=Human_Female_brown&expression=Neutral_brown&eyes=Eye_Color_brown&hair=High_ponytail_black&clothes=Shortsleeve_Polo_forest&legs=Pants_forest&shoes=Basic_Boots_black"
+}

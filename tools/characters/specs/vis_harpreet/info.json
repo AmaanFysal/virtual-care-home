@@ -1,0 +1,19 @@
+{
+  "id": "vis_harpreet",
+  "name": "Harpreet Sandhu",
+  "group": "visitor",
+  "note": "52",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_bronze",
+    "head": "Human_Male_bronze",
+    "expression": "Neutral_bronze",
+    "eyes": "Eye_Color_brown",
+    "hair": "Short_Topknot_black",
+    "beard": "Basic_Beard_black",
+    "clothes": "Longsleeve_2_Buttoned_blue",
+    "legs": "Pants_charcoal",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_bronze&head=Human_Male_bronze&expression=Neutral_bronze&eyes=Eye_Color_brown&hair=Short_Topknot_black&beard=Basic_Beard_black&clothes=Longsleeve_2_Buttoned_blue&legs=Pants_charcoal&shoes=Basic_Shoes_black"
+}

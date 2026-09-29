@@ -1,0 +1,20 @@
+{
+  "id": "vis_terry",
+  "name": "Terry Mills",
+  "group": "visitor",
+  "note": "81",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_brown",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Parted_white",
+    "facial_eyes": "Glasses_black",
+    "clothes": "Longsleeve_Polo_navy",
+    "legs": "Pants_tan",
+    "shoes": "Basic_Shoes_brown"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_Elderly_light&expression=Neutral_light&eyes=Eye_Color_brown&wrinkles=Wrinkles_light&hair=Parted_white&facial_eyes=Glasses_black&clothes=Longsleeve_Polo_navy&legs=Pants_tan&shoes=Basic_Shoes_brown"
+}

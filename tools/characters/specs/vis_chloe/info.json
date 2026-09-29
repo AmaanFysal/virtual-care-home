@@ -1,0 +1,18 @@
+{
+  "id": "vis_chloe",
+  "name": "Chloe Carter",
+  "group": "visitor",
+  "note": "24",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "hair": "Long_straight_blonde",
+    "clothes": "TShirt_Scoop_pink",
+    "legs": "Leggings_black",
+    "shoes": "Revised_Shoes_white"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_blue&hair=Long_straight_blonde&clothes=TShirt_Scoop_pink&legs=Leggings_black&shoes=Revised_Shoes_white"
+}

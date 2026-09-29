@@ -1,0 +1,21 @@
+{
+  "id": "res_win",
+  "name": "Win Adeyemi",
+  "group": "resident",
+  "note": "84, walking stick",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_black",
+    "head": "Human_Female_Elderly_black",
+    "expression": "Neutral_black",
+    "eyes": "Eye_Color_brown",
+    "wrinkles": "Wrinkles_black",
+    "hair": "Afro_gray",
+    "clothes": "Longsleeve_2_Buttoned_purple",
+    "legs": "Pants_charcoal",
+    "shoes": "Basic_Shoes_black",
+    "facial_eyes": "Halfmoon_Glasses_silver",
+    "necklace": "Small_Beaded_Necklace_gold"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_black&head=Human_Female_Elderly_black&expression=Neutral_black&eyes=Eye_Color_brown&wrinkles=Wrinkles_black&hair=Afro_gray&clothes=Longsleeve_2_Buttoned_purple&legs=Pants_charcoal&shoes=Basic_Shoes_black&facial_eyes=Halfmoon_Glasses_silver&necklace=Small_Beaded_Necklace_gold"
+}

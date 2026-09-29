@@ -1,0 +1,18 @@
+{
+  "id": "vis_kayode",
+  "name": "Kayode Adeyemi",
+  "group": "visitor",
+  "note": "19",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_black",
+    "head": "Human_Male_black",
+    "expression": "Neutral_black",
+    "eyes": "Eye_Color_brown",
+    "hair": "Twists_fade_black",
+    "clothes": "TShirt_red",
+    "legs": "Pants_black",
+    "shoes": "Revised_Shoes_white"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_black&head=Human_Male_black&expression=Neutral_black&eyes=Eye_Color_brown&hair=Twists_fade_black&clothes=TShirt_red&legs=Pants_black&shoes=Revised_Shoes_white"
+}

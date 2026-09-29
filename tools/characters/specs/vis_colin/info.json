@@ -1,0 +1,19 @@
+{
+  "id": "vis_colin",
+  "name": "Colin Pemberton",
+  "group": "visitor",
+  "note": "63",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_light",
+    "head": "Human_Male_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_brown",
+    "hair": "Parted_2_gray",
+    "facial_eyes": "Glasses_black",
+    "clothes": "Longsleeve_2_VNeck_navy",
+    "legs": "Pants_charcoal",
+    "shoes": "Basic_Shoes_brown"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_light&head=Human_Male_light&expression=Neutral_light&eyes=Eye_Color_brown&hair=Parted_2_gray&facial_eyes=Glasses_black&clothes=Longsleeve_2_VNeck_navy&legs=Pants_charcoal&shoes=Basic_Shoes_brown"
+}

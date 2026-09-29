@@ -1,0 +1,18 @@
+{
+  "id": "ext_oncall_rn",
+  "name": "On-call nurse",
+  "group": "extra",
+  "note": "on-call registered nurse",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_brown",
+    "head": "Human_Male_brown",
+    "expression": "Neutral_brown",
+    "eyes": "Eye_Color_brown",
+    "hair": "Parted_black",
+    "clothes": "Shortsleeve_Polo_navy",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_brown&head=Human_Male_brown&expression=Neutral_brown&eyes=Eye_Color_brown&hair=Parted_black&clothes=Shortsleeve_Polo_navy&legs=Pants_navy&shoes=Basic_Shoes_black"
+}

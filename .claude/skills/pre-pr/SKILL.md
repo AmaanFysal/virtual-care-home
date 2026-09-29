@@ -12,7 +12,8 @@ description: Use when finishing a work session, before committing, or before ope
    - `apps/web` does not import `@vch/sim-engine` and contains no simulation logic.
    - Every new event type has a `source` field.
    - No sensors, equipment or air-quality features have crept in.
-3. If sim invariants exist (`docs/11-testing.md`), confirm their tests ran and passed.
-4. Update the numbered doc(s) in `docs/` affected by this change so they match the code. Record significant decisions as an ADR from `docs/adr/0000-template.md`.
-5. Update the active workstream's `PROGRESS.md` (done, in progress, next, blockers, session log row).
-6. Summarise for the user: what changed, checks run and results, docs updated.
+3. Run `sh .githooks/check-doc-attribution.sh`: no doc may credit Claude (ADR "Deciders"/"Authors" lines, "written by" or "co-authored" lines). Fix any it finds; normal mentions of Claude or CLAUDE.md are fine.
+4. If sim invariants exist (`docs/11-testing.md`), confirm their tests ran and passed.
+5. Update the numbered doc(s) in `docs/` affected by this change so they match the code. Record significant decisions as an ADR from `docs/adr/0000-template.md`.
+6. Update the active workstream's `PROGRESS.md` (done, in progress, next, blockers, session log row).
+7. Summarise for the user: what changed, checks run and results, docs updated.

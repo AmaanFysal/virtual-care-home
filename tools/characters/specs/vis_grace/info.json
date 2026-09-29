@@ -1,0 +1,21 @@
+{
+  "id": "vis_grace",
+  "name": "Sister Grace Oyelaran",
+  "group": "visitor",
+  "note": "71, church visitor",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_black",
+    "head": "Human_Female_Elderly_black",
+    "expression": "Neutral_black",
+    "eyes": "Eye_Color_brown",
+    "wrinkles": "Wrinkles_black",
+    "headcover": "Kerchief_white",
+    "hair": "Afro_white",
+    "clothes": "Longsleeve_2_Buttoned_white",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black",
+    "necklace": "Small_Beaded_Necklace_gold"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_black&head=Human_Female_Elderly_black&expression=Neutral_black&eyes=Eye_Color_brown&wrinkles=Wrinkles_black&headcover=Kerchief_white&hair=Afro_white&clothes=Longsleeve_2_Buttoned_white&legs=Pants_navy&shoes=Basic_Shoes_black&necklace=Small_Beaded_Necklace_gold"
+}

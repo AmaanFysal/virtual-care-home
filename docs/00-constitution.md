@@ -14,7 +14,7 @@ Changing anything here needs an ADR in `docs/adr/` and an explicit decision, not
 3. **The browser draws state only.** `apps/web` renders what the server sends and sends typed commands back (pause, speed, inspect, inject). It contains no simulation logic and does not depend on `sim-engine`.
 4. **v1 is people and building only.** No sensors, equipment or air quality in v1. The world is rooms, doors, furniture as blockers and interaction points, and people.
 5. **Every event has a `source` field.** One of `engine`, `director`, `user`, `llm`, `external`. This is the extension point for future modules (adapters subscribe to events and publish inputs).
-6. **Simple 2D visuals.** Rooms are labelled rectangles, people are coloured circles with initials, state is badges and bubbles. No sprites, tilemaps or animation work. Readability over realism.
+6. **Readable 2D visuals, drawn from server state.** The wing is drawn as 2D pixel art (LPC sprites and tiles, ADR-0004): a map generated from the floor plan, characters posed from what the server sends, and name tags with activity icons. Readability over realism. All art is named in a manifest and credited under its own licence, separately from the code; decor is render-only and never affects the simulation.
 
 ## Guiding principles (from the research)
 

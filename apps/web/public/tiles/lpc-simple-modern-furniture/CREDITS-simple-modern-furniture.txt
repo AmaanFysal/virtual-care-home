@@ -1,0 +1,6 @@
+"[LPC] Simple Modern Furniture" by o10001771, based on art by Lanea Zimmerman (Sharm).
+"Use freely, please credit Sharm aka Lanea Zimmerman."
+Licences: CC-BY-SA 3.0 / GPL 3.0
+https://opengameart.org/content/lpc-simple-modern-furniture
+
+File used: toilet.png, unmodified.

@@ -1,0 +1,18 @@
+{
+  "id": "ext_chef",
+  "name": "Kwame Boateng",
+  "group": "extra",
+  "note": "chef",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_brown",
+    "head": "Human_Male_brown",
+    "expression": "Neutral_brown",
+    "eyes": "Eye_Color_brown",
+    "hair": "Buzzcut_black",
+    "clothes": "Longsleeve_2_Buttoned_white",
+    "legs": "Pants_black",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_brown&head=Human_Male_brown&expression=Neutral_brown&eyes=Eye_Color_brown&hair=Buzzcut_black&clothes=Longsleeve_2_Buttoned_white&legs=Pants_black&shoes=Basic_Shoes_black"
+}

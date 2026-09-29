@@ -1,0 +1,19 @@
+{
+  "id": "stf_joanne",
+  "name": "Joanne Price",
+  "group": "staff",
+  "note": "wing manager",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_brown",
+    "hair": "Bob_chestnut",
+    "clothes": "Longsleeve_2_Buttoned_navy",
+    "legs": "Pants_charcoal",
+    "shoes": "Basic_Shoes_black",
+    "necklace": "Small_Beaded_Necklace_silver"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_brown&hair=Bob_chestnut&clothes=Longsleeve_2_Buttoned_navy&legs=Pants_charcoal&shoes=Basic_Shoes_black&necklace=Small_Beaded_Necklace_silver"
+}

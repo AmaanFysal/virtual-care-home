@@ -1,0 +1,18 @@
+{
+  "id": "ext_paramedic_m",
+  "name": "Paramedic (male)",
+  "group": "extra",
+  "note": "ambulance paramedic",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_bronze",
+    "head": "Human_Male_bronze",
+    "expression": "Neutral_bronze",
+    "eyes": "Eye_Color_brown",
+    "hair": "High_and_tight_black",
+    "clothes": "Shortsleeve_Polo_forest",
+    "legs": "Pants_forest",
+    "shoes": "Basic_Boots_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_bronze&head=Human_Male_bronze&expression=Neutral_bronze&eyes=Eye_Color_brown&hair=High_and_tight_black&clothes=Shortsleeve_Polo_forest&legs=Pants_forest&shoes=Basic_Boots_black"
+}

@@ -1,0 +1,16 @@
+{
+  "frameSize": 64,
+  "sheetWidth": 832,
+  "directions": ["north", "west", "south", "east"],
+  "note": "Each animation has one row per direction in the order N, W, S, E. Row r starts at y = r * 64 and frame f at x = f * 64. 'cycle' is the frame order the LPC generator plays, one entry per tick.",
+  "animations": {
+    "walk":  { "firstRow": 8,  "frames": 9, "cycle": [1, 2, 3, 4, 5, 6, 7, 8], "standingFrame": 0 },
+    "run":   { "firstRow": 38, "frames": 8, "cycle": [0, 1, 2, 3, 4, 5, 6, 7] },
+    "idle":  { "firstRow": 22, "frames": 2, "cycle": [0, 0, 1] },
+    "emote": { "firstRow": 34, "frames": 3, "cycle": [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2] }
+  },
+  "wheelchair": {
+    "note": "Only 04_res_raj has this. The block sits below the standard sheet at y = 3456, with 4 rows (N, W, S, E) of 2 frames each.",
+    "firstY": 3456, "frames": 2
+  }
+}

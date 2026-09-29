@@ -1,9 +1,18 @@
-// Draws the wing with plain shapes (constitution rule 6): labelled rectangles for rooms,
-// wall lines with door gaps, grey furniture, and coloured circles with initials for people.
-// It only interpolates between positions the server sent; it never invents state.
+// Draws the wing as LPC pixel art (docs/08 "Pixel-art map"): a map painted from the floor plan,
+// furniture and people y-sorted together, name tags, and night lighting. It only interpolates
+// between positions the server sent and derives poses from them; it never invents state.
+//
+// Pixel-perfect: nearest-neighbour textures and a whole number of device pixels per art pixel.
+// Every screen <-> world conversion goes through one Banding (banding.ts): drawing, click to
+// select, hover, Follow and the camera.
 
-import { Application, Container, Graphics, Text } from "pixi.js";
-import { timeOfDay, type Badge, type ClockView, type FloorPlan, type FurnitureKind, type PersonKind, type PersonView, type RoomKind } from "@vch/shared-types";
+import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, TextureSource } from "pixi.js";
+import { timeOfDay, type ClockView, type FloorPlan, type PersonKind, type PersonView } from "@vch/shared-types";
+import { spriteFor, sprites, type SpriteEntry } from "../sprites";
+import { makeBanding, type Banding } from "./banding";
+import { SIT_DY, activityIcon, directionOf, figureBox, pickPerson, seatAt, seatFacings, type Dir, type FigureBox, type IconName } from "./figures";
+import { paintMap, type Images } from "./mapPainter";
+import tileset from "./tileset.json";
 
 export const PERSON_COLOURS: Record<PersonKind, number> = {
   staff: 0x2f6fdb,
@@ -13,57 +22,15 @@ export const PERSON_COLOURS: Record<PersonKind, number> = {
   external: 0x8e5bd6,
 };
 
-const ROOM_FILL: Record<RoomKind, number> = {
-  bedroom: 0xfbf7ee,
-  corridor: 0xeceae4,
-  lounge: 0xf3ecd8,
-  waiting: 0xf4efe2,
-  reception: 0xeef1f4,
-  staff: 0xf1ebe4,
-};
-
-const FURNITURE_FILL: Partial<Record<FurnitureKind, number>> = {
-  bed: 0xd9d5cc,
-  wc: 0xd8e6ee,
-  chair: 0xcfc8bb,
-  armchair: 0xc9b89c,
-  tv: 0x5d6168,
-  bookshelf: 0xa98c6a,
-};
-
-const BADGE_TEXT: Record<Badge, string> = {
-  pill: "meds",
-  tray: "meal",
-  cup: "drink",
-  towel: "care",
-  hoist: "hoist",
-  asleep: "zz",
-  confused: "?",
-  break: "break",
-  handover: "handover",
-  phone: "phone",
-  alert: "!",
-};
-
-const PERSON_RADIUS_M = 0.3;
-const FOLLOW_ZOOM = 2.2;
-/** Render text at a higher resolution so it stays sharp when the camera zooms in. */
-const TEXT_RESOLUTION = Math.max(2, (typeof window === "undefined" ? 1 : window.devicePixelRatio) * FOLLOW_ZOOM);
-const WALL_M = 0.12;
-const NIGHT_LIGHTS_X = [2, 6, 10, 14, 18];
-
-interface PersonSprite {
-  view: PersonView;
-  root: Container;
-  ring: Graphics;
-  body: Graphics;
-  label: Text;
-  badge: Text;
-  from: { x: number; y: number };
-  to: { x: number; y: number };
-  startMs: number;
-  durationMs: number;
-}
+const FRAME = sprites.frame;
+/** Where the feet are in a character frame. */
+const FEET = { x: 32, y: 62 };
+/** Walking frames advance once per this many world pixels walked. */
+const STRIDE_PX = 5;
+const FOLLOW_EXTRA_ZOOM = 1;
+const MAX_ZOOM = 6;
+/** A press that moves further than this (screen px) is a drag, not a click. */
+const DRAG_PX = 5;
 
 /** 0 by day, 1 in the dead of night, ramping at dusk (20:00-22:00) and dawn (06:00-07:30). */
 export function nightFactor(t: number): number {
@@ -74,54 +41,100 @@ export function nightFactor(t: number): number {
   return 0;
 }
 
+interface Figure {
+  view: PersonView;
+  entry: SpriteEntry | null;
+  root: Container;
+  ring: Graphics;
+  under: Sprite;
+  body: Sprite;
+  over: Sprite;
+  blanket: Sprite;
+  tag: Container;
+  tagBg: Graphics;
+  tagText: Text;
+  tagIcon: Sprite;
+  tagW: number;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  startMs: number;
+  durationMs: number;
+  dir: Dir;
+  walked: number;
+  last: { x: number; y: number };
+  box: FigureBox | null;
+}
+
 export class WingRenderer {
   private app = new Application();
-  private floor = new Container();
-  private peopleLayer = new Container();
-  private night = new Graphics();
-  private nightLights = new Graphics();
-  /** "In hospital" labels on the beds of residents who are away. */
-  private awayLayer = new Container();
-  /** Everything in the wing, moved and scaled to follow someone. */
+  /** Everything in world pixels, scaled by a whole-number zoom. */
   private camera = new Container();
-  private following = false;
-  private cameraScale = 1;
-  private sprites = new Map<string, PersonSprite>();
+  private mapLayer = new Container();
+  private sorted = new Container();
+  private night = new Graphics();
+  private lights = new Graphics();
+  private labels = new Container();
+  private tags = new Container();
+  private figures = new Map<string, Figure>();
   private plan: FloorPlan | null = null;
+  private banding: Banding | null = null;
+  private facings = new Map<string, Dir>();
+  /** The painted map, building and garden, in world pixels. */
+  private mapSize = { w: 1, h: 1 };
+  private lampSpots: { x: number; y: number }[] = [];
   private clock: ClockView | null = null;
   private selectedId: string | null = null;
-  private ppm = 40;
-  private offset = { x: 0, y: 0 };
+  private hoverId: string | null = null;
+  private following = false;
+  private showTags = true;
+  private images: Images | null = null;
+  private sheets = new Map<string, Texture>();
+  private frames = new Map<string, Texture>();
+  private icons = new Map<IconName, Texture>();
+  /** Device pixels per art pixel: always a whole number. */
+  private zoom = 1;
+  private userZoom: number | null = null;
+  private centre = { x: 0, y: 0 };
+  private panned = false;
+  private drag: { x: number; y: number; cx: number; cy: number; moved: boolean } | null = null;
   private destroyed = false;
   private initialised = false;
 
   constructor(private onSelect: (id: string | null) => void) {}
 
-  setFollowing(on: boolean): void {
-    this.following = on;
-  }
-
   async init(host: HTMLElement): Promise<void> {
-    await this.app.init({ resizeTo: host, background: 0xe7e3da, antialias: true, autoDensity: true, resolution: window.devicePixelRatio || 1 });
-    if (this.destroyed) {
+    TextureSource.defaultOptions.scaleMode = "nearest";
+    // Decode images on the main thread: simpler, and headless screenshots don't wait on workers.
+    Assets.setPreferences({ preferWorkers: false });
+    await this.app.init({ resizeTo: host, background: 0x23201f, antialias: false, roundPixels: true, autoDensity: true, resolution: window.devicePixelRatio || 1 });
+    const images = await this.loadImages().catch((e: unknown) => {
+      console.error("Could not load the tile art", e);
+      return null;
+    });
+    if (this.destroyed || !images) {
       this.app.destroy(true);
       return;
     }
+    this.images = images;
     this.initialised = true;
     host.appendChild(this.app.canvas);
-    this.camera.addChild(this.floor, this.awayLayer, this.peopleLayer, this.night, this.nightLights);
-    // Decorative layers never take clicks. Without this, the night overlay (a rectangle over the
-    // whole wing, drawn above people) would catch every click at night, because children of a
-    // clickable stage are hit-tested as clickable in Pixi v8.
-    for (const layer of [this.floor, this.awayLayer, this.night, this.nightLights]) layer.eventMode = "none";
+    this.sorted.sortableChildren = true;
+    this.camera.addChild(this.mapLayer, this.sorted, this.night, this.lights, this.labels, this.tags);
     this.app.stage.addChild(this.camera);
-    // Clicking empty floor clears the selection.
-    this.app.stage.eventMode = "static";
-    this.app.stage.hitArea = this.app.screen;
-    this.app.stage.on("pointertap", () => this.onSelect(null));
+    // Picking is done here, on the drawn figures (figures.pickPerson), not by Pixi's hit testing.
+    this.camera.eventMode = "none";
+    const stage = this.app.stage;
+    stage.eventMode = "static";
+    stage.hitArea = this.app.screen;
+    stage.on("pointerdown", (e) => (this.drag = { x: e.global.x, y: e.global.y, cx: this.centre.x, cy: this.centre.y, moved: false }));
+    stage.on("pointermove", (e) => this.pointerMove(e.global.x, e.global.y));
+    stage.on("pointerup", (e) => this.pointerUp(e.global.x, e.global.y));
+    stage.on("pointerupoutside", () => (this.drag = null));
+    this.app.canvas.addEventListener("wheel", (e) => this.wheel(e), { passive: false });
     this.app.ticker.add(() => this.frame());
-    this.app.renderer.on("resize", () => this.layout());
-    this.layout();
+    this.app.renderer.on("resize", () => this.fit());
+    this.readUrl();
+    if (this.plan) this.buildMap();
   }
 
   destroy(): void {
@@ -129,14 +142,29 @@ export class WingRenderer {
     if (this.initialised) this.app.destroy(true, { children: true });
   }
 
+  setFollowing(on: boolean): void {
+    // Stopping following goes back to the whole wing.
+    if (this.following && !on) {
+      this.userZoom = null;
+      this.panned = false;
+    }
+    this.following = on;
+  }
+
+  setShowTags(on: boolean): void {
+    this.showTags = on;
+  }
+
   setFloorplan(plan: FloorPlan): void {
+    if (plan === this.plan) return;
     this.plan = plan;
-    this.layout();
+    this.banding = makeBanding(plan);
+    this.facings = seatFacings(plan);
+    if (this.initialised) this.buildMap();
   }
 
   setSelected(id: string | null): void {
     this.selectedId = id;
-    for (const sprite of this.sprites.values()) this.drawPerson(sprite);
   }
 
   /** Takes the latest people from the server and starts interpolating towards them. */
@@ -147,203 +175,451 @@ export class WingRenderer {
     // Spread each move over the real time until the next position is expected.
     const duration = clock && !clock.paused ? Math.max(100, Math.min(5000, 5000 / clock.speed)) : 250;
     for (const view of Object.values(people)) {
-      let sprite = this.sprites.get(view.id);
-      if (!sprite) {
-        sprite = this.createSprite(view);
-        this.sprites.set(view.id, sprite);
+      let fig = this.figures.get(view.id);
+      if (!fig) {
+        fig = this.createFigure(view);
+        this.figures.set(view.id, fig);
       }
-      const prev = sprite.view;
-      sprite.view = view;
-      if (view.x !== prev.x || view.y !== prev.y || view.onMap !== prev.onMap) {
-        const snap = !prev.onMap && view.onMap;
-        sprite.from = snap ? { x: view.x, y: view.y } : this.currentPos(sprite, now);
-        sprite.to = { x: view.x, y: view.y };
-        sprite.startMs = now;
-        sprite.durationMs = snap ? 0 : duration;
+      const prev = fig.view;
+      fig.view = view;
+      if (view.x !== prev.x || view.y !== prev.y || view.onMap !== prev.onMap || fig.startMs === 0) {
+        const snap = (!prev.onMap && view.onMap) || fig.startMs === 0;
+        fig.from = snap ? { x: view.x, y: view.y } : this.currentPos(fig, now);
+        fig.to = { x: view.x, y: view.y };
+        fig.startMs = now;
+        fig.durationMs = snap ? 0 : duration;
+        if (snap) fig.last = { ...fig.from };
       }
-      this.drawPerson(sprite);
     }
     this.drawAway(people);
   }
 
+  // ------------------------------------------------------------------ assets
+
+  private async loadImages(): Promise<Images> {
+    const entries = Object.entries(tileset.images) as [keyof Images, string][];
+    const loaded = await Promise.all(entries.map(([, url]) => Assets.load<Texture>(`/${url}`)));
+    const images = {} as Images;
+    entries.forEach(([key], i) => (images[key] = loaded[i]!.source.resource as CanvasImageSource));
+    const icons = loaded[entries.findIndex(([k]) => k === "icons")]!;
+    tileset.icons.order.forEach((name, i) => {
+      const s = tileset.icons.size;
+      this.icons.set(name as IconName, new Texture({ source: icons.source, frame: new Rectangle(i * s, 0, s, s) }));
+    });
+    const zimmer = sprites.overlays.zimmer;
+    if (zimmer) this.sheets.set("overlay:zimmer", await Assets.load<Texture>(`/${zimmer.image}`));
+    return images;
+  }
+
+  private sheet(entry: SpriteEntry): Texture | null {
+    const tex = this.sheets.get(entry.sheet);
+    if (tex) return tex;
+    if (!this.sheets.has(`loading:${entry.sheet}`)) {
+      this.sheets.set(`loading:${entry.sheet}`, Texture.EMPTY);
+      void Assets.load<Texture>(`/${entry.sheet}`).then((t) => this.sheets.set(entry.sheet, t));
+    }
+    return null;
+  }
+
+  private frameTexture(source: Texture, x: number, y: number, w = FRAME, h = FRAME): Texture {
+    const key = `${source.uid}:${x},${y},${w},${h}`;
+    let t = this.frames.get(key);
+    if (!t) {
+      t = new Texture({ source: source.source, frame: new Rectangle(x, y, w, h) });
+      this.frames.set(key, t);
+    }
+    return t;
+  }
+
+  // ------------------------------------------------------------------ the map
+
+  private buildMap(): void {
+    if (!this.plan || !this.banding || !this.images) return;
+    for (const child of this.mapLayer.removeChildren()) child.destroy({ texture: true, textureSource: true });
+    for (const child of [...this.sorted.children]) if (child.label === "furniture") child.destroy({ texture: true, textureSource: true });
+    const { base, furniture, size, lamps } = paintMap(this.plan, this.banding, this.images, this.facings);
+    this.mapSize = size;
+    this.lampSpots = lamps;
+    this.mapLayer.addChild(new Sprite(Texture.from(base)));
+    for (const piece of furniture) {
+      const s = new Sprite(Texture.from(piece.canvas));
+      s.label = "furniture";
+      s.position.set(piece.x, piece.y);
+      s.zIndex = piece.z;
+      this.sorted.addChild(s);
+    }
+    this.drawRoomLabels();
+    this.fit();
+    this.applyPendingView();
+  }
+
+  private drawRoomLabels(): void {
+    for (const child of this.labels.removeChildren()) child.destroy();
+    const plan = this.plan!;
+    const b = this.banding!;
+    // Dark letters with a pale edge, so they read on light lino and dark carpet alike.
+    const style = { fontFamily: "ui-monospace, Menlo, monospace", fontSize: 9, fill: 0x3b3530, fontWeight: "700" as const, letterSpacing: 1, stroke: { color: 0xfffaf0, width: 3 } };
+    for (const room of plan.rooms) {
+      const t = new Text({ text: room.name.toUpperCase(), style, resolution: 4 });
+      t.alpha = 0.8;
+      const top = room.rect.y * 32 + b.offsetAt(room.rect.y);
+      t.position.set(Math.round(b.x(room.rect.x) + 6), Math.round(top + 4));
+      if (room.kind === "bedroom" || room.kind === "lounge") t.position.y = Math.round(room.rect.y * 32 + b.offsetAt(room.rect.y + room.rect.h - 1e-6) + room.rect.h * 32 - 14);
+      this.labels.addChild(t);
+    }
+    const exit = plan.doors.find((d) => d.rooms.includes("Outside"));
+    if (exit) {
+      const t = new Text({ text: "EXIT", style: { ...style, fill: 0x9a2f1f }, resolution: 4 });
+      t.anchor.set(0.5, 0);
+      // On the path, below the front wall.
+      t.position.set(Math.round(b.x((exit.x1 + exit.x2) / 2)), Math.round(b.y(plan.size.h) + 8 + tileset.walls.exterior.southHeight + 4));
+      this.labels.addChild(t);
+    }
+  }
+
   /** Labels the bed of any resident who is away from the wing (e.g. taken to hospital). */
   private drawAway(people: Record<string, PersonView>): void {
-    for (const child of this.awayLayer.removeChildren()) child.destroy();
-    if (!this.plan) return;
+    if (!this.plan || !this.banding) return;
+    for (const child of [...this.labels.children]) if (child.label === "away") child.destroy();
     for (const p of Object.values(people)) {
       if (p.onMap || !p.away || !p.bedId) continue;
       const bed = this.plan.points.find((pt) => pt.id === p.bedId);
       if (!bed) continue;
-      const label = new Text({
-        resolution: TEXT_RESOLUTION,
-        text: `${p.initials}\nIN HOSPITAL`,
-        style: { fontFamily: "system-ui, sans-serif", fontSize: Math.max(8, this.ppm * 0.2), fontWeight: "700", fill: 0xb23b3b, align: "center" },
-      });
+      const label = new Text({ text: `${p.initials}\nIN HOSPITAL`, style: { fontFamily: "ui-monospace, Menlo, monospace", fontSize: 8, fontWeight: "700", fill: 0xffffff, align: "center", stroke: { color: 0xb23b3b, width: 3 } }, resolution: 4 });
+      label.label = "away";
       label.anchor.set(0.5);
-      label.position.set(this.offset.x + bed.x * this.ppm, this.offset.y + bed.y * this.ppm);
-      this.awayLayer.addChild(label);
+      const at = this.banding.toScreen(bed);
+      label.position.set(Math.round(at.x), Math.round(at.y));
+      this.labels.addChild(label);
     }
   }
 
-  private createSprite(view: PersonView): PersonSprite {
+  // ------------------------------------------------------------------ people
+
+  private createFigure(view: PersonView): Figure {
     const root = new Container();
-    root.eventMode = "static";
-    root.cursor = "pointer";
-    root.on("pointertap", (e) => {
-      e.stopPropagation();
-      this.onSelect(view.id);
-    });
     const ring = new Graphics();
-    const body = new Graphics();
-    const label = new Text({ resolution: TEXT_RESOLUTION, text: view.initials, style: { fontFamily: "system-ui, sans-serif", fontWeight: "700", fill: 0xffffff, fontSize: 12 } });
-    label.anchor.set(0.5);
-    const badge = new Text({ resolution: TEXT_RESOLUTION, text: "", style: { fontFamily: "system-ui, sans-serif", fontWeight: "600", fill: 0x333333, fontSize: 10 } });
-    badge.anchor.set(0.5, 1);
-    root.addChild(ring, body, label, badge);
-    this.peopleLayer.addChild(root);
-    return { view, root, ring, body, label, badge, from: { x: view.x, y: view.y }, to: { x: view.x, y: view.y }, startMs: 0, durationMs: 0 };
+    const under = new Sprite();
+    const body = new Sprite();
+    const over = new Sprite();
+    const blanket = new Sprite();
+    for (const s of [under, body, over]) s.anchor.set(FEET.x / FRAME, FEET.y / FRAME);
+    root.addChild(ring, under, body, over, blanket);
+    this.sorted.addChild(root);
+    const tag = new Container();
+    const tagBg = new Graphics();
+    const tagText = new Text({ text: view.initials, style: { fontFamily: "ui-monospace, Menlo, monospace", fontSize: 8, fontWeight: "700", fill: 0xffffff }, resolution: 4 });
+    tagText.anchor.set(0, 0.5);
+    const tagIcon = new Sprite();
+    tagIcon.anchor.set(0, 0.5);
+    tag.addChild(tagBg, tagText, tagIcon);
+    this.tags.addChild(tag);
+    return {
+      view,
+      entry: spriteFor(view),
+      root,
+      ring,
+      under,
+      body,
+      over,
+      blanket,
+      tag,
+      tagBg,
+      tagText,
+      tagIcon,
+      tagW: 0,
+      from: { x: view.x, y: view.y },
+      to: { x: view.x, y: view.y },
+      startMs: 0,
+      durationMs: 0,
+      dir: "south",
+      walked: 0,
+      last: { x: view.x, y: view.y },
+      box: null,
+    };
   }
 
-  private drawPerson(sprite: PersonSprite): void {
-    const { view } = sprite;
-    const r = PERSON_RADIUS_M * this.ppm;
-    sprite.root.visible = view.onMap;
-    sprite.body.clear().circle(0, 0, r).fill({ color: PERSON_COLOURS[view.kind], alpha: view.posture === "in_bed" ? 0.75 : 1 });
-    sprite.ring.clear();
-    if (view.posture === "on_floor") sprite.ring.circle(0, 0, r * 1.6).stroke({ width: Math.max(2, r * 0.3), color: 0xd62828 });
-    if (view.id === this.selectedId) sprite.ring.circle(0, 0, r * 1.3).stroke({ width: 2, color: 0x111111 });
-    sprite.label.text = view.initials;
-    sprite.label.style.fontSize = Math.max(8, r * 0.95);
-    const badges = view.badges.map((b) => BADGE_TEXT[b]).join(" ");
-    sprite.badge.text = badges;
-    sprite.badge.style.fontSize = Math.max(8, r * 0.75);
-    sprite.badge.position.set(0, -r * 1.15);
+  private currentPos(fig: Figure, now: number): { x: number; y: number } {
+    const k = fig.durationMs <= 0 ? 1 : Math.min(1, (now - fig.startMs) / fig.durationMs);
+    return { x: fig.from.x + (fig.to.x - fig.from.x) * k, y: fig.from.y + (fig.to.y - fig.from.y) * k };
   }
 
-  private currentPos(sprite: PersonSprite, now: number): { x: number; y: number } {
-    const k = sprite.durationMs <= 0 ? 1 : Math.min(1, (now - sprite.startMs) / sprite.durationMs);
-    return { x: sprite.from.x + (sprite.to.x - sprite.from.x) * k, y: sprite.from.y + (sprite.to.y - sprite.from.y) * k };
+  private drawFigure(fig: Figure, now: number): void {
+    const b = this.banding!;
+    const { view, entry } = fig;
+    fig.root.visible = view.onMap;
+    fig.tag.visible = view.onMap && (this.showTags || view.id === this.selectedId || view.id === this.hoverId);
+    if (!view.onMap) {
+      fig.box = null;
+      return;
+    }
+    const pos = this.currentPos(fig, now);
+    const moved = Math.hypot(pos.x - fig.last.x, pos.y - fig.last.y);
+    const moving = moved > 1e-4;
+    if (moving) {
+      fig.dir = directionOf(pos.x - fig.last.x, pos.y - fig.last.y, fig.dir);
+      fig.walked += moved * 32;
+    }
+    fig.last = pos;
+    const posture = view.posture;
+    const seated = posture === "sitting" || posture === "dozing";
+    if (seated && !moving) {
+      const seat = seatAt(this.plan!, pos.x, pos.y);
+      if (seat) fig.dir = this.facings.get(seat.id) ?? fig.dir;
+    }
+    const scale = entry?.scale ?? 1;
+    const box = figureBox(view, pos, b, scale);
+    fig.box = box;
+    const { x, y } = box.anchor;
+    fig.root.position.set(Math.round(x), Math.round(y));
+    fig.root.zIndex = y + 0.5;
+
+    const sheet = entry ? this.sheet(entry) : null;
+    const dirRow = sprites.directions.indexOf(fig.dir);
+    const L = sprites.layout;
+    fig.under.visible = false;
+    fig.over.visible = false;
+    fig.blanket.visible = false;
+    fig.body.visible = !!sheet;
+    fig.body.scale.set(scale);
+    fig.body.position.set(0, 0);
+    fig.body.anchor.set(FEET.x / FRAME, FEET.y / FRAME);
+    if (sheet && entry) {
+      if (posture === "in_bed") {
+        // A head on the pillow, the sheet pulled up over the shoulders.
+        const head = L.bed!.head!;
+        fig.body.texture = this.frameTexture(sheet, (L.bed!.frame ?? 0) * FRAME + head.x, L.bed!.row! * FRAME + head.y, head.w, head.h);
+        fig.body.anchor.set(0.5, 0.5);
+        fig.body.position.set(0, -2);
+        const bed = tileset.furniture.bed;
+        fig.blanket.texture = this.bedBlanket();
+        fig.blanket.visible = true;
+        fig.blanket.position.set(-bed.pillow.x, bed.blanketFrom - bed.pillow.y);
+      } else if (posture === "on_floor") {
+        fig.body.texture = this.frameTexture(sheet, L.floor!.frame! * FRAME, L.floor!.row! * FRAME);
+      } else if (entry.sit === "wheelchair") {
+        const wf = moving ? Math.floor(fig.walked / (STRIDE_PX * 2)) % L.wheelchair!.frames! : 0;
+        fig.body.texture = this.frameTexture(sheet, wf * FRAME, L.wheelchair!.y! + dirRow * FRAME);
+      } else if (seated && !moving) {
+        fig.body.texture = this.frameTexture(sheet, L.sit!.frame! * FRAME, (L.sit!.row! + dirRow) * FRAME);
+        fig.body.position.set(0, SIT_DY);
+      } else {
+        const cycle = L.walk!.cycle!;
+        const frame = moving ? cycle[Math.floor(fig.walked / STRIDE_PX) % cycle.length]! : L.stand!.frame!;
+        fig.body.texture = this.frameTexture(sheet, frame * FRAME, (L.walk!.row! + dirRow) * FRAME);
+        // Peggy's zimmer frame, under her when she faces away.
+        const overlay = entry.overlay ? sprites.overlays[entry.overlay] : undefined;
+        const tex = this.sheets.get(`overlay:${entry.overlay}`);
+        if (overlay && tex) {
+          const f = overlay.frames[fig.dir]!;
+          const s = f.under ? fig.under : fig.over;
+          s.texture = this.frameTexture(tex, f.index * FRAME, 0);
+          s.scale.set(scale);
+          s.visible = true;
+        }
+      }
+    }
+
+    // A soft shadow, and a ring for the selected, hovered or fallen person.
+    const r = fig.ring.clear();
+    if (posture !== "in_bed") r.ellipse(0, 0, 9 * scale, 3.5 * scale).fill({ color: 0x000000, alpha: 0.25 });
+    const ringAt = posture === "in_bed" ? { y: 0, rx: 13, ry: 13 } : { y: 0, rx: 12 * scale, ry: 5 * scale };
+    if (posture === "on_floor") r.ellipse(0, -8, 24, 10).stroke({ width: 2, color: 0xe03131, alpha: 0.6 + 0.4 * Math.sin(now / 150) });
+    if (view.id === this.selectedId) r.ellipse(0, ringAt.y, ringAt.rx, ringAt.ry).stroke({ width: 1.5, color: 0xffd43b });
+    else if (view.id === this.hoverId) r.ellipse(0, ringAt.y, ringAt.rx, ringAt.ry).stroke({ width: 1, color: 0xffffff, alpha: 0.8 });
+
+    if (fig.tag.visible) this.drawTag(fig, x, posture === "in_bed" ? y - 14 : posture === "on_floor" ? y - 34 : y - 52 * scale + (seated ? SIT_DY + 6 : 0));
   }
+
+  private blanketTexture: Texture | null = null;
+  private bedBlanket(): Texture {
+    if (!this.blanketTexture) {
+      const bed = tileset.furniture.bed;
+      const wood = Assets.get<Texture>(`/${tileset.images.wood}`);
+      this.blanketTexture = new Texture({ source: wood.source, frame: new Rectangle(bed.x, bed.y + bed.blanketFrom, bed.w, bed.h - bed.blanketFrom) });
+    }
+    return this.blanketTexture;
+  }
+
+  private drawTag(fig: Figure, x: number, y: number): void {
+    const { view } = fig;
+    const icon = activityIcon(view);
+    fig.tagText.text = view.initials;
+    fig.tagIcon.visible = !!icon;
+    if (icon) fig.tagIcon.texture = this.icons.get(icon)!;
+    const textW = Math.ceil(fig.tagText.width);
+    const w = 4 + textW + (icon ? 13 : 0) + 3;
+    const h = 11;
+    const left = -Math.round(w / 2);
+    fig.tagBg
+      .clear()
+      .roundRect(left, -h / 2, w, h, 2)
+      .fill({ color: PERSON_COLOURS[view.kind], alpha: 0.92 })
+      .stroke({ width: 1, color: view.id === this.selectedId ? 0xffd43b : 0x1d1b1f });
+    fig.tagText.position.set(left + 4, 0);
+    fig.tagIcon.position.set(left + 4 + textW + 2, 0);
+    fig.tag.position.set(Math.round(x), Math.round(y));
+    fig.tagW = w;
+  }
+
+  /** Moves overlapping name tags apart: the front-most keeps its place, the others rise above it. */
+  private separateTags(): void {
+    const tags = [...this.figures.values()].filter((f) => f.tag.visible).sort((p, q) => q.tag.y - p.tag.y);
+    const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+    const H = 11;
+    for (const f of tags) {
+      const x0 = f.tag.x - f.tagW / 2 - 1, x1 = f.tag.x + f.tagW / 2 + 1;
+      let y = f.tag.y;
+      for (let i = 0; i < 8; i++) {
+        const hit = placed.find((p) => x0 < p.x1 && x1 > p.x0 && y - H / 2 < p.y1 && y + H / 2 > p.y0);
+        if (!hit) break;
+        y = hit.y0 - H / 2;
+      }
+      f.tag.y = Math.round(y);
+      placed.push({ x0, x1, y0: y - H / 2, y1: y + H / 2 });
+    }
+  }
+
+  // ------------------------------------------------------------------ frame, night, camera
 
   private frame(): void {
+    if (!this.banding) return;
     const now = performance.now();
-    for (const sprite of this.sprites.values()) {
-      const pos = this.currentPos(sprite, now);
-      sprite.root.position.set(this.offset.x + pos.x * this.ppm, this.offset.y + pos.y * this.ppm);
-    }
+    for (const fig of this.figures.values()) this.drawFigure(fig, now);
+    this.separateTags();
     this.drawNight();
     this.moveCamera();
   }
 
-  /** Eases the camera towards the followed person (zoomed in), or back to the whole wing. */
-  private moveCamera(): void {
-    const target = this.selectedId ? this.sprites.get(this.selectedId) : undefined;
-    const follow = this.following && target && target.view.onMap;
-    const scale = follow ? FOLLOW_ZOOM : 1;
-    this.cameraScale += (scale - this.cameraScale) * 0.12;
-    const { width, height } = this.app.screen;
-    let x = 0;
-    let y = 0;
-    if (follow) {
-      x = width / 2 - target.root.x * this.cameraScale;
-      y = height / 2 - target.root.y * this.cameraScale;
-    } else {
-      // Keep the wing centred while zooming back out.
-      x = (width / 2) * (1 - this.cameraScale);
-      y = (height / 2) * (1 - this.cameraScale);
-    }
-    this.camera.scale.set(this.cameraScale);
-    this.camera.position.set(this.camera.x + (x - this.camera.x) * 0.2, this.camera.y + (y - this.camera.y) * 0.2);
-  }
-
   private drawNight(): void {
-    if (!this.plan || !this.clock) return;
-    const k = nightFactor(this.clock.t);
-    const { w, h } = this.plan.size;
+    const plan = this.plan!;
+    const b = this.banding!;
     this.night.clear();
-    this.nightLights.clear();
+    this.lights.clear();
+    const k = this.clock ? nightFactor(this.clock.t) : 0;
     if (k <= 0) return;
-    this.night.rect(this.offset.x, this.offset.y, w * this.ppm, h * this.ppm).fill({ color: 0x0b1a33, alpha: 0.45 * k });
-    const corridor = this.plan.rooms.find((r) => r.kind === "corridor");
+    this.night.rect(0, 0, this.mapSize.w, this.mapSize.h).fill({ color: 0x0b1a33, alpha: 0.55 * k });
+    // Bedside lamps.
+    for (const l of this.lampSpots) {
+      for (const [rad, a] of [[20, 0.1], [11, 0.16], [5, 0.3]] as const) this.lights.circle(l.x, l.y, rad).fill({ color: 0xffd98a, alpha: a * k });
+    }
+    const corridor = plan.rooms.find((r) => r.kind === "corridor");
     if (!corridor) return;
-    const y = this.offset.y + (corridor.rect.y + corridor.rect.h / 2) * this.ppm;
-    for (const x of NIGHT_LIGHTS_X) {
-      const cx = this.offset.x + x * this.ppm;
-      this.nightLights.circle(cx, y, 0.6 * this.ppm).fill({ color: 0xffd98a, alpha: 0.18 * k });
-      this.nightLights.circle(cx, y, 0.1 * this.ppm).fill({ color: 0xffe7b0, alpha: 0.9 * k });
+    const y = b.y(corridor.rect.y + corridor.rect.h / 2);
+    for (let x = corridor.rect.x + 2; x < corridor.rect.x + corridor.rect.w; x += 4) {
+      const cx = b.x(x);
+      for (const [rad, a] of [[40, 0.06], [26, 0.07], [14, 0.09]] as const) this.lights.ellipse(cx, y, rad, rad * 0.6).fill({ color: 0xffd98a, alpha: a * k });
+      this.lights.rect(cx - 3, y - 1, 6, 2).fill({ color: 0xfff1c9, alpha: 0.9 * k });
     }
   }
 
-  private layout(): void {
-    if (!this.initialised || !this.plan) return;
+  /** The zoom that fits the whole wing, in device pixels per art pixel (at least 1). */
+  private fitZoom(): number {
+    const dpr = this.app.renderer.resolution;
     const { width, height } = this.app.screen;
-    const margin = 24;
-    this.ppm = Math.min((width - 2 * margin) / this.plan.size.w, (height - 2 * margin) / this.plan.size.h);
-    this.offset = { x: (width - this.plan.size.w * this.ppm) / 2, y: (height - this.plan.size.h * this.ppm) / 2 };
-    this.drawFloor(this.plan);
-    for (const sprite of this.sprites.values()) this.drawPerson(sprite);
+    if (!this.banding) return 1;
+    return Math.max(1, Math.floor(Math.min((width * dpr) / this.mapSize.w, (height * dpr) / this.mapSize.h)));
   }
 
-  private drawFloor(plan: FloorPlan): void {
-    const px = (m: number) => m * this.ppm;
-    const X = (m: number) => this.offset.x + m * this.ppm;
-    const Y = (m: number) => this.offset.y + m * this.ppm;
-    for (const child of this.floor.removeChildren()) child.destroy();
-    const g = new Graphics();
-    this.floor.addChild(g);
+  private fit(): void {
+    if (!this.banding) return;
+    if (!this.panned) this.centre = { x: this.mapSize.w / 2, y: this.mapSize.h / 2 };
+  }
 
-    for (const room of plan.rooms) {
-      g.rect(X(room.rect.x), Y(room.rect.y), px(room.rect.w), px(room.rect.h)).fill(ROOM_FILL[room.kind]);
-    }
-    for (const f of plan.furniture) {
-      const colour = FURNITURE_FILL[f.kind] ?? 0xcbbba6;
-      g.rect(X(f.rect.x), Y(f.rect.y), px(f.rect.w), px(f.rect.h)).fill(colour).stroke({ width: 1, color: 0xa9a397 });
-    }
-    // Walls minus their door gaps.
-    for (const wall of plan.walls) {
-      const horizontal = wall.y1 === wall.y2;
-      const [a0, a1] = horizontal ? [Math.min(wall.x1, wall.x2), Math.max(wall.x1, wall.x2)] : [Math.min(wall.y1, wall.y2), Math.max(wall.y1, wall.y2)];
-      const gaps = plan.doors
-        .filter((d) => d.wall === wall.id)
-        .map((d) => (horizontal ? [Math.min(d.x1, d.x2), Math.max(d.x1, d.x2)] : [Math.min(d.y1, d.y2), Math.max(d.y1, d.y2)]) as [number, number])
-        .sort((p, q) => p[0] - q[0]);
-      let cursor = a0;
-      const segments: [number, number][] = [];
-      for (const [g0, g1] of gaps) {
-        if (g0 > cursor) segments.push([cursor, g0]);
-        cursor = Math.max(cursor, g1);
-      }
-      if (cursor < a1) segments.push([cursor, a1]);
-      for (const [s0, s1] of segments) {
-        if (horizontal) g.moveTo(X(s0), Y(wall.y1)).lineTo(X(s1), Y(wall.y1));
-        else g.moveTo(X(wall.x1), Y(s0)).lineTo(X(wall.x1), Y(s1));
-      }
-    }
-    g.stroke({ width: Math.max(2, px(WALL_M)), color: 0x3b3a36, cap: "square" });
+  private moveCamera(): void {
+    if (!this.banding) return;
+    const dpr = this.app.renderer.resolution;
+    const target = this.selectedId ? this.figures.get(this.selectedId) : undefined;
+    const follow = this.following && target?.box;
+    const base = this.fitZoom();
+    this.zoom = Math.min(MAX_ZOOM, this.userZoom ?? (follow ? base + FOLLOW_EXTRA_ZOOM : base));
+    if (follow) {
+      const to = { x: target.box!.anchor.x, y: target.box!.anchor.y - 24 };
+      this.centre.x += (to.x - this.centre.x) * 0.15;
+      this.centre.y += (to.y - this.centre.y) * 0.15;
+    } else if (!this.panned) this.fit();
+    const scale = this.zoom / dpr;
+    const { width, height } = this.app.screen;
+    this.camera.scale.set(scale);
+    // Whole device pixels, so the art never lands between pixels.
+    this.camera.position.set(Math.round((width / 2 - this.centre.x * scale) * dpr) / dpr, Math.round((height / 2 - this.centre.y * scale) * dpr) / dpr);
+  }
 
-    const text = (s: string, x: number, y: number, size: number, colour = 0x6b675f, weight: "400" | "600" = "600") => {
-      const t = new Text({ resolution: TEXT_RESOLUTION, text: s, style: { fontFamily: "system-ui, sans-serif", fontSize: size, fill: colour, fontWeight: weight } });
-      t.position.set(x, y);
-      this.floor.addChild(t);
-      return t;
-    };
-    const roomSize = Math.max(10, px(0.38));
-    // Room names sit bottom-left, clear of the beds along the top walls; the corridor's sits
-    // top-left, clear of the waypoints along its lower half.
-    for (const room of plan.rooms) {
-      const top = room.kind === "corridor";
-      const t = text(room.name.toUpperCase(), X(room.rect.x + 0.2), Y(top ? room.rect.y + 0.1 : room.rect.y + room.rect.h - 0.12), roomSize);
-      t.anchor.set(0, top ? 0 : 1);
+  /** Screen (CSS px on the canvas) -> world pixels, through the camera. */
+  private toWorldPx(sx: number, sy: number): { x: number; y: number } {
+    const s = this.camera.scale.x;
+    return { x: (sx - this.camera.x) / s, y: (sy - this.camera.y) / s };
+  }
+
+  private pick(sx: number, sy: number): string | null {
+    const boxes = [...this.figures.values()].map((f) => f.box).filter((b): b is FigureBox => !!b);
+    return pickPerson(boxes, this.toWorldPx(sx, sy));
+  }
+
+  private pointerMove(sx: number, sy: number): void {
+    if (this.drag) {
+      const dx = sx - this.drag.x, dy = sy - this.drag.y;
+      if (!this.drag.moved && Math.hypot(dx, dy) > DRAG_PX) this.drag.moved = true;
+      // Drag to pan, except while the camera is following someone.
+      if (this.drag.moved && !this.following) {
+        const s = this.camera.scale.x;
+        this.panned = true;
+        this.centre = { x: this.drag.cx - dx / s, y: this.drag.cy - dy / s };
+        return;
+      }
     }
-    for (const f of plan.furniture) {
-      if (!f.label) continue;
-      const t = text(f.label, X(f.rect.x + f.rect.w / 2), Y(f.rect.y + f.rect.h / 2), Math.max(7, px(0.22)), 0x7a756b, "400");
-      t.anchor.set(0.5);
-    }
-    const exit = plan.doors.find((d) => d.rooms.includes("Outside"));
-    if (exit) {
-      const t = text("EXIT", X((exit.x1 + exit.x2) / 2), Y(exit.y1) + 4, Math.max(8, px(0.25)), 0x3b3a36);
-      t.anchor.set(0.5, 0);
+    this.hoverId = this.pick(sx, sy);
+    this.app.canvas.style.cursor = this.hoverId ? "pointer" : this.drag ? "grabbing" : "grab";
+  }
+
+  private pointerUp(sx: number, sy: number): void {
+    const drag = this.drag;
+    this.drag = null;
+    if (drag?.moved) return;
+    this.onSelect(this.pick(sx, sy));
+  }
+
+  private wheel(e: WheelEvent): void {
+    e.preventDefault();
+    const rect = this.app.canvas.getBoundingClientRect();
+    const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+    const before = this.toWorldPx(sx, sy);
+    const next = Math.max(1, Math.min(MAX_ZOOM, this.zoom + (e.deltaY < 0 ? 1 : -1)));
+    if (next === this.zoom) return;
+    this.userZoom = next;
+    this.zoom = next;
+    // Keep the point under the cursor where it is.
+    const scale = next / this.app.renderer.resolution;
+    const { width, height } = this.app.screen;
+    this.centre = { x: before.x - (sx - width / 2) / scale, y: before.y - (sy - height / 2) / scale };
+    this.panned = next !== this.fitZoom();
+    if (!this.panned) this.userZoom = null;
+  }
+
+  /** ?view=Room2&zoom=3 opens on a room at a zoom (for screenshots). */
+  private readUrl(): void {
+    const q = new URLSearchParams(window.location.search);
+    const zoom = Number(q.get("zoom"));
+    if (zoom >= 1) this.userZoom = Math.min(MAX_ZOOM, Math.round(zoom));
+    const view = q.get("view");
+    if (view) this.pendingView = view;
+  }
+
+  private pendingView: string | null = null;
+
+  /** Centres on a room (from ?view=). */
+  private centreOnRoom(roomId: string): void {
+    const room = this.plan?.rooms.find((r) => r.id === roomId);
+    if (!room || !this.banding) return;
+    const b = this.banding;
+    this.centre = { x: b.x(room.rect.x + room.rect.w / 2), y: (b.y(room.rect.y) + b.y(room.rect.y + room.rect.h)) / 2 - 16 };
+    this.panned = true;
+  }
+
+  private applyPendingView(): void {
+    if (this.pendingView && this.plan) {
+      this.centreOnRoom(this.pendingView);
+      this.pendingView = null;
     }
   }
 }

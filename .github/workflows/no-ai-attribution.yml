@@ -1,7 +1,8 @@
 name: No AI attribution
 
-# Fails a PR whose title, description or commit messages credit Claude.
-# Patterns are shared with the local commit-msg hook.
+# Fails a PR whose title, description or commit messages credit Claude, or whose docs do
+# (ADR deciders, authors, "written by" lines). Commit-message patterns are shared with the local
+# commit-msg hook; the docs check is .githooks/check-doc-attribution.sh (also run by pre-pr).
 
 on:
   pull_request:
@@ -49,3 +50,6 @@ jobs:
             exit 1
           fi
           echo "No AI attribution found."
+
+      - name: Check docs for Claude attribution
+        run: sh .githooks/check-doc-attribution.sh

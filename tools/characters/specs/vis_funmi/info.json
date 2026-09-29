@@ -1,0 +1,18 @@
+{
+  "id": "vis_funmi",
+  "name": "Funmi Adeyemi",
+  "group": "visitor",
+  "note": "58",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_black",
+    "head": "Human_Female_black",
+    "expression": "Neutral_black",
+    "eyes": "Eye_Color_brown",
+    "hair": "Bangs_bun_black",
+    "clothes": "Longsleeve_2_VNeck_orange",
+    "legs": "Pants_brown",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_black&head=Human_Female_black&expression=Neutral_black&eyes=Eye_Color_brown&hair=Bangs_bun_black&clothes=Longsleeve_2_VNeck_orange&legs=Pants_brown&shoes=Basic_Shoes_black"
+}

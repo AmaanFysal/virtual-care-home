@@ -1,0 +1,20 @@
+{
+  "id": "vis_pat",
+  "name": "Pat Doyle",
+  "group": "visitor",
+  "note": "83",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_Elderly_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "wrinkles": "Wrinkles_light",
+    "hair": "Pixie_white",
+    "facial_eyes": "Halfmoon_Glasses_black",
+    "clothes": "Cardigan_lavender",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_navy"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_Elderly_light&expression=Neutral_light&eyes=Eye_Color_blue&wrinkles=Wrinkles_light&hair=Pixie_white&facial_eyes=Halfmoon_Glasses_black&clothes=Cardigan_lavender&legs=Pants_navy&shoes=Basic_Shoes_navy"
+}

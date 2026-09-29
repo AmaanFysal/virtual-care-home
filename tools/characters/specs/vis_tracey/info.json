@@ -1,0 +1,18 @@
+{
+  "id": "vis_tracey",
+  "name": "Tracey Brooks",
+  "group": "visitor",
+  "note": "58",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_light",
+    "head": "Human_Female_light",
+    "expression": "Neutral_light",
+    "eyes": "Eye_Color_blue",
+    "hair": "Lob_blonde",
+    "clothes": "TShirt_VNeck_maroon",
+    "legs": "Pants_black",
+    "shoes": "Basic_Boots_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_light&head=Human_Female_light&expression=Neutral_light&eyes=Eye_Color_blue&hair=Lob_blonde&clothes=TShirt_VNeck_maroon&legs=Pants_black&shoes=Basic_Boots_black"
+}

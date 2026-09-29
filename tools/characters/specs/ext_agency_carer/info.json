@@ -1,0 +1,19 @@
+{
+  "id": "ext_agency_carer",
+  "name": "Precious Moyo",
+  "group": "extra",
+  "agency": true,
+  "note": "agency care assistant",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_black",
+    "head": "Human_Female_black",
+    "expression": "Neutral_black",
+    "eyes": "Eye_Color_brown",
+    "hair": "Dreadlocks_short_black",
+    "clothes": "Shortsleeve_Polo_all.lpcr.pink",
+    "legs": "Pants_all.lpcr.pink",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_black&head=Human_Female_black&expression=Neutral_black&eyes=Eye_Color_brown&hair=Dreadlocks_short_black&clothes=Shortsleeve_Polo_all.lpcr.pink&legs=Pants_all.lpcr.pink&shoes=Basic_Shoes_black"
+}

@@ -1,7 +1,7 @@
 // WebSocket protocol between server and browser. See docs/08-realtime-and-ui.md.
 // The browser only draws what arrives here and sends commands back.
 
-import type { FloorPlan } from "./data.js";
+import type { FloorPlan, Gender } from "./data.js";
 import type { AnySimEvent, FallSeverity, NeedName } from "./events.js";
 
 export type PersonKind = "resident" | "staff" | "agency" | "visitor" | "external";
@@ -24,6 +24,9 @@ export interface PersonView {
   badges: Badge[];
   /** Short label of the current task, for the inspector and tooltips. */
   task: string | null;
+  /** For display only (choosing a sprite): gender, and the staff role for staff, agency and responders. */
+  gender: Gender;
+  role?: string;
   /** Residents: their bed point, and where they are if off the wing. */
   bedId?: string;
   away?: "hospital" | null;

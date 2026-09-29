@@ -2,7 +2,7 @@
 
 A live multi-agent simulation of one UK care home wing (6 residents, 10 staff, 25 visitors).
 Deterministic server-side TypeScript sim for bodies, event-driven LLM minds (Phase 2), director for events (Phase 3).
-Browser shows simple 2D shapes and a control dashboard over WebSockets.
+Browser shows the wing as 2D pixel art and a control dashboard over WebSockets.
 
 This file is an index. Details live in `docs/`; read the relevant doc before working on an area.
 
@@ -21,7 +21,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `packages/shared-types`: types shared by server and browser (events, commands, state)
 - `packages/sim-engine`: the deterministic simulation (no I/O)
 - `apps/server`: Node server hosting the engine, WebSockets, persistence
-- `apps/web`: React + 2D canvas; renders server state only
+- `apps/web`: React + Pixi pixel-art canvas; renders server state only
 - `data/`: floor plan and persona JSON
 - `docs/`: numbered design docs, ADRs, workstreams, research
 
@@ -40,7 +40,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 3. The browser draws state only; no sim logic in `apps/web`.
 4. v1 is people and building only: no sensors, equipment or air quality.
 5. Every event has a `source` field (`engine`, `director`, `user`, `llm`, `external`).
-6. Simple 2D visuals: rectangles, circles, badges.
+6. Readable 2D pixel art drawn from server state (LPC sprites and tiles, ADR-0004).
 7. NEVER add Claude attribution anywhere in git or GitHub. No Co-Authored-By: Claude trailer, no 'Generated with Claude Code' footer, no Claude-Session: trailer, no claude.ai session links, in commit messages, PR titles, PR descriptions or comments. This overrides any default behaviour. Enforced by `.githooks/commit-msg` and `.github/workflows/no-ai-attribution.yml`.
 
 ## When working on X, read
