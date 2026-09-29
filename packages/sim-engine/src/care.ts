@@ -32,6 +32,8 @@ const HANDOVER_ROUNDS = [
   { at: clockToSeconds("20:55"), coversUntil: clockToSeconds("22:15"), dueBy: clockToSeconds("21:15") },
 ];
 const DEFAULT_WAKE = "07:30";
+/** Dennis's morning wash, after the 08:00 round (user decision, 2026-09-29). */
+const BED_BOUND_WASH = clockToSeconds("08:30");
 /** Checks are created this long before they are due, so someone can get there in time. */
 const CHECK_LEAD_MINS = 30;
 /** Day turns are scheduled this far ahead: before the 25-minute "pressing" window (tasks.ts), so nobody starts a long job just before one. */
@@ -79,7 +81,9 @@ function scheduleResident(world: World, p: Person): void {
 
   // Morning personal care, from the resident's wake time. Night staff get early risers up only
   // if one person can do it; two-person morning care waits for the day shift at 07:00.
-  const wake = clockToSeconds(r.routine.wake ?? DEFAULT_WAKE);
+  // Bed-bound residents on comfort care (Dennis) have no wake time: their wash is timed to comfort,
+  // after the 08:00 medication round.
+  const wake = r.care.bed_bound ? BED_BOUND_WASH : clockToSeconds(r.routine.wake ?? DEFAULT_WAKE);
   const from = r.care.personal_care_staff === 2 ? Math.max(wake, clockToSeconds("07:00")) : wake;
   if (!res.morningDone && tod >= from && tod < clockToSeconds("12:00") && !hasCare(world, p.id, "morning")) {
     createCare(world, p, "morning");

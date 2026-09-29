@@ -40,6 +40,7 @@ interface ResDay {
   peak: Record<NeedName, { v: number; t: number; cause: string }>;
   wakeT: number | null;
   firstDrinkT: number | null;
+  firstFoodT: number | null;
   morningCreatedT: number | null;
   teaT: number | null;
   dozes: number;
@@ -112,6 +113,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
         peak: Object.fromEntries(NEEDS.map((n) => [n, { v: -1, t: 0, cause: "" }])) as ResDay["peak"],
         wakeT: null,
         firstDrinkT: null,
+        firstFoodT: null,
         morningCreatedT: null,
         teaT: null,
         dozes: 0,
@@ -160,6 +162,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
   const openRequests = new Set<string>();
   const prevNeeds = new Map<string, Record<NeedName, number>>();
   const tickThirst = new Map<string, number>();
+  const tickHunger = new Map<string, number>();
   const lastRelief = new Map<string, Record<NeedName, number>>(residents.map((r) => [r.id, { hunger: w.t, thirst: w.t, toileting: w.t, social: w.t, fatigue: w.t }]));
   const highEpisodes = new Map<string, { from: number; peak: number; peakT: number; startCause: string; peakCause: string }>();
   const inBedEpisode = new Map<string, { from: number; why: string }>();
@@ -322,6 +325,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
           const d = resDay(e.payload.residentId, e.t);
           d.wakeT = e.t;
           d.firstDrinkT = null; // count from the last wake-up of the night
+          d.firstFoodT = null;
         }
         break;
       }
@@ -446,6 +450,15 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
       } else if (logged === actual) occupancyBad.delete(p.id);
     }
 
+    // First food after waking, to the tick (a big drop in hunger: a meal, toast, a snack).
+    for (const r of residents) {
+      const hunger = r.resident!.needs.hunger;
+      const before = tickHunger.get(r.id);
+      tickHunger.set(r.id, hunger);
+      if (before === undefined || hunger >= before - cfg.morning.foodDrop) continue;
+      const d = resDay(r.id, t);
+      if (d.wakeT !== null && d.firstFoodT === null && t >= d.wakeT) d.firstFoodT = t;
+    }
     // First drink after waking, to the tick (a big drop in thirst).
     for (const r of residents) {
       const thirst = r.resident!.needs.thirst;
@@ -750,9 +763,10 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
         const drink = d.firstDrinkT;
         if (drink === null || drink - d.wakeT > cfg.morning.firstDrinkWithinMins * 60)
           flag("morning.late_first_drink", r.id, d.wakeT, `${first(r)} woke ${hm(d.wakeT)}, first drink ${drink ? `${hm(drink)} (+${m(drink - d.wakeT)}m)` : "none that morning"}`);
+        const food = d.firstFoodT;
         const bk = d.meals.breakfast;
-        if (res.data.care.eating_support !== "mouth_care_only" && (bk === undefined || bk - d.wakeT > cfg.morning.breakfastWithinMins * 60))
-          flag("morning.late_breakfast", r.id, d.wakeT, `${first(r)} woke ${hm(d.wakeT)}, breakfast ${bk ? `${hm(bk)} (+${m(bk - d.wakeT)}m)` : "not served"}; morning care started ${d.morningStartT ? hm(d.morningStartT) : "never"}`);
+        if (res.data.care.eating_support !== "mouth_care_only" && (food === null || food - d.wakeT > cfg.morning.firstFoodWithinMins * 60))
+          flag("morning.late_first_food", r.id, d.wakeT, `${first(r)} woke ${hm(d.wakeT)}, first food ${food ? `${hm(food)} (+${m(food - d.wakeT)}m)` : "none that morning"}; breakfast ${bk ? hm(bk) : "not served"}, morning care ${d.morningStartT ? hm(d.morningStartT) : "never"}`);
       }
       // Meals (not for Dennis, on end-of-life comfort care: see the mouth care check).
       for (const meal of MEALS) {
@@ -831,7 +845,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
     for (const [k, d] of [...resDays.get(r.id)!].sort((a, b) => a[0] - b[0])) {
       const rel = (t: number | null | undefined) => (t == null ? "-" : d.wakeT !== null ? `${hm(t)} (+${m(t - d.wakeT)}m)` : hm(t));
       L.push(`  ${dayLabel(k)}${d.minutes < 20 * 60 ? ` (partial, ${hmins(d.minutes)})` : ""}`);
-      if (d.wakeT !== null || d.morningStartT !== null) L.push(`     morning: woke ${d.wakeT ? hm(d.wakeT) : "-"}, first drink ${rel(d.firstDrinkT)}, tea ${rel(d.teaT)}, care ${rel(d.morningStartT)}, breakfast ${rel(d.meals.breakfast)}`);
+      if (d.wakeT !== null || d.morningStartT !== null) L.push(`     morning: woke ${d.wakeT ? hm(d.wakeT) : "-"}, first drink ${rel(d.firstDrinkT)}, tea ${rel(d.teaT)}, first food ${rel(d.firstFoodT)}, care ${rel(d.morningStartT)}, breakfast ${rel(d.meals.breakfast)}`);
       const high = NEEDS.filter((n) => d.highMins[n] > 0).map((n) => `${n} ${hmins(d.highMins[n])}`);
       L.push(`     needs > ${cfg.needs.highAt}: ${high.length ? high.join(", ") : "none"}`);
       for (const n of NEEDS) {

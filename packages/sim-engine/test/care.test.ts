@@ -159,10 +159,14 @@ describe("out-of-round call-out", () => {
 });
 
 describe("no deadlocks or rule breaks across seeds", () => {
-  it.each(["2", "3", "4"])("seed %s runs a week with no hard violations and no service breaches", (seed) => {
+  // Occasional service breaches on a normal week are realistic (user decision, 2026-09-29): at
+  // most 2 a week, each reported with a cause. Hard safety rules stay at zero.
+  it.each(["2", "3", "4"])("seed %s runs a week with no hard violations and at most 2 reported service breaches", (seed) => {
     const events = run(createSim({ seed, data }), 24 * 7);
     expect(ofType(events, "invariant.violated").map((e) => `${hhmm(e.t)} ${e.payload.rule} ${e.payload.details}`)).toEqual([]);
-    expect(ofType(events, "sla.breached").map((e) => `${hhmm(e.t)} ${e.payload.target} ${e.payload.details}`)).toEqual([]);
+    const breaches = ofType(events, "sla.breached");
+    expect(breaches.length, breaches.map((e) => `${hhmm(e.t)} ${e.payload.target} ${e.payload.details}`).join("; ")).toBeLessThanOrEqual(2);
+    for (const b of breaches) expect(b.payload.cause).not.toBe("");
   });
 });
 

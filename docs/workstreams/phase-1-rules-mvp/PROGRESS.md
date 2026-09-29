@@ -42,6 +42,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 
 ## Decisions made (link ADRs)
 
+- Occasional service breaches on normal days are acceptable and reported; no new special-case scheduling rules just to reach zero (user, 2026-09-29). Week tests allow up to 2 per no-fall week. Dennis's wash is after the 08:00 round (08:30).
 - All agreed decisions are listed in [spec.md](spec.md); [ADR-0001](../../adr/0001-five-second-tick.md), [ADR-0002](../../adr/0002-sqlite-event-log-phase-1.md).
 - En-suite WCs are named points inside each bedroom, not separate rooms (keeps the six agreed spaces).
 - Night two-person and same-sex tasks use a floating night carer on planned 2-hourly rounds (spec decision 16).
@@ -64,11 +65,12 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 ## Blockers and open questions
 
 - Remaining audit flags (user to decide):
-  - Arthur's and Raj's breakfast can't be within 60 minutes of a 06:30 wake while breakfast opens at 07:30.
-  - Stan's first drink is late on busy mornings.
+  - First food is over 60 minutes after waking for Arthur and Peggy on most mornings.
   - Dennis's first sips come at his next hourly check.
-  - Raj's toilet need peaks during his assisted supper.
+  - The 08:00 round starts about 17 minutes late when the nurse starts a one-person wash just before 08:00.
+- 4 service breaches in 56 no-fall days since Dennis's wash moved to 08:30. Accepted as realistic (user decision); the week tests allow up to 2 per week.
 - Fall runs breach more service targets than before (20 against 7). Falls now land in busier spells.
+- Tuning debt: the special-case scheduling rules listed in docs/12, to revisit with the scenario director.
 - None blocking. Note: the Sunday visitor peak averages 4.00, exactly the lower edge of its 4 to 8 target; a small data change would move it.
 - Manual check before merge (user): 30 sim minutes at 10x around 07:30 and 15:00.
 
@@ -91,3 +93,4 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 | 2026-09-28 | M7 part 2: inspector, follow, event log panel, acceptance test | 08, 11, spec, plan, PROGRESS |
 | 2026-09-29 | Weekly visitor quota; acceptance passes on seeds 1 to 8; Phase 1 complete; PR opened | 05, 06, 10, 11, PROGRESS |
 | 2026-09-29 | Behaviour audit command; Lounge room and routine; `lounge_supervision` target; audit fixes (tea on waking, breakfast 07:30, nurse and 08:00 round, Dennis comfort care, supper snack, reserved two-person tasks, left drinks, requests during care); every room change logged | spec, plan, 02, 04, 05, 07, 11, ADR-0003, CLAUDE.md, PROGRESS |
+| 2026-09-29 | Audit: first food within 60 min (not breakfast); Dennis's wash at 08:30; week tests allow up to 2 reported breaches; tuning debt listed | 05, 11, 12, PROGRESS |

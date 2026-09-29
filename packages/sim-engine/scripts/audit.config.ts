@@ -18,8 +18,10 @@ export const AUDIT = {
     wakeWindow: ["04:00", "11:00"],
     /** Flag a first drink this long after waking. */
     firstDrinkWithinMins: 15,
-    /** Flag breakfast this long after waking. */
-    breakfastWithinMins: 60,
+    /** Flag first food (breakfast, tea and toast, a snack) this long after waking. */
+    firstFoodWithinMins: 60,
+    /** A hunger drop this big at once counts as food (toast 0.4, a snack 0.5, a meal 0.8; not a biscuit, 0.2). */
+    foodDrop: 0.3,
     /** A thirst drop this big in one minute counts as a drink. */
     drinkDrop: 0.15,
   },

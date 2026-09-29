@@ -65,16 +65,10 @@ describe("a week of mornings and drinks (seed 1)", () => {
     expect(onTime / mornings).toBeGreaterThanOrEqual(0.75);
   });
 
-  it("serves breakfast from 07:30, before morning care for anyone left waiting", () => {
+  it("serves breakfast from 07:30", () => {
     const breakfasts = ofType(events, "meal.served").filter((e) => e.payload.meal === "breakfast");
     for (const b of breakfasts) expect(timeOfDay(b.t)).toBeGreaterThanOrEqual(at(7, 30));
     expect(breakfasts.some((b) => timeOfDay(b.t) < at(8))).toBe(true);
-    const cared = ofType(events, "care.personal_care_done").filter((e) => e.payload.period === "morning");
-    const beforeCare = breakfasts.filter((b) => {
-      const care = cared.find((c) => c.payload.residentId === b.payload.residentId && c.t > b.t && c.t - b.t < 4 * 3600);
-      return !!care;
-    });
-    expect(beforeCare.length).toBeGreaterThan(0);
   });
 
   it("keeps the nurse off two-person morning care from 07:45 until the 08:00 round is done", () => {
@@ -97,6 +91,24 @@ describe("a week of mornings and drinks (seed 1)", () => {
 
   it("never holds a two-person task with one carer (it is reserved instead)", () => {
     expect(heldInCorridor.slice(0, 3)).toEqual([]);
+  });
+});
+
+describe("breakfast first", () => {
+  it("holds a resident's morning care while breakfast offered first is waiting", () => {
+    const sim = createSim({ seed: "1", data });
+    const w = sim.world;
+    while (timeOfDay(w.t) !== at(7, 50)) sim.step();
+    const stan = w.people.get("res_stan")!;
+    const care = createCare(w, stan, "morning");
+    const breakfast = createCare(w, stan, "meal", { meal: "breakfast", first: true });
+    for (let i = 0; i < 12; i++) sim.step(); // one decision minute
+    expect(care.assigned).toEqual([]);
+    while (w.tasks.has(breakfast.id) && timeOfDay(w.t) < at(10)) {
+      expect(care.assigned, "care waits until they've eaten").toEqual([]);
+      sim.step();
+    }
+    expect(w.tasks.has(breakfast.id)).toBe(false);
   });
 });
 
