@@ -5,8 +5,9 @@
 | Phase or milestone | What | Status |
 |---|---|---|
 | Phase 1 · Rules MVP | The wing, its people and its routines: deterministic engine, rota, care, meds, falls, visitors, the Lounge, pixel-art view (`workstreams/phase-1-rules-mvp/`) | Done |
-| Phase 2 · Scenario director | Unplanned events at realistic rates and scripted scenarios, without an LLM (docs/10, ADR-0005, `workstreams/phase-2-director/`): (a) core, falls, sick calls; (b) outbreaks; (c) illness, hospital, end of life, admissions; (d) visitors' missed weeks and celebrations; (e) tuning-debt review | (a) to (c) merged; (d) and (e) in progress |
-| **v1.0-testbed** | The care home as a test bed, before any environmental model (below) | Next, after Phase 2 (e) |
+| Phase 2 · Scenario director | Unplanned events at realistic rates and scripted scenarios, without an LLM (docs/10, ADR-0005, `workstreams/phase-2-director/`): (a) core, falls, sick calls; (b) outbreaks; (c) illness, hospital, end of life, admissions; (d) visitors' missed weeks and celebrations; (e) tuning-debt review | Done (PRs #7 to #11, 2026-09-30) |
+| **v1.0-testbed** | The care home as a test bed, before any environmental model (below) | Next: design discussion |
+| Care routine review | The audit regressions left by the tuning review (docs/12): late first food (Arthur, Peggy, Win), Arthur's hunger, Raj's toileting during meals and morning care. A shared daily planner, or pre-meal toileting rounds and a review of the morning routine; measured with the audit as well as the service targets | After v1.0-testbed |
 | Environmental models | External models as plug-ins: air (replacing the airborne proxy in docs/10), heat, surfaces, energy; steriliser experiments on the air model | After v1.0-testbed, built outside the engine against the plug-in API |
 | Phase 3 · LLM minds | Event-driven minds for residents, staff and visitors (docs/09) | After v1.0-testbed (project owner, 2026-09-30); parked until then |
 | Phase 4 | Branching and timeline scrubbing; richer visitors (moods, conflicts) | Later |
