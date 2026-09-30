@@ -13,6 +13,7 @@ import { clockToSeconds, timeOfDay, type LoungeActivity } from "@vch/shared-type
 import { emit } from "./emit.js";
 import { chairFor, isCareStaff, onDuty, type Person, type World } from "./state.js";
 import { createCare, createLoungeCheck, createSelfMove } from "./tasks.js";
+import { isIsolated, outbreakOn } from "./infection.js";
 import { walkTo } from "./world/movement.js";
 
 export const LOUNGE = "Lounge";
@@ -74,6 +75,8 @@ function wanted(world: World, p: Person, sessionDay: boolean): Want | null {
   const res = p.resident!;
   const prefs = res.data.care.lounge;
   if (!prefs) return null;
+  // Isolated with an infection, or the Lounge closed for an outbreak (docs/10): they stay in their room.
+  if (isIsolated(p) || outbreakOn(world)) return "room";
   const tod = timeOfDay(world.t);
   const session = sessionDay && tod >= TIMES.sessionGo && tod < TIMES.sessionUntil;
   const lunch = prefs.lunch && tod >= (sessionDay ? TIMES.sessionUntil : TIMES.lunchGo) && tod < TIMES.lunchUntil;
@@ -253,7 +256,7 @@ function session(world: World, residents: Person[]): void {
   const tod = timeOfDay(world.t);
   const bev = activitiesCoordinator(world);
   const here = residents.filter((p) => p.onMap && p.roomId === LOUNGE && !p.resident!.asleep).map((p) => p.id);
-  if (!world.session && bev && tod === TIMES.sessionFrom) {
+  if (!world.session && bev && tod === TIMES.sessionFrom && !outbreakOn(world)) {
     walkTo(world, bev, "Lounge.Post");
     world.session = { staffId: bev.id, activity: SESSION, residentIds: [...here], endT: world.t - tod + TIMES.sessionUntil };
     emit(world, "activity.started", [bev.id, ...here], { staffId: bev.id, activity: SESSION, roomId: LOUNGE, residentIds: here });

@@ -15,7 +15,9 @@ import type {
   Resident,
   ShiftName,
   DayType,
+  DirectorConfig,
   DirectorSettings,
+  Disease,
   InputPayloads,
   InputType,
   SimInput,
@@ -84,6 +86,8 @@ export interface DirectorState {
   dayTypes: Map<number, DayType | "scripted">;
   /** Times of major events, planned or applied (pacing). */
   majorTs: number[];
+  /** No new infection is introduced before this (an outbreak on, or ended less than 14 days ago). */
+  quietUntil: number;
 }
 
 export interface StaffState {
@@ -214,6 +218,37 @@ export interface ShiftLog {
   checksDone: number;
 }
 
+/**
+ * One person's infection (docs/10), kept on the person so the future air model can read who is
+ * infectious and where. All times are sim seconds, drawn when they're exposed.
+ */
+export interface Infection {
+  disease: Disease;
+  exposedT: number;
+  route: "contact" | "airborne (proxy)" | "introduced";
+  infectiousFromT: number;
+  symptomaticFromT: number;
+  symptomsEndT: number;
+  infectiousUntilT: number;
+  /** Residents: isolated in their room until then. Staff: off work until then. */
+  isolatedUntilT: number;
+  /** Which of those have happened (and been logged). */
+  symptomatic: boolean;
+  recovered: boolean;
+  isolated: boolean;
+}
+
+/** An outbreak of one disease: declared at 2 cases within 48 hours, over after 48 hours with no new case. */
+export interface Outbreak {
+  disease: Disease;
+  declaredT: number;
+  lastCaseT: number;
+  cases: string[];
+  /** When each counted case's symptoms end (kept here: agency workers leave the world after their shift). */
+  caseEndTs: number[];
+  overT: number | null;
+}
+
 export interface Person {
   id: string;
   kind: PersonKind;
@@ -241,6 +276,8 @@ export interface Person {
   staff: StaffState | null;
   resident: ResidentState | null;
   visitor: VisitorState | null;
+  /** Residents and staff only; null when never infected. Once recovered they're immune for the run. */
+  infection: Infection | null;
 }
 
 export interface World {
@@ -296,6 +333,11 @@ export interface World {
   inputs: SimInput[];
   /** The scenario director (docs/10); null when it's off. */
   director: DirectorState | null;
+  /** data/director.json: used by the director and by the rules it triggers (cover, infection), also when it's off. */
+  config: DirectorConfig | null;
+  /** Symptom onsets by disease (outbreak detection), and outbreaks declared so far. */
+  onsets: { personId: string; disease: Disease; t: number; symptomsEndT: number }[];
+  outbreaks: Outbreak[];
   /** Sick calls and no-shows (docs/10). */
   absences: Absence[];
   pending: AnySimEvent[];

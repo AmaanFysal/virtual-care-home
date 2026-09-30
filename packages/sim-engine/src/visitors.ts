@@ -11,6 +11,7 @@ import { SECONDS_PER_DAY, WEEKDAYS, clockToSeconds, dayIndex, timeOfDay, type Vi
 import { act, seq, type BtNode } from "./bt.js";
 import { newBtState } from "./bt.js";
 import { emit } from "./emit.js";
+import { essentialVisit, outbreakOn } from "./infection.js";
 import { initials } from "./rota.js";
 import { onDuty, type Person, type World } from "./state.js";
 import { goTo, waitMins, type Ctx } from "./trees.js";
@@ -47,6 +48,7 @@ export function visitorPerson(v: Visitor): Person {
     staff: null,
     resident: null,
     visitor: { data: v, residentId: v.relation_to_resident[0]!.resident, leadId: v.accompanies ?? null, phase: "home", arriveT: null, durationMins: 0, visitStartT: null, stepT: null, weekDays: [] },
+    infection: null,
   };
 }
 
@@ -205,6 +207,20 @@ export function visitorsMinute(world: World): void {
     if (!r.onMap && v.phase !== "home" && v.phase !== "leaving") {
       if (p.onMap) goHome(world, p);
       else v.phase = "home";
+      continue;
+    }
+    // During an outbreak only essential visits go ahead (a resident at the end of their life):
+    // visits not yet started are cancelled, and anyone here finishes and goes (docs/10).
+    if (outbreakOn(world) && !essentialVisit(r) && v.phase !== "home" && v.phase !== "leaving") {
+      if (p.onMap) {
+        if (v.visitStartT !== null) emit(world, "visit.ended", [p.id, v.residentId], { visitorId: p.id, residentId: v.residentId });
+        goHome(world, p);
+      } else {
+        const queued = world.spawnQueue.indexOf(p.id);
+        if (queued >= 0) world.spawnQueue.splice(queued, 1);
+        v.phase = "home";
+        emit(world, "visit.cancelled", [p.id, r.id], { visitorId: p.id, residentId: r.id, reason: "outbreak: essential visits only" });
+      }
       continue;
     }
     if (v.phase === "outside" && v.leadId === null && t >= v.arriveT!) {

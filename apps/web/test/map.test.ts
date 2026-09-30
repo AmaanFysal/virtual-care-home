@@ -100,6 +100,15 @@ describe("facing and activity icons", () => {
     // Every icon has a frame in the icon strip.
     expect(tileset.icons.order).toContain("observe");
   });
+
+  it("shows the unwell icon for anyone ill with an infection or isolated, but not while incubating", () => {
+    const person = (infection?: PersonView["infection"]) => ({ kind: "resident" as const, posture: "in_bed" as const, badges: [], task: null, ...(infection ? { infection } : {}) });
+    expect(activityIcon(person({ disease: "norovirus", status: "symptomatic", isolated: true }))).toBe("unwell");
+    expect(activityIcon(person({ disease: "flu", status: "recovering", isolated: true }))).toBe("unwell");
+    expect(activityIcon(person({ disease: "flu", status: "incubating", isolated: false }))).toBeNull();
+    expect(activityIcon({ ...person({ disease: "flu", status: "symptomatic", isolated: true }), posture: "on_floor" as const })).toBe("fall");
+    expect(tileset.icons.order).toContain("unwell");
+  });
 });
 
 describe("click to select", () => {

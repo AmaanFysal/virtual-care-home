@@ -99,6 +99,7 @@ export function staffPerson(s: Pick<Staff, "id" | "name" | "gender" | "walk_spee
     },
     resident: null,
     visitor: null,
+    infection: null,
   };
 }
 
@@ -190,6 +191,12 @@ function startShift(world: World, a: ShiftAssignment, person: Person): void {
   }
 }
 
+/** Here and working (or staying on after) the late shift. */
+function onTheLate(world: World, id: string): boolean {
+  const p = world.people.get(id);
+  return !!p?.onMap && (p.staff?.duty === "on_shift" || p.staff?.duty === "staying") && p.staff.shift?.shift === "late";
+}
+
 /** Who holds a slot on a given day (the night slot at 07:00 is yesterday's). */
 export function holder(world: World, day: number, slot: string): string | null {
   const shift = slot.split(".")[0] as ShiftName;
@@ -241,6 +248,18 @@ export function rotaMinute(world: World): void {
   if (timeOfDay(t) === 0) planDay(world, dayIndex(t));
 
   for (const a of world.shifts) {
+    // A late carer staying on to bridge a night (docs/10) is whoever is on the late shift when the
+    // night starts: the one booked may have gone home ill since. With nobody, the bridge is dropped
+    // and the late staff stay until relieved anyway (nobody leaves an uncovered floor).
+    if (a.stayOn && !a.spawned && t >= a.arriveT && !onTheLate(world, a.personId)) {
+      const day = dayIndex(a.startT);
+      const other = [holder(world, day, "late.ca"), holder(world, day, "late.lead")].find((id) => id && onTheLate(world, id));
+      if (other) a.personId = other;
+      else {
+        Object.assign(a, { spawned: true, started: true, ended: true });
+        continue;
+      }
+    }
     const person = world.people.get(a.personId)!;
     if (!a.spawned && t >= a.arriveT) {
       a.spawned = true;

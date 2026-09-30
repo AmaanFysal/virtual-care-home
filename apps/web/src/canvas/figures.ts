@@ -8,7 +8,7 @@ import type { Banding } from "./banding";
 import tileset from "./tileset.json";
 
 export type Dir = "north" | "west" | "south" | "east";
-export type IconName = "meal" | "drink" | "meds" | "care" | "asleep" | "notes" | "chatting" | "visiting" | "break" | "fall" | "observe";
+export type IconName = "meal" | "drink" | "meds" | "care" | "asleep" | "notes" | "chatting" | "visiting" | "break" | "fall" | "unwell" | "observe";
 
 /** A seated figure is drawn this many pixels lower, so they sit down onto the seat. */
 export const SIT_DY = 12;
@@ -74,12 +74,14 @@ export function facingFixture(plan: FloorPlan, x: number, y: number): Dir | null
 }
 
 /** The name-tag icon for what someone is doing, from their badges, posture and task label. */
-export function activityIcon(view: Pick<PersonView, "kind" | "posture" | "badges" | "task">): IconName | null {
+export function activityIcon(view: Pick<PersonView, "kind" | "posture" | "badges" | "task" | "infection">): IconName | null {
   const b = new Set(view.badges);
   const task = view.task ?? "";
   // Red only while someone is on the floor (or a carer is with them, or phoning the RN about them);
   // a calmer icon once they're up, on post-fall observations (cleared when those end).
   if (view.posture === "on_floor" || b.has("alert") || b.has("phone")) return "fall";
+  // Ill with an infection, or isolated in their room (docs/10).
+  if (view.infection && (view.infection.status === "symptomatic" || view.infection.isolated)) return "unwell";
   if (b.has("obs")) return "observe";
   if (b.has("asleep") || view.posture === "dozing") return "asleep";
   if (b.has("pill")) return "meds";

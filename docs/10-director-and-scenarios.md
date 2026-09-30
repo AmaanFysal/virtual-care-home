@@ -4,9 +4,10 @@
 
 > Status: **Phase 2** (moved before LLM minds on 2026-09-30, [ADR-0005](adr/0005-scenario-director-before-llm-minds.md)).
 > - Sub-milestone (a) is built: the director core, falls, sick calls and no-shows, scenario files, the admin panel, the Notable feed and the per-day report.
-> - Sub-milestones (b) to (e) are designed below.
+> - Sub-milestone (b) is built: infection state, spread through pluggable routes, isolation, outbreaks and the two outbreak scenarios.
+> - Sub-milestones (c) to (e) are designed below.
 >
-> Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
+> Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
 
 ## How it works
 
@@ -42,7 +43,7 @@ Rates are for six residents. Every number is in `data/director.json`.
 | 2 | Sick call (`staff_sick {staffId, cover?}`) and agency no-show (`shift_no_show {slot, cover?}`) | Each rostered shift in a care or RN slot: the staff card's `sickness_propensity` (about 1.2 calls a week); each agency shift 2%. Winter (Nov to Mar) ×1.3 | The call comes 30 to 60 min before the shift; a no-show is found at the shift start | The cover rule (below) | (a) built |
 | 3 | Visitor misses a week (`visitor_week_off {visitorId, cause}`) | With the director on, the weekly quota uses every pattern day; absences come from here at 1 − reliability per visitor-week | Holidays in summer and at Christmas; illness in winter | That week's visits cancelled, with the cause logged | (d) |
 | 4 | Illness (`resident_illness`), hospital admission, return (`hospital_return`) | About 3 to 6 unplanned admissions a year: a **placeholder**, to be sourced before (c) | Winter ×1.5; frailty; after a fall | Mild: rest in bed or room, extra checks, fluids pushed, falls ×1.5. Severe: GP, ambulance and conveyance. Return after 3 to 10 days with care-profile changes, stored as overrides in resident state (not by editing the cards) | (c) |
-| 5 | Infection (`infection_case {personId, disease}`) | Norovirus about 1 a winter, flu about 1 a winter | Season; visitors and new admissions can bring it in | Symptomatic residents isolated (care and meals in their room, no Lounge, +3 min per care visit for PPE); sick staff go off through the cover rule for 48 h after symptoms stop. Outbreak declared at 2 cases within 48 h (Lounge closed, essential visits only) and over after 48 h with no new case. **Spread through per-disease routes: contact, plus an airborne proxy (time in the same room as an infectious person, scaled by the disease's airborne weight, logged as "airborne (proxy)"), replaced later by the air model in the same slot** (see "Infection routes") | (b) |
+| 5 | Infection (`infection_case {personId, disease}`) | Norovirus about 1 a winter, flu about 1 a winter | Season; visitors and new admissions can bring it in | Symptomatic residents isolated (care and meals in their room, no Lounge, +3 min per care visit for PPE); sick staff go off through the cover rule for 48 h after symptoms stop. Outbreak declared at 2 cases within 48 h (Lounge closed, essential visits only) and over after 48 h with no new case. **Spread through per-disease routes: contact, plus an airborne proxy (time in the same room as an infectious person, scaled by the disease's airborne weight, logged as "airborne (proxy)"), replaced later by the air model in the same slot** (see "Infection routes") | (b) built |
 | 6 | End of life (`end_of_life_start`), death, admission (`admission {cardId}`) | Deaths about 1 to 2 a year (26.2% within a year; plan-v2), mostly through a planned decline | — | Comfort care every 30 min, family visiting more, longer and into the evening; death at the planned time, handled with dignity (family informed, the room left empty, a quiet log). A new admission some weeks later from `data/personas/admissions.json`, reviewed by the project owner first. Off with `deaths: false` | (c) |
 | 7 | Celebrations (`celebration {kind, residentId?}`) | Birthdays from each dob; festivals from faith (Christmas, Easter, Vaisakhi for Raj, …) | — | All the family visits, longer visits, tea and cake in the Lounge | (d) |
 
@@ -124,7 +125,9 @@ No event type is meaningfully suppressed.
 - **Files:**
   - `calm-week`: no events and no random ones. This is the baseline for the tuning-debt review.
   - `short-staffed-weekend`: Tom off sick on Friday's early (agency from about 07:20); Saturday's agency night carer doesn't come and Shanice stays on; Aisha off sick on Monday's late, covered by Lucy. It's checked by `test/director.test.ts` (0 hard violations on every tick, and a byte-identical replay).
-  - `norovirus-outbreak`: comes with (b).
+  - `norovirus-outbreak`: Stan falls ill on Wednesday at 14:20 and Peggy on Thursday at 09:10, which declares the outbreak.
+  - `flu-outbreak`: Win falls ill with flu on Thursday at 10:00 (brought in by a visitor); Tom on Friday at 05:30, at home before his early shift (a staff case: off work and logged, not counted); Arthur on Saturday at 16:00, the second resident case within 5 days, which declares the outbreak.
+  - Both are checked by `test/outbreaks.test.ts`: expected outcomes and a byte-identical replay (seed 1, 16 days).
 
 ## Admin panel, Notable feed and event log (docs/08)
 
@@ -161,16 +164,66 @@ No event type is meaningfully suppressed.
 
 The first report for (a) (12 breaches, 39 sick calls) came from a different sequence of events: its cover rule drew from the director's stream, so each change to cover reshuffled everything after it. The planner-only rates (`director-rates`) are unchanged.
 
-## Infection routes (sub-milestone b)
+## Infections and outbreaks (sub-milestone b, built)
 
-- **Separate routes per disease.** Spread is modelled through separate, pluggable routes. Each gives its own chance per exposure, scaled by the disease's weight in `data/director.json`: norovirus contact 0.8 and airborne 0.2; flu contact 0.2 and airborne 0.8.
-- **No double counting.** The routes combine as independent risks, `p = 1 − Π(1 − p_route)`. Swapping one route's model changes only its own term.
-- **Contact:** a chance per care contact or close co-location.
-- **Airborne (proxy):** risk from time in the same room as an infectious person, `p_per_hour_same_room` × hours × the airborne weight, logged as "airborne (proxy)".
-  - It isn't an air model: it reads only who is in which room, so it keeps to constitution rule 4 (no air quality in v1).
-  - The future air model (room air, for example Wells-Riley, which a steriliser can reduce) replaces it in the same slot.
-  - **Experiments comparing sterilisers need the real air model, not the proxy:** the proxy has no ventilation or air cleaning, so a steriliser can't change it.
-- **Infection state**, readable by the future air model: `{disease, exposedT, infectiousFromT, symptomaticFromT, recoveredT, isolated}` per person, each change an event with the room id, and a badge in `PersonView`.
+Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only while someone is infected, on its own `infection` random stream, so runs without an infection are unchanged.
+
+- **Introductions** (`infection_case {personId, disease}`): someone falls ill with an infection brought in from outside (a visitor, a new admission, staff), with symptoms now.
+  - **From the director:** norovirus about 1 a winter (0.2 over the rest of the year), flu about 1 a winter (0.1). The index case is a resident, or 30% of the time a member of staff on the day's rota.
+  - **Pacing:** an introduction is a major event (the major-event caps apply). None comes while an outbreak is on, or within 14 days of one ending (`director.suppressed`, "outbreak quiet period").
+  - **By hand or in a scenario:** a scenario or the admin panel can start one. It needs the tuning file, which the server always passes (`createSim({ config })`); without it, the input is skipped.
+- **Each person's course**, drawn when they catch it:
+
+  | | Norovirus | Flu |
+  |---|---|---|
+  | Incubation | 12 to 48 h | 1 to 4 days |
+  | Symptoms | 1 to 3 days | 3 to 7 days |
+  | Infectious from | 6 h before symptoms | 24 h before symptoms |
+  | Infectious until | 48 h after symptoms end | 24 h after symptoms end |
+  | Residents isolated / staff off until | 48 h after symptoms end | 24 h after symptoms end |
+
+  Anyone who has had it is immune for the rest of the run.
+- **Spread**, once a minute, through separate, pluggable routes, each scaled by the disease's weight (norovirus: contact 0.8, airborne 0.2; flu: contact 0.2, airborne 0.8):
+  - **Contact:** 0.006 a minute within 1.5 m of someone infectious (care, sitting together).
+  - **Airborne (proxy):** 0.1 an hour in the same room as someone infectious, logged as "airborne (proxy)".
+    - It isn't an air model: it reads only who is in which room, so it keeps to constitution rule 4 (no air quality in v1).
+    - The future air model (room air, for example Wells-Riley, which a steriliser can reduce) replaces this term in the same slot (`routeChances` in `infection.ts`), and nothing else changes.
+    - **Experiments comparing sterilisers need the real air model, not the proxy:** the proxy has no ventilation or air cleaning, so a steriliser can't change it.
+  - **PPE:** with an isolated resident, gloves and aprons scale contact by 0.3, and masks scale the airborne term by 0.5.
+  - **No double counting:** the routes combine as independent risks, `p = 1 − Π(1 − p_route)`, over every infectious person and every route. Swapping one route's model changes only its own term.
+  - **Who can catch it:** residents, staff and agency workers. Visitors and people from the main building aren't modelled.
+- **Isolation.** A resident with symptoms is isolated in their room (`infection.isolated`): care and meals there, no Lounge (someone in it is walked back), and 3 extra minutes for every visit (care, help, drinks and medication) for PPE. It ends with `infection.isolation_ended`.
+- **Staff.** A member of staff with symptoms goes home, and misses every shift until they're clear:
+  - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, the main-building night carer comes, and they stay until she's here.
+  - **Taken ill off duty:** each shift before they're clear is a sick call, with cover.
+- **Outbreaks**, declared and ended per disease as UK guidance has it (`infection.outbreak` in `data/director.json`, with the citations):
+
+  | | Declared | Counted cases | Over, and never while a counted case is still ill |
+  |---|---|---|---|
+  | Norovirus | 2 or more linked cases within 48 hours | residents and staff | 48 hours after the last case is symptom-free, and at least 72 hours after the last onset |
+  | Flu | 2 or more linked resident cases within 5 days | residents only; staff cases are managed (off work, logged) but not counted | 5 days after the onset of symptoms in the most recent resident case |
+
+  - **Sources:**
+    - Norovirus Working Party, [*Guidelines for the management of norovirus outbreaks in acute and community health and social care settings*](https://www.gov.uk/government/publications/norovirus-managing-outbreaks-in-acute-and-community-health-and-social-care-settings) (2012, published by PHE on gov.uk). The start: "two or more cases linked in time and place". The end: "48h after the resolution of vomiting and/or diarrhoea in the last known case and at least 72h after the initial onset of the last new case". The 48-hour window for declaring is from local care-home guidance, for example Bolton Council's *Diarrhoea & Vomiting (Enteric) Outbreaks in Care Homes* flow chart: "If there is 2 or more linked cases within 48 hours".
+    - UKHSA, [*Management of acute respiratory infection outbreaks in care homes*](https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance) (updated 24 July 2024). An outbreak is "2 or more ARI or ILI cases in epidemiologically-linked residents", with "a 5-day window for case onset". The end: "Outbreak measures can be lifted 5 days after the onset of symptoms in the most recent symptomatic resident".
+    - All six residents of the wing count as linked.
+  - **While one is on:** the Lounge closes (everyone stays in their room, and Bev's session doesn't run), and only essential visits go ahead (to a resident at the end of their life: Dennis). Other planned visits are cancelled (`visit.cancelled`); anyone visiting finishes and goes.
+  - **Logged as** `outbreak.declared` (with the counted cases) and `outbreak.over` (with its length).
+  - **Every counted case's symptom end is recorded on the outbreak** when it's counted. So an outbreak waits for a case who has since left the world, such as an agency worker after their shift.
+- **Infection state**, readable by the future air model: `person.infection` holds `{disease, exposedT, route, infectiousFromT, symptomaticFromT, symptomsEndT, infectiousUntilT, isolatedUntilT, …}`. Every change is an event (`infection.exposed` with the route, source and room; `infection.symptomatic`; `infection.recovered`). `PersonView.infection` gives the status and isolation for the badge.
+- **Breach causes:** "during norovirus outbreak (Stan, Peggy isolated)", or "isolation care (Stan)" before an outbreak is declared.
+- **Calibration** (both scenarios, seeds 1 to 8, 3 weeks each):
+  - **Norovirus:** 38% of resident-slots ill (18 of 48, 16 of them the scripted cases) and 28 staff cases, mostly by contact.
+  - **Flu:** 15 residents and 23 staff ill, almost all by the airborne proxy. Six seeds stop at the 2 scripted cases; seeds 6 and 8 spread widely through people infectious before their symptoms.
+  - These are plausible for a care home but not fitted to data: every number is in `data/director.json`.
+
+**Results with the UK declaration and end rules (2026-09-30):**
+
+| Run | Ill (residents / staff) | Outbreaks, days | Service breaches | Hard violations |
+|---|---|---|---|---|
+| Random, seeds 1 to 8, 4 weeks | 4 / 7 (4 brought in) | 1: norovirus 5.3 (a flu cluster among staff alone is managed but isn't an outbreak) | 20 | 0 |
+| `norovirus-outbreak`, seeds 1 to 8, 3 weeks | 18 / 23 | 9: 3 to 14.4 (median about 7) | 19 | 0 |
+| `flu-outbreak` (Win, Tom, Arthur), seeds 1 to 8, 3 weeks | 18 / 25 (16 and 8 of them scripted) | 8: seven of 5 to 5.9, one of 12.6 | 23 | 0 |
 
 ## Deaths switch
 
@@ -186,7 +239,7 @@ The first report for (a) (12 breaches, 39 sick calls) came from a different sequ
   - director-aware breach causes, the per-day report and the rates script;
   - the calendar over any year (`simDate`);
   - the director-off golden test; ADR-0005.
-- **(b) Outbreaks and isolation**, with the `norovirus-outbreak` scenario.
+- **(b) Outbreaks and isolation** (built): infection state, pluggable routes, isolation, outbreaks, staff off sick, the `norovirus-outbreak` and `flu-outbreak` scenarios, the unwell badge and Health filter.
 - **(c) Illness, hospital, end of life and admissions.** It needs a cited admission rate and the reviewed admissions card first.
 - **(d) Visitors' missed weeks and celebrations.**
 - **(e) Tuning-debt review** against the calm-week baseline, one rule at a time (docs/12).

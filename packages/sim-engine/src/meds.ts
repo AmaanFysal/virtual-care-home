@@ -12,6 +12,7 @@ import { isCareStaff, onDuty, type Person, type World } from "./state.js";
 import { newBtState } from "./bt.js";
 import { begin, besideThem, markChecked, setBadges, type Ctx } from "./trees.js";
 import { walkTo } from "./world/movement.js";
+import { ppeMins } from "./infection.js";
 
 const ROUNDS: { at: string; slot: string }[] = [
   { at: "08:00", slot: "rn_day.nurse" },
@@ -152,7 +153,7 @@ const giveMeds: BtNode<Ctx> = leaf("give medication bed to bed", (c) => {
       task.data.start = world.t;
       markChecked(world, r, [giver], false);
     }
-    if (world.t - Number(task.data.start) < MINUTES_PER_RESIDENT * 60) return "running";
+    if (world.t - Number(task.data.start) < (MINUTES_PER_RESIDENT + ppeMins(world, r)) * 60) return "running";
     giveDose(c, r);
     task.data.i = i + 1;
     task.data.phase = 0;

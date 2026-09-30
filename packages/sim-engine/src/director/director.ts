@@ -7,6 +7,7 @@ import { SECONDS_PER_DAY, dayIndex, type DirectorSettings, type InputPayloads, t
 import { emit } from "../emit.js";
 import { staffSick, shiftNoShow } from "../cover.js";
 import { injectFall } from "../falls.js";
+import { infect } from "../infection.js";
 import type { DirectorEvent, World } from "../state.js";
 import { isMajor, planRandomDay, residentRisk, type RosterEntry } from "./plan.js";
 import { scenarioEvents } from "./scenario.js";
@@ -18,6 +19,7 @@ export function initDirector(world: World, settings: DirectorSettings): void {
     script: settings.scenario ? scenarioEvents(settings.scenario, world.startT) : [],
     dayTypes: new Map(),
     majorTs: [],
+    quietUntil: 0,
   };
 }
 
@@ -103,6 +105,16 @@ function dispatch<K extends InputType>(world: World, type: K, params: InputPaylo
   if (type === "staff_sick") {
     const { staffId, cover } = params as InputPayloads["staff_sick"];
     return staffSick(world, staffId, cover ?? "auto", source);
+  }
+  if (type === "infection_case") {
+    const { personId, disease } = params as InputPayloads["infection_case"];
+    const p = world.people.get(personId);
+    if (!world.config) return "no infection settings (data/director.json) for this run";
+    if (!p || !(p.resident || p.kind === "staff")) return "not a resident or member of staff";
+    if (p.infection) return "has already had an infection this run";
+    if (p.resident && !p.onMap) return "not on the wing";
+    infect(world, p, disease, "introduced", null, source);
+    return null;
   }
   if (type === "shift_no_show") {
     const { slot, cover } = params as InputPayloads["shift_no_show"];

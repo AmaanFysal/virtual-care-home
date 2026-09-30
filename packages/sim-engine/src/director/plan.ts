@@ -3,7 +3,7 @@
 // then applies the pacing caps. The engine calls it at 00:00 (and at the start); the rates
 // script calls it on its own to measure realised rates over many years.
 
-import { SECONDS_PER_DAY, clockToSeconds, simDate, type DayType, type DirectorConfig, type Resident, type ShiftName } from "@vch/shared-types";
+import { DISEASES, SECONDS_PER_DAY, clockToSeconds, simDate, type DayType, type DirectorConfig, type Resident, type ShiftName } from "@vch/shared-types";
 import type { Rng } from "../rng.js";
 import type { DirectorEvent } from "../state.js";
 
@@ -31,6 +31,8 @@ export interface ResidentRisk {
 export interface PlanMemory {
   dayTypes: Map<number, DayType | "scripted">;
   majorTs: number[];
+  /** No infection is introduced before this (an outbreak on, or ended under 14 days ago). */
+  quietUntil?: number;
 }
 
 export interface DayPlan {
@@ -50,7 +52,7 @@ export function residentRisk(r: Resident): ResidentRisk {
 
 /** Is this a major event (docs/10 pacing)? In sub-milestone (a) only a serious fall is. */
 export function isMajor(e: Pick<DirectorEvent, "type" | "params">): boolean {
-  return e.type === "inject_fall" && (e.params as { severity: string }).severity === "serious";
+  return (e.type === "inject_fall" && (e.params as { severity: string }).severity === "serious") || e.type === "infection_case";
 }
 
 /** Whether a major event at `t` keeps to the caps, given the majors already planned or applied. */
@@ -139,6 +141,34 @@ export function planRandomDay(config: DirectorConfig, rng: Rng, memory: PlanMemo
       }
       planned.push(event);
     }
+  }
+
+  // 4. Infections brought in from outside (a visitor, a new admission, staff), mostly in winter:
+  //    a major event, and none while an outbreak is on or within 14 days of one ending.
+  const isWinter = absence.winter_months.includes(simDate(dayStart).month);
+  const winterDays = 151;
+  for (const disease of DISEASES) {
+    const d = config.infection.diseases[disease];
+    const perDay = (isWinter ? d.per_winter / winterDays : d.per_summer / (365 - winterDays)) * rate;
+    if (!rng.chance(perDay)) continue;
+    const applyT = dayStart + rng.int(7 * 60, 21 * 60) * 60;
+    const staff = [...new Set(roster.filter((a) => !a.agency).map((a) => a.personId))].sort();
+    const fromStaff = rng.chance(config.infection.index_staff_share) && staff.length > 0;
+    const pool = fromStaff ? staff : residents.map((r) => r.id);
+    if (pool.length === 0) continue;
+    const event: DirectorEvent = { applyT, type: "infection_case", params: { personId: rng.pick(pool), disease }, origin };
+    if (applyT <= fromT) continue;
+    if (applyT < (memory.quietUntil ?? 0)) {
+      suppressed.push({ event, reason: "outbreak quiet period (14 days)" });
+      continue;
+    }
+    const capped = majorAllowed(config, memory.majorTs, applyT);
+    if (capped) {
+      suppressed.push({ event, reason: capped });
+      continue;
+    }
+    memory.majorTs.push(applyT);
+    planned.push(event);
   }
 
   planned.sort((a, b) => a.applyT - b.applyT);

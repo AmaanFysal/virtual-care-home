@@ -1,0 +1,507 @@
+
+=== seed 1 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Precious Moyo, arriving 06:50
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   0 breaches
+  Mon 09 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 06:50
+    13:03  Marco caught flu (airborne (proxy) from Arthur, Room1)
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+  Wed 11 Nov  scripted   0 breaches
+  Thu 12 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 06:50
+    16:00  flu outbreak over after 5 days, 2 cases
+    22:40  Aisha caught flu (airborne (proxy) from Arthur, Room1)
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    04:48  Aisha ill with flu
+    04:48  Aisha off sick for late.ca at 14:00 (engine)
+    04:48    cover: bank Lucy Brennan, arriving 13:50
+  Tue 17 Nov  scripted   1 sick, 2 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    no cover: no bank or agency cover; late.ca runs short
+    15:39  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Aisha off sick (late), no cover]
+    20:51  breach request_wait: Toilet for Raj waiting 30 min [short-staffed: Aisha off sick (late), no cover]
+  Wed 18 Nov  scripted   1 sick, 1 breach
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    06:43  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+  Thu 19 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: stay_on Lucy Brennan until 23:13
+    00:00    cover: main_building Main-building Night Carer, arriving 23:13
+  Fri 20 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: stay_on Shanice Clarke until 22:46
+    00:00    cover: main_building Main-building Night Carer, arriving 22:46
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 2 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 1 breach
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Daniel Silva, arriving 07:20
+    06:41  breach reposition: res_dennis not turned for 120 min (interval 120) [isolation care (Win)]
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    13:04  Oluwaseun caught flu (airborne (proxy) from Win, Room2)
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   0 breaches
+  Mon 09 Nov  scripted   1 sick, 1 breach
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 06:50
+    08:27  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+  Wed 11 Nov  scripted   0 breaches
+  Thu 12 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+    16:00  flu outbreak over after 5 days, 2 cases
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 3 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Ioana Radu, arriving 06:50
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   0 breaches
+  Mon 09 Nov  scripted   1 sick, 1 breach
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 06:50
+    08:27  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 06:50
+  Wed 11 Nov  scripted   0 breaches
+  Thu 12 Nov  scripted   0 breaches
+    16:00  flu outbreak over after 5 days, 2 cases
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 4 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+    20:58  Kasia caught flu (airborne (proxy) from Win, Room2)
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Emma Walsh, arriving 07:05
+  Sat 07 Nov  scripted   1 sick, 2 ill (infection), 1 breach
+    01:58  Kasia ill with flu
+    01:58  Kasia off sick for early.lead at 07:00 (engine)
+    01:58    cover: agency Kwame Asante, arriving 06:50
+    08:24  breach reposition: res_dennis not turned for 120 min (interval 120) [isolation care (Win)]
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   1 sick, 1 breach
+    00:00  Kasia off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 06:50
+    06:35  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+    17:10  Catherine caught flu (airborne (proxy) from Win, Room2)
+  Mon 09 Nov  scripted   2 sick, 0 breaches
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 06:50
+    09:13  Precious caught flu (airborne (proxy) from Win, Room2)
+    13:12  Oluwaseun caught flu (airborne (proxy) from Win, Room2)
+  Tue 10 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+    13:54  Precious ill with flu
+  Wed 11 Nov  scripted   1 sick, 0 breaches
+    00:00  Kasia off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 06:50
+  Thu 12 Nov  scripted   2 sick, 0 breaches
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+    16:00  flu outbreak over after 5 days, 2 cases
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 5 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 breach
+    21:34  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Emma Walsh, arriving 06:50
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   0 breaches
+  Mon 09 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 06:50
+  Wed 11 Nov  scripted   0 breaches
+  Thu 12 Nov  scripted   0 breaches
+    10:36  Blessing caught flu (airborne (proxy) from Win, Room2)
+  Fri 13 Nov  scripted   0 breaches
+    13:18  flu outbreak over after 5.9 days, 2 cases
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   1 ill (infection), 0 breaches
+    12:48  Blessing ill with flu
+  Mon 16 Nov  scripted   1 sick, 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 06:50
+  Tue 17 Nov  scripted   1 sick, 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+  Wed 18 Nov  scripted   1 sick, 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Kwame Asante, arriving 06:50
+  Thu 19 Nov  scripted   1 sick, 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+  Fri 20 Nov  scripted   1 sick, 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Nadia Hussain, arriving 06:50
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 6 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 2 breaches
+    04:53  Aisha caught flu (airborne (proxy) from Win, Room2)
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    no cover: no bank or agency cover; early.ca runs short
+    08:28  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Tom off sick (early), no cover; isolation care (Win)]
+    13:09  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Tom off sick (early), no cover; isolation care (Win)]
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   1 breach
+    06:35  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+    13:10  Catherine caught flu (airborne (proxy) from Win, Room2)
+  Mon 09 Nov  scripted   1 sick, 1 ill (infection), 1 no-show, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 06:50
+    16:06  Aisha ill with flu
+    16:06  Aisha went home ill for late.ca at 16:06 (engine)
+    16:06    cover: agency Daniel Silva, arriving 17:23
+  Tue 10 Nov  scripted   2 sick, 1 breach
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Nadia Hussain, arriving 13:50
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+    06:41  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+    12:27  Shanice caught flu (airborne (proxy) from Win, Room2)
+  Wed 11 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    14:09  Shanice ill with flu
+    14:27  Lucy caught flu (airborne (proxy) from Arthur, Room1)
+  Thu 12 Nov  scripted   2 sick, 1 ill (infection), 1 no-show, 0 breaches
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Ioana Radu, arriving 21:05
+    16:00  flu outbreak over after 5 days, 2 cases
+    18:40  Lucy ill with flu
+    18:40  Lucy went home ill for late.ca at 18:40 (engine)
+    18:40    cover: bank Shanice Clarke, arriving 19:15
+    18:40  Shanice off sick for late.ca at 19:15 (engine)
+    18:40    cover: agency Liam Doyle, arriving 19:50
+  Fri 13 Nov  scripted   2 sick, 1 breach
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: stay_on Shanice Clarke until 23:04
+    00:00    cover: main_building Main-building Night Carer, arriving 23:04
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 13:50
+    15:52  breach request_wait: Toilet for Peggy waiting 30 min [no emergency]
+  Sat 14 Nov  scripted   2 sick, 1 breach
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 06:50
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+    16:00  breach request_wait: Toilet for Peggy waiting 30 min [no emergency]
+  Sun 15 Nov  scripted   2 sick, 0 breaches
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 06:50
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 13:50
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   1 breach
+    06:43  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 7 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Ioana Radu, arriving 06:50
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur): Lounge closed, essential visits only
+  Sun 08 Nov  scripted   0 breaches
+    11:12  Kasia caught flu (airborne (proxy) from Arthur, Room1)
+  Mon 09 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 06:50
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 06:50
+  Wed 11 Nov  scripted   1 ill (infection), 1 no-show, 0 breaches
+    02:31  Florin caught flu (airborne (proxy) from Win, Room2)
+    12:28  Kasia ill with flu
+    12:28  Kasia went home ill for early.ca at 12:28 (engine)
+    12:28    cover: bank Shanice Clarke, arriving 13:20
+  Thu 12 Nov  scripted   2 sick, 1 breach
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+    06:37  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+    16:00  flu outbreak over after 5 days, 2 cases
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    00:00  Kasia off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 06:50
+    20:59  Florin ill with flu
+  Sun 15 Nov  scripted   2 sick, 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Liam Doyle, arriving 21:05
+    00:00  Kasia off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+  Mon 16 Nov  scripted   2 sick, 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 21:05
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 13:50
+  Tue 17 Nov  scripted   1 sick, 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 21:05
+  Wed 18 Nov  scripted   1 sick, 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Emma Walsh, arriving 21:05
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 8 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   0 breaches
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    10:00  Win caught flu (brought in, Room2)
+    10:00  Win ill with flu, isolated in their room
+    19:21  Kasia caught flu (airborne (proxy) from Win, Room2)
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 1 breach
+    05:30  Tom caught flu (brought in, off the wing)
+    05:30  Tom ill with flu
+    05:30  Tom off sick for early.ca at 07:00 (engine)
+    05:30    cover: agency Ioana Radu, arriving 07:20
+    06:41  breach reposition: res_dennis not turned for 120 min (interval 120) [isolation care (Win)]
+  Sat 07 Nov  scripted   1 ill (infection), 1 breach
+    10:29  Dennis caught flu (airborne (proxy) from Kasia, Room6)
+    16:00  Arthur caught flu (brought in, Room1)
+    16:00  Arthur ill with flu, isolated in their room
+    16:00  flu OUTBREAK declared (Win, Arthur, Dennis, Raj): Lounge closed, essential visits only
+    21:40  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Win isolated)]
+  Sun 08 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    02:11  Kasia ill with flu
+    02:11  Kasia off sick for early.lead at 07:00 (engine)
+    02:11    cover: agency Emma Walsh, arriving 06:50
+    23:13  Florin caught flu (airborne (proxy) from Win, Room2)
+  Mon 09 Nov  scripted   2 sick, 1 ill (infection), 0 breaches
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Kwame Asante, arriving 13:50
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Nadia Hussain, arriving 06:50
+    13:46  Dennis ill with flu, isolated in their room
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 06:50
+    12:19  Lucy caught flu (airborne (proxy) from Win, Room2)
+  Wed 11 Nov  scripted   1 sick, 1 ill (infection), 1 breach
+    00:00  Kasia off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+    15:48  Lucy ill with flu
+    21:43  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Dennis isolated)]
+  Thu 12 Nov  scripted   2 sick, 1 ill (infection), 1 breach
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+    00:00  Lucy off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 13:50
+    00:06  Raj caught flu (airborne (proxy) from Florin, Room3)
+    15:44  Florin ill with flu
+    21:43  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Dennis isolated)]
+  Fri 13 Nov  scripted   1 breach
+    21:43  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Arthur, Dennis isolated)]
+  Sat 14 Nov  scripted   1 sick, 0 breaches
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 06:50
+    09:14  Ioana caught flu (airborne (proxy) from Dennis, Room6)
+  Sun 15 Nov  scripted   2 sick, 2 ill (infection), 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Liam Doyle, arriving 21:05
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Kwame Asante, arriving 06:50
+    06:05  Raj ill with flu, isolated in their room
+    14:07  Ioana ill with flu
+    22:31  Liam caught flu (airborne (proxy) from Dennis, Room6)
+  Mon 16 Nov  scripted   2 sick, 1 breach
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 21:05
+    00:00  Lucy off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Precious Moyo, arriving 21:05
+    06:40  breach reposition: res_dennis not turned for 120 min (interval 120) [during flu outbreak (Dennis, Raj isolated)]
+  Tue 17 Nov  scripted   2 sick, 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 21:05
+    00:00  Lucy off sick for night.carer at 21:15 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 21:05
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+    08:06  Blessing caught flu (airborne (proxy) from Raj, Room3)
+  Fri 20 Nov  scripted   0 breaches
+    06:05  flu outbreak over after 12.6 days, 4 cases
+    10:33  Anjali caught flu (airborne (proxy) from Raj, Room3)
+    10:53  Sanjay caught flu (airborne (proxy) from Blessing, Reception)
+    18:14  Shanice caught flu (airborne (proxy) from Anjali, Room6)
+  Sat 21 Nov  scripted   2 ill (infection), 0 breaches
+    01:24  Blessing ill with flu
+    14:47  Anjali ill with flu
+  Sun 22 Nov  scripted   0 breaches
+    19:46  Dave caught flu (airborne (proxy) from Shanice, Room6)
+  Mon 23 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+    10:40  Joanne caught flu (airborne (proxy) from Sanjay, Reception)
+    12:53  Bev caught flu (airborne (proxy) from Sanjay, StaffRoom)
+    14:56  Shanice ill with flu
+  Tue 24 Nov  scripted   2 sick, 1 ill (infection), 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 06:50
+    04:40  Sanjay ill with flu
+    04:40  Sanjay off sick for reception at 08:30 (engine)
+    04:40    cover: bank Lucy Brennan, arriving 08:20
+
+=== totals, seeds 1-8, 504 h each ===
+  days: 176 (scripted 176 (100%)); hard days capped to busy: 0
+  falls: 0 (0 minor, 0 serious) = 0.00 a week
+  sick calls: 76 = 3.17 a week; agency no-shows: 3
+  cover: bank 23, agency 51, main building 3 (late carer bridging 3), none 2
+  held back by pacing caps: none
+  skipped when due: none
+  service breaches: 23 (3 on days with no director event, 20 on days with one)
+      11  reposition, during flu outbreak
+       3  reposition, no emergency
+       3  reposition, isolation care
+       2  request_wait, no emergency
+       1  lounge_supervision, short-staffed
+       1  request_wait, short-staffed
+       1  reposition, short-staffed + isolation care
+       1  lounge_supervision, short-staffed + isolation care
+  infection cases (ill): flu 43; caught by route: introduced 24, airborne (proxy) 28; staff sent home ill: 3
+  outbreaks: 8 over; flu 5 days, 2 cases; flu 5 days, 2 cases; flu 5 days, 2 cases; flu 5 days, 2 cases; flu 5.9 days, 2 cases; flu 5 days, 2 cases; flu 5 days, 2 cases; flu 12.6 days, 4 cases; visits cancelled: 189
+  hard violations: 0

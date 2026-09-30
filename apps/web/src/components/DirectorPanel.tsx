@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { COVER_CHOICES, ROTA_SLOTS, type CoverChoice, type FallSeverity } from "@vch/shared-types";
+import { COVER_CHOICES, DISEASES, ROTA_SLOTS, type CoverChoice, type Disease, type FallSeverity } from "@vch/shared-types";
 import { send } from "../net";
 import { useView } from "../store";
 
@@ -21,9 +21,12 @@ export function DirectorPanel() {
   const [staffId, setStaffId] = useState("");
   const [slot, setSlot] = useState<string>(ROTA_SLOTS[0]);
   const [cover, setCover] = useState<CoverChoice>("auto");
+  const [patientId, setPatientId] = useState("");
+  const [disease, setDisease] = useState<Disease>("norovirus");
 
   const resident = residentId || residents[0]?.id || "";
   const worker = staffId || staff[0]?.id || "";
+  const patient = patientId || residents[0]?.id || "";
   const coverSelect = (
     <select value={cover} onChange={(e) => setCover(e.target.value as CoverChoice)} aria-label="Cover">
       {COVER_CHOICES.map((c) => (
@@ -91,7 +94,25 @@ export function DirectorPanel() {
         {coverSelect}
         <button onClick={() => send({ type: "inject", input: "shift_no_show", params: { slot, cover } })}>Trigger</button>
       </div>
-      <p className="muted small">A sick call hits the person's next shift that hasn't started; a no-show hits the slot's next shift. Outbreaks, illness and visitors arrive in later sub-milestones.</p>
+      <div className="trigger">
+        <span>Infection</span>
+        <select value={patient} onChange={(e) => setPatientId(e.target.value)} aria-label="Who falls ill">
+          {[...residents, ...staff].map((p) => (
+            <option key={p.id} value={p.id} disabled={p.kind === "resident" && !p.onMap}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <select value={disease} onChange={(e) => setDisease(e.target.value as Disease)} aria-label="Disease">
+          {DISEASES.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <button onClick={() => send({ type: "inject", input: "infection_case", params: { personId: patient, disease } })}>Trigger</button>
+      </div>
+      <p className="muted small">A sick call hits the person's next shift that hasn't started; a no-show hits the slot's next shift. An infection case is someone brought in ill; it may spread. Illness, hospital and visitors' weeks arrive in later sub-milestones.</p>
     </section>
   );
 }

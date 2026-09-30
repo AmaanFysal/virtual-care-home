@@ -224,6 +224,15 @@ The residents' day room and dining room (docs/02). The waiting area is for visit
 - **Numbers (seeds 1 to 8, a week each):** 32 to 40 visits a week, 10 to 21 bells out of hours. Mid-afternoon (14:30 to 16:30) peaks are usually 2 or 3 on weekdays and 4 to 7 on Sundays. **Acceptance target (user decision, M6 review):** across seeds 1 to 8, the weekday mid-afternoon peak averages 2 to 4, the Sunday peak averages 4 to 8, and every resident except Arthur gets at least 2 visits a week; the visitor data stays as written. **With the weekly quota:** weekday peak average 2.73 (range 1 to 6), Sunday peak average 4.00 (range 1 to 6, at the lower edge of the target), and every resident except Arthur gets 3 or more visits a week on every seed (Arthur 0 or 1).
 - No moods, conflicts or off-screen family life yet (Phase 4).
 
+## Infections and outbreaks (docs/10, `src/infection.ts`)
+
+- **Isolation:** a resident with symptoms of norovirus or flu is isolated in their room, with care and meals there and no Lounge. Every visit (care, help, drinks, medication) takes 3 minutes longer for PPE. Isolation lasts until 48 hours (norovirus) or 24 hours (flu) after symptoms end.
+- **Staff:** a carer with symptoms goes home (once the floor is covered; the rest of the shift is covered by the cover rule), and misses every shift until 48 or 24 hours after symptoms end.
+- **Outbreak** (docs/10, UK guidance per disease):
+  - **Norovirus:** declared at 2 cases within 48 hours (residents and staff); over 48 hours after the last case is symptom-free (and at least 72 hours after the last onset).
+  - **Flu:** declared at 2 resident cases within 5 days (staff cases are managed but not counted); over 5 days after the last resident case's symptoms started (UKHSA 2024).
+  - **Both:** never over while a counted case is still ill. While an outbreak is on, the Lounge closes (no Lounge trips, meals in rooms, no activity session), and only essential visits go ahead (a resident at the end of their life); other visits are cancelled.
+
 ## Notifications and safeguarding
 
 Phase 1 only flags them: `cqc.notification_flagged` on a serious-injury fall or a conveyance to hospital. The manager's "notify CQC" task, Regulation 16 (death), safeguarding (Section 42) and DoLS come with the director in Phase 2 (c).

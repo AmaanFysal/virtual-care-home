@@ -5,13 +5,7 @@
     "busy": { "p": 0.22, "rate": 1.4 },
     "hard": { "p": 0.08, "rate": 2.6 }
   },
-  "pacing": {
-    "max_major_per_day": 1,
-    "min_hours_between_major": 48,
-    "max_hard_days_per_week": 2,
-    "max_absences_per_day": 2,
-    "outbreak_quiet_days": 14
-  },
+  "pacing": { "max_major_per_day": 1, "min_hours_between_major": 48, "max_hard_days_per_week": 2, "max_absences_per_day": 2, "outbreak_quiet_days": 14 },
   "falls": {
     "per_resident_year": 1.249,
     "serious_share": 0.12,
@@ -32,17 +26,49 @@
     "agency_available": 0.85,
     "agency_arrival_mins": [60, 120]
   },
+  "infection": {
+    "diseases": {
+      "norovirus": {
+        "per_winter": 1,
+        "per_summer": 0.2,
+        "incubation_hours": [12, 48],
+        "symptomatic_hours": [24, 72],
+        "infectious_before_symptoms_hours": 6,
+        "infectious_after_symptoms_hours": 48,
+        "isolation_after_symptoms_hours": 48,
+        "staff_exclusion_after_symptoms_hours": 48,
+        "routes": { "contact": 0.8, "airborne": 0.2 }
+      },
+      "flu": {
+        "per_winter": 1,
+        "per_summer": 0.1,
+        "incubation_hours": [24, 96],
+        "symptomatic_hours": [72, 168],
+        "infectious_before_symptoms_hours": 24,
+        "infectious_after_symptoms_hours": 24,
+        "isolation_after_symptoms_hours": 24,
+        "staff_exclusion_after_symptoms_hours": 24,
+        "routes": { "contact": 0.2, "airborne": 0.8 }
+      }
+    },
+    "contact": { "p_per_minute": 0.006, "within_m": 1.5 },
+    "airborne_proxy": { "p_per_hour_same_room": 0.1 },
+    "ppe": { "contact": 0.3, "airborne": 0.5 },
+    "ppe_extra_mins": 3,
+    "outbreak": {
+      "declare": {
+        "norovirus": { "cases": 2, "within_hours": 48, "count": "residents_and_staff", "note": "2 or more linked cases within 48 hours, residents and staff. Norovirus Working Party, Guidelines for the management of norovirus outbreaks in acute and community health and social care settings (2012, published by PHE on gov.uk): 'two or more cases linked in time and place'; the 48-hour window as in local care-home guidance, e.g. Bolton Council, Diarrhoea & Vomiting (Enteric) Outbreaks in Care Homes flow chart: 'If there is 2 or more linked cases within 48 hours'. https://www.gov.uk/government/publications/norovirus-managing-outbreaks-in-acute-and-community-health-and-social-care-settings" },
+        "flu": { "cases": 2, "within_hours": 120, "count": "residents", "note": "2 or more linked resident cases within 5 days; staff cases are managed and logged but don't count. UKHSA, Management of acute respiratory infection outbreaks in care homes (updated 24 July 2024): '2 or more ARI or ILI cases in epidemiologically-linked residents', with 'a 5-day window for case onset'. https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance" }
+      },
+      "end": {
+        "norovirus": { "hours": 48, "after": "recovery", "min_after_onset_hours": 72, "note": "48 hours after the last case is symptom-free, and at least 72 hours after the last onset. Norovirus Working Party (2012): '48h after the resolution of vomiting and/or diarrhoea in the last known case and at least 72h after the initial onset of the last new case'." },
+        "flu": { "hours": 120, "after": "onset", "note": "5 days after the onset of symptoms in the most recent resident case. UKHSA (updated 24 July 2024): 'Outbreak measures can be lifted 5 days after the onset of symptoms in the most recent symptomatic resident'." }
+      }
+    },
+    "index_staff_share": 0.3
+  },
   "later": {
     "hospital_admissions_per_year": [3, 6],
-    "hospital_admissions_note": "Placeholder for sub-milestones (a) and (b); cite a source and update before building (c).",
-    "infection": {
-      "note": "Sub-milestone (b). Each route gives its own chance, scaled by the disease's weight; they combine as p = 1 - product(1 - p_route). The airborne proxy is replaced by the air model in the same slot.",
-      "diseases": {
-        "norovirus": { "per_winter": 1, "routes": { "contact": 0.8, "airborne": 0.2 } },
-        "flu": { "per_winter": 1, "routes": { "contact": 0.2, "airborne": 0.8 } }
-      },
-      "contact": { "p_per_care_contact": 0.05 },
-      "airborne_proxy": { "p_per_hour_same_room": 0.03 }
-    }
+    "hospital_admissions_note": "Placeholder for sub-milestones (a) and (b); cite a source and update before building (c)."
   }
 }

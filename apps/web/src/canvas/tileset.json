@@ -136,6 +136,6 @@
   },
   "icons": {
     "size": 12,
-    "order": ["meal", "drink", "meds", "care", "asleep", "notes", "chatting", "visiting", "break", "fall", "observe"]
+    "order": ["meal", "drink", "meds", "care", "asleep", "notes", "chatting", "visiting", "break", "fall", "unwell", "observe"]
   }
 }

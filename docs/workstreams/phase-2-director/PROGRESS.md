@@ -4,7 +4,7 @@
 
 ## Status
 
-Sub-milestone (a) built on branch `scenario-director` (2026-09-30), not yet committed. Waiting for the project owner's review before (b).
+Sub-milestone (a) merged (PR #7). Sub-milestone (b) built on branch `director-outbreaks` (2026-09-30), PR open.
 
 ## Done
 
@@ -40,6 +40,18 @@ Sub-milestone (a) built on branch `scenario-director` (2026-09-30), not yet comm
   - the cover rule draws from its own `cover` stream, so the director's plans don't shift with cover outcomes.
   - 4-week report, seeds 1 to 8: 0 hard violations, 27 breaches (24 on days with a director event), 49 sick calls, 2 hospital stays with returns (`reports/a-random-4-weeks-seeds-1-8-v2.txt`).
 
+- (b) Outbreaks and isolation, on branch `director-outbreaks` (2026-09-30):
+  - **Engine:** `src/infection.ts` (infection state on each person, pluggable routes (contact and the airborne proxy), isolation, outbreaks declared and over); staff taken ill go home with cover, and miss shifts until clear; the Lounge closes and only essential visits go ahead during an outbreak; PPE minutes for isolated residents; introductions from the director; outbreak and isolation breach causes; an `infection` random stream.
+  - **Data:** the `infection` section of `data/director.json`; `data/scenarios/norovirus-outbreak.json` and `flu-outbreak.json`.
+  - **Web:** an unwell icon, the infection status in the inspector, infection triggers in the Director tab, Notable lines for cases and outbreaks.
+  - **Fixed along the way:** a night bridge booked for a carer who then went home ill left the floor uncovered (found on norovirus seed 6).
+  - **Tests:** `outbreaks.test.ts` (routes, both scenarios with outcomes and replays, staff going home ill, introductions); a web icon test.
+  - **On review:** outbreaks are declared and ended per disease as UK guidance has it.
+    - Norovirus: 2 cases within 48 hours; over 48 h after the last case is symptom-free and 72 h after the last onset.
+    - Flu: 2 resident cases within 5 days, staff not counted; over 5 days after the last resident onset (UKHSA 2024).
+    - Fixed: an outbreak could end while an agency worker who had caught it was still ill, because they had left the world.
+  - **Results:** 4 weeks random, seeds 1 to 8: 0 hard violations, 20 breaches, 1 outbreak (5.3 days). Both scenarios on seeds 1 to 8 over 3 weeks: 0 hard violations; norovirus outbreaks 3 to 14.4 days, flu 5 to 12.6 (reports in `reports/b-*.txt`).
+
 ## In progress
 
 - None.
@@ -47,7 +59,7 @@ Sub-milestone (a) built on branch `scenario-director` (2026-09-30), not yet comm
 ## Next
 
 - The project owner reviews (a).
-- Then (b), outbreaks and isolation, with the `norovirus-outbreak` scenario.
+- The project owner reviews (b).
 - Before (c): cite a hospital admission rate and draft `data/personas/admissions.json` for review.
 
 ## Blockers
@@ -58,5 +70,6 @@ Sub-milestone (a) built on branch `scenario-director` (2026-09-30), not yet comm
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-09-30 | Sub-milestone (b): infections, isolation, outbreaks, two outbreak scenarios | 0 hard in all runs; 2 outbreaks in 4 random weeks |
 | 2026-09-30 | Rebased on the falls fix; main-building night cover, on-call RN for missed rounds, hospital return, calmer post-fall icon, separate cover stream | 4-week report re-run: 0 hard, 27 breaches |
 | 2026-09-30 | Design agreed (ADR-0005); sub-milestone (a) built | Director core, cover rule, scenarios, admin panel, Notable feed, per-day report; 0 hard violations over 4 weeks × 8 seeds |

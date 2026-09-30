@@ -5,6 +5,7 @@ import {
   SECONDS_PER_DAY,
   WEEKDAYS,
   COVER_CHOICES,
+  DISEASES,
   ROTA_SLOTS,
   clockToSeconds,
   dayIndex,
@@ -15,7 +16,7 @@ import {
 } from "@vch/shared-types";
 import type { DirectorEvent } from "../state.js";
 
-export const INPUT_TYPES: InputType[] = ["inject_fall", "staff_sick", "shift_no_show"];
+export const INPUT_TYPES: InputType[] = ["inject_fall", "staff_sick", "shift_no_show", "infection_case"];
 const SLOTS: readonly string[] = ROTA_SLOTS;
 const COVERS: readonly string[] = COVER_CHOICES;
 
@@ -34,6 +35,9 @@ export function validateInput(type: string, params: unknown, data: WorldData): s
   } else if (type === "staff_sick") {
     if (!data.staff.some((s) => s.id === p.staffId)) errors.push(`staff_sick: unknown staff member "${String(p.staffId)}"`);
     cover();
+  } else if (type === "infection_case") {
+    if (!data.residents.some((r) => r.id === p.personId) && !data.staff.some((x) => x.id === p.personId)) errors.push(`infection_case: unknown resident or staff member "${String(p.personId)}"`);
+    if (!(DISEASES as readonly string[]).includes(String(p.disease))) errors.push(`infection_case: disease must be one of ${DISEASES.join(", ")}`);
   } else if (type === "shift_no_show") {
     if (!SLOTS.includes(String(p.slot))) errors.push(`shift_no_show: slot must be one of ${SLOTS.join(", ")}`);
     cover();

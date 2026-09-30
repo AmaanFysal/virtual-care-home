@@ -15,6 +15,7 @@ export interface DayRow {
   skipped: string[];
   breaches: number;
   hard: number;
+  cases: number;
   lines: string[];
 }
 
@@ -30,6 +31,8 @@ export interface DayTotals {
   skipped: Map<string, number>;
   breaches: { calm: number; eventful: number; byCause: Map<string, number> };
   hard: number;
+  /** Symptomatic cases by disease, exposures by route, outbreaks (disease, days), visits cancelled. */
+  infection: { cases: Map<string, number>; routes: Map<string, number>; outbreaks: { disease: string; days: number; cases: number }[]; open: number; cancelledVisits: number; wentHome: number };
 }
 
 export function emptyTotals(): DayTotals {
@@ -45,6 +48,7 @@ export function emptyTotals(): DayTotals {
     skipped: new Map(),
     breaches: { calm: 0, eventful: 0, byCause: new Map() },
     hard: 0,
+    infection: { cases: new Map(), routes: new Map(), outbreaks: [], open: 0, cancelledVisits: 0, wentHome: 0 },
   };
 }
 
@@ -58,7 +62,7 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
     const day = dayIndex(t);
     let r = rows.get(day);
     if (!r) {
-      r = { day, dayType: "-", falls: { minor: 0, serious: 0 }, sick: 0, noShows: 0, covers: { bank: 0, agency: 0, stay_on: 0, main_building: 0, none: 0 }, suppressed: [], skipped: [], breaches: 0, hard: 0, lines: [] };
+      r = { day, dayType: "-", falls: { minor: 0, serious: 0 }, sick: 0, noShows: 0, covers: { bank: 0, agency: 0, stay_on: 0, main_building: 0, none: 0 }, suppressed: [], skipped: [], breaches: 0, hard: 0, cases: 0, lines: [] };
       rows.set(day, r);
     }
     return r;
@@ -91,6 +95,29 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
         r.falls[e.payload.severity] += 1;
         r.lines.push(`    ${at}  ${e.payload.severity} fall: ${first(e.payload.residentId, names)} (${e.source})`);
         break;
+      case "infection.exposed": {
+        const how = e.payload.route === "introduced" ? "brought in" : `${e.payload.route} from ${first(e.payload.sourceId ?? "", names)}`;
+        r.lines.push(`    ${at}  ${first(e.payload.personId, names)} caught ${e.payload.disease} (${how}, ${e.payload.roomId ?? "off the wing"})`);
+        totals.infection.routes.set(e.payload.route, (totals.infection.routes.get(e.payload.route) ?? 0) + 1);
+        break;
+      }
+      case "infection.symptomatic":
+        r.cases += 1;
+        r.lines.push(`    ${at}  ${first(e.payload.personId, names)} ill with ${e.payload.disease}${e.payload.personId.startsWith("res_") ? ", isolated in their room" : ""}`);
+        totals.infection.cases.set(e.payload.disease, (totals.infection.cases.get(e.payload.disease) ?? 0) + 1);
+        break;
+      case "outbreak.declared":
+        r.lines.push(`    ${at}  ${e.payload.disease} OUTBREAK declared (${e.payload.cases.map((c) => first(c, names)).join(", ")}): Lounge closed, essential visits only`);
+        totals.infection.open += 1;
+        break;
+      case "outbreak.over":
+        r.lines.push(`    ${at}  ${e.payload.disease} outbreak over after ${e.payload.days} days, ${e.payload.cases.length} cases`);
+        totals.infection.open -= 1;
+        totals.infection.outbreaks.push({ disease: e.payload.disease, days: e.payload.days, cases: e.payload.cases.length });
+        break;
+      case "visit.cancelled":
+        totals.infection.cancelledVisits += 1;
+        break;
       case "resident.conveyed_to_hospital":
         r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} taken to hospital`);
         break;
@@ -103,7 +130,8 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
       case "staff.absent":
         if (e.payload.reason === "sick") r.sick += 1;
         else r.noShows += 1;
-        r.lines.push(`    ${at}  ${e.payload.name.split(" ")[0]} ${e.payload.reason === "sick" ? "off sick" : "didn't turn up"} for ${e.payload.slot} at ${hhmm(e.payload.shiftStartT)} (${e.source})`);
+        if (e.payload.reason === "went_home_sick") totals.infection.wentHome += 1;
+        r.lines.push(`    ${at}  ${e.payload.name.split(" ")[0]} ${e.payload.reason === "sick" ? "off sick" : e.payload.reason === "went_home_sick" ? "went home ill" : "didn't turn up"} for ${e.payload.slot} at ${hhmm(e.payload.shiftStartT)} (${e.source})`);
         break;
       case "rota.cover_booked":
         r.covers[e.payload.cover] += 1;
@@ -133,7 +161,7 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
     totals.sick += r.sick;
     totals.noShows += r.noShows;
     for (const k of Object.keys(r.covers) as (keyof DayRow["covers"])[]) totals.covers[k] += r.covers[k];
-    const eventful = r.falls.minor + r.falls.serious + r.sick + r.noShows > 0;
+    const eventful = r.falls.minor + r.falls.serious + r.sick + r.noShows + r.cases > 0 || r.lines.some((l) => / caught | OUTBREAK | outbreak over /.test(l));
     if (eventful) totals.breaches.eventful += r.breaches;
     else totals.breaches.calm += r.breaches;
     totals.hard += r.hard;
@@ -145,7 +173,7 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
 function causeKind(cause: string): string {
   return cause
     .split("; ")
-    .map((c) => (c.startsWith("short-staffed") ? "short-staffed" : c.startsWith("no emergency") ? "no emergency" : c.replace(/ \(.*\)$/, "")))
+    .map((c) => (c.startsWith("short-staffed") ? "short-staffed" : c.startsWith("no emergency") ? "no emergency" : c.replace(/ \(.*$/, "")))
     .filter((c, i, all) => all.indexOf(c) === i)
     .join(" + ");
 }
@@ -158,6 +186,7 @@ export function dayLines(rows: DayRow[]): string[] {
     const summary = [
       falls ? `${falls} fall${falls > 1 ? "s" : ""}${r.falls.serious ? ` (${r.falls.serious} serious)` : ""}` : null,
       r.sick ? `${r.sick} sick` : null,
+      r.cases ? `${r.cases} ill (infection)` : null,
       r.noShows ? `${r.noShows} no-show` : null,
       r.suppressed.length ? `${r.suppressed.length} held back` : null,
       `${r.breaches} breach${r.breaches === 1 ? "" : "es"}`,
@@ -179,6 +208,9 @@ export function totalsLines(t: DayTotals, weeks: number): string[] {
   L.push(`  skipped when due: ${[...t.skipped].map(([k, v]) => `${k} x${v}`).join("; ") || "none"}`);
   L.push(`  service breaches: ${t.breaches.calm + t.breaches.eventful} (${t.breaches.calm} on days with no director event, ${t.breaches.eventful} on days with one)`);
   for (const [k, v] of [...t.breaches.byCause].sort((a, b) => b[1] - a[1])) L.push(`    ${String(v).padStart(4)}  ${k}`);
+  const inf = t.infection;
+  L.push(`  infection cases (ill): ${[...inf.cases].map(([k, v]) => `${k} ${v}`).join(", ") || "none"}; caught by route: ${[...inf.routes].map(([k, v]) => `${k} ${v}`).join(", ") || "none"}; staff sent home ill: ${inf.wentHome}`);
+  L.push(`  outbreaks: ${inf.outbreaks.length} over${inf.open ? `, ${inf.open} still on at the end` : ""}${inf.outbreaks.map((o) => `; ${o.disease} ${o.days} days, ${o.cases} cases`).join("")}; visits cancelled: ${inf.cancelledVisits}`);
   L.push(`  hard violations: ${t.hard}${t.hard ? "  <-- MUST BE ZERO" : ""}`);
   return L;
 }

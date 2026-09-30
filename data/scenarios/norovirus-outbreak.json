@@ -1,0 +1,10 @@
+{
+  "id": "norovirus-outbreak",
+  "name": "Norovirus from Wednesday",
+  "description": "Stan falls ill with norovirus on Wednesday afternoon, and Peggy the next morning: an outbreak is declared, the Lounge closes and only essential visits go ahead until 48 hours pass with no new case.",
+  "random": false,
+  "events": [
+    { "day": "Wed", "time": "14:20", "type": "infection_case", "params": { "personId": "res_stan", "disease": "norovirus" } },
+    { "day": "Thu", "time": "09:10", "type": "infection_case", "params": { "personId": "res_peggy", "disease": "norovirus" } }
+  ]
+}

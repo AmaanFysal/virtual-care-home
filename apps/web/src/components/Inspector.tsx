@@ -102,6 +102,12 @@ export function Inspector() {
         {detail?.currentTask && <> · {detail.currentTask}</>}
         {detail?.btNode && <span className="muted"> ({detail.btNode})</span>}
       </p>
+      {person.infection && (
+        <p className="infection">
+          {person.infection.disease === "flu" ? "Flu" : "Norovirus"}: {person.infection.status}
+          {person.infection.isolated && (person.kind === "resident" ? ", isolated in their room" : ", off work")}
+        </p>
+      )}
       {detail?.needs && (
         <div className="bars">
           {NEEDS.map((n) => (

@@ -20,7 +20,7 @@ export function notableText(e: AnySimEvent, people: Record<string, PersonView>):
     case "resident.returned_from_hospital":
       return `${first(e.payload.residentId)} back from hospital after ${e.payload.daysAway} days`;
     case "staff.absent":
-      return `${e.payload.name.split(" ")[0]} ${e.payload.reason === "sick" ? "rang in sick" : "didn't turn up"} (${e.payload.slot}, ${formatSimTime(e.payload.shiftStartT).slice(-5)})`;
+      return `${e.payload.name.split(" ")[0]} ${e.payload.reason === "sick" ? "off sick" : e.payload.reason === "went_home_sick" ? "went home ill" : "didn't turn up"} (${e.payload.slot}, ${formatSimTime(e.payload.shiftStartT).slice(-5)})`;
     case "rota.cover_booked":
       return e.payload.cover === "stay_on"
         ? `${first(e.payload.staffId)} stays on until cover arrives at ${formatSimTime(e.payload.untilT ?? e.payload.arriveT).slice(-5)}`
@@ -29,6 +29,12 @@ export function notableText(e: AnySimEvent, people: Record<string, PersonView>):
       return `No cover: ${e.payload.slot} runs short (${e.payload.reason})`;
     case "med_round.no_giver":
       return `${e.payload.round} medication round missed: nobody meds-trained on the wing`;
+    case "infection.symptomatic":
+      return `${first(e.payload.personId)} ill with ${e.payload.disease}${e.payload.personId.startsWith("res_") ? ", isolated in their room" : ""}`;
+    case "outbreak.declared":
+      return `${e.payload.disease} outbreak declared (${e.payload.cases.map(first).join(", ")}): Lounge closed, essential visits only`;
+    case "outbreak.over":
+      return `${e.payload.disease} outbreak over after ${e.payload.days} days (${e.payload.cases.length} cases)`;
     case "input.skipped":
       return `${e.payload.inputType.replace(/_/g, " ")} not applied: ${e.payload.reason}`;
     case "sla.breached":

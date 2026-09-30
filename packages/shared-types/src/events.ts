@@ -1,7 +1,7 @@
 // Event and input schema. See docs/07-events-and-persistence.md for the catalogue and rules.
 
 import type { ShiftName } from "./data.js";
-import type { AbsenceReason, CoverChoice, DayType } from "./director.js";
+import type { AbsenceReason, CoverChoice, DayType, Disease } from "./director.js";
 
 /** Who caused a change. Constitution rule 5. */
 export type Source = "engine" | "director" | "user" | "llm" | "external";
@@ -140,6 +140,21 @@ export interface EventPayloads {
   /** Nobody could cover: the shift runs short. */
   "rota.no_cover": { slot: string; shift: ShiftName; forStaffId: string; reason: string };
 
+  /** Someone caught an infection (docs/10): by `contact`, the `airborne (proxy)` route, or `introduced` from outside. `roomId` is where. */
+  "infection.exposed": { personId: string; disease: Disease; route: "contact" | "airborne (proxy)" | "introduced"; sourceId: string | null; roomId: string | null };
+  "infection.symptomatic": { personId: string; disease: Disease; roomId: string | null };
+  /** Symptoms over (still infectious for a while, and isolated or off work until later). */
+  "infection.recovered": { personId: string; disease: Disease };
+  /** A resident isolated in their room: care and meals there, no Lounge, PPE for every visit. */
+  "infection.isolated": { personId: string; disease: Disease; roomId: string | null };
+  "infection.isolation_ended": { personId: string; disease: Disease };
+  /** Two cases of the same disease within 48 hours: the Lounge closes and only essential visits go ahead. */
+  "outbreak.declared": { disease: Disease; cases: string[] };
+  /** 48 hours with no new case. */
+  "outbreak.over": { disease: Disease; cases: string[]; days: number };
+  /** A planned visit that can't go ahead (an outbreak: only essential visits). */
+  "visit.cancelled": { visitorId: string; residentId: string; reason: string };
+
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
   /** A service target was missed: reported, not a failure (docs/11). */
@@ -177,6 +192,8 @@ export interface InputPayloads {
   staff_sick: { staffId: string; cover?: CoverChoice };
   /** Whoever holds the slot's next shift doesn't turn up; cover is sought from the shift start. */
   shift_no_show: { slot: string; cover?: CoverChoice };
+  /** Someone falls ill with an infection brought in from outside (symptoms now); it may spread (docs/10). */
+  infection_case: { personId: string; disease: Disease };
 }
 
 export type InputType = keyof InputPayloads;

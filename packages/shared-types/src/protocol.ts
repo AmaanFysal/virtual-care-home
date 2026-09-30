@@ -35,6 +35,8 @@ export interface PersonView {
    * drawn cutting through a wall. Display only.
    */
   via?: { x: number; y: number }[];
+  /** An infection (docs/10), while it matters: incubating, symptomatic, or recovering but still isolated or off work. */
+  infection?: { disease: "norovirus" | "flu"; status: "incubating" | "symptomatic" | "recovering"; isolated: boolean };
   /** Residents: their bed point, and where they are if off the wing. */
   bedId?: string;
   away?: "hospital" | null;
