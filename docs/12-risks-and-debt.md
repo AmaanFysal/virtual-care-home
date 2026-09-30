@@ -23,6 +23,7 @@
 
 - **Night emergencies need three pairs of hands.** Resolved (user decision after M5): for a serious fall with no RN on the wing, the on-call RN comes over from the main building until the paramedics have gone.
 - **A serious fall in the morning rush** can delay an hourly bedside check by a few minutes (Dennis): 1 service breach in 65 fall runs. Reported as `sla.breached` with its cause; service targets may slip during falls by design.
+- **Several falls at once used to abandon residents.** Fixed (2026-09-30): a fall never takes anyone from another fall, a two-person transfer or a walking resident; a fall nobody can reach asks for help and goes to the next person free; a hard invariant (`fall_unattended`) now catches anyone left. One judgement call remains: when everyone on the wing is with a fallen resident waiting for a lift and no more help can come, two carers lift one resident at a time, so an assessed resident is briefly left (with help asked for). The alternative would be waiting indefinitely.
 - **Tuned parameters.** Need rates, priorities and deadline pressure were tuned against these runs (docs/04). They are not measured values.
 - **Not generated yet:** PRN (as-needed) medication requests; return from hospital (Phase 3).
 

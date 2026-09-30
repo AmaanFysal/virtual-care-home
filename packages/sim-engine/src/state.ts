@@ -88,7 +88,14 @@ export interface ResidentState {
   /** What they're doing in the Lounge, if they're there. */
   loungeActivity: LoungeActivity | null;
   /** A fall in progress: the resident stays on the floor until it has been assessed. */
-  fall: { t: number; severity: "minor" | "serious"; assessed: boolean; taskId: string } | null;
+  fall: {
+    t: number;
+    severity: "minor" | "serious";
+    assessed: boolean;
+    taskId: string;
+    /** Since when nobody has been with them or on their way, and no help has been asked for (the `fall_unattended` invariant). */
+    uncoveredSinceT: number | null;
+  } | null;
   /** Post-fall observations: checks every 30 minutes until this time. */
   postFallUntil: number;
   /** Off the wing (conveyed to hospital); the bed is kept. */
@@ -235,8 +242,8 @@ export interface World {
   loungeSeenT: number;
   /** A group activity running in the Lounge. */
   session: { staffId: string; activity: string; residentIds: string[]; endT: number } | null;
-  /** Paramedics on their way to a fall (off-map until due). */
-  paramedics: { taskId: string; dueT: number } | null;
+  /** Ambulance calls in the order they were made; one crew answers them in turn (off the map until due). */
+  paramedics: { taskId: string; dueT: number }[];
   metrics: { floatCallouts: number; medInterruptions: number };
   /** Invariant rules currently failing, so violations are logged once when they start. */
   failing: Set<string>;

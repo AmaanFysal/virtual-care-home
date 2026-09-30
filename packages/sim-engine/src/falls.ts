@@ -1,5 +1,8 @@
 // Falls (docs/05 "Fall response", spec decision 8). In Phase 1 falls only happen when a user
-// injects one. Nobody moves a fallen resident until they have been assessed:
+// injects one. Nobody is ever left on the floor: the nearest carer whose work can wait comes
+// (never one attending another fall, or in the middle of a two-person transfer or walking a
+// resident); if nobody can, help is asked for and the next person free comes (docs/05 "Several
+// falls at once"). Nobody moves a fallen resident until they have been assessed:
 // - Day (an RN on the wing): the nearest carer finds them and stays; the RN comes (pausing a
 //   med round if need be) and assesses for 10 minutes.
 // - Otherwise (night, or evening once the RN is on call): the carer phones the on-call RN; the
@@ -17,12 +20,13 @@ import { act, cond, leaf, sel, seq, until, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
 import { comeIn, floatPerson } from "./float.js";
 import { isNight } from "./nightcover.js";
-import { isCareStaff, isNurse, type Person, type World } from "./state.js";
+import { isCareStaff, isNurse, type Person, type Task, type World } from "./state.js";
 import { newBtState } from "./bt.js";
 import { pullOff, resetTask } from "./tasks.js";
 import { chairFor, goTo, markChecked, setBadges, waitMins, type Ctx } from "./trees.js";
 import { cellAt, cellCentre } from "./world/grid.js";
 import { getIntoBed, placeAt, releaseStand, walkTo } from "./world/movement.js";
+import { formatSimTime } from "@vch/shared-types";
 
 export const PARAMEDICS_ID = "ext_paramedics";
 export const ON_CALL_RN_ID = "ext_oncall_rn";
@@ -41,22 +45,126 @@ function rnOnWing(world: World): Person | null {
   return world.order.map((id) => world.people.get(id)!).find((p) => isNurse(p) && onWing(p)) ?? null;
 }
 
-/** Care staff on the wing, nearest first, preferring people not in a handover. */
-function nearestCarers(world: World, to: Person, exclude: string[]): Person[] {
+/**
+ * Work nobody is pulled from, even for a fall: attending another fall, a two-person task being
+ * performed (a transfer, hoist or turn), or walking a resident who is on their feet.
+ */
+export function criticalWork(task: Task): boolean {
+  if (task.kind === "fall") return true;
+  if (task.staffNeeded >= 2 && task.data.phase === "performing") return true;
+  const walking = (task.kind === "care" && task.data.care === "escort") || (task.kind === "assist" && task.data.method === "escort");
+  return walking && task.status === "active" && task.startedT !== null;
+}
+
+/** Can come to a fall now: care staff on the wing whose work can wait (meals, drinks, a medication round, a wash, idling, a break). */
+function available(world: World, p: Person): boolean {
+  if (!isCareStaff(p) || !onWing(p)) return false;
+  const task = p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined;
+  return !task || !criticalWork(task);
+}
+
+/** Care staff who could come, nearest first, preferring people not in a handover or briefing. */
+function nearestAvailable(world: World, to: Person, exclude: string[]): Person[] {
   const inMeeting = (p: Person) => {
     const task = p.staff?.taskId ? world.tasks.get(p.staff.taskId) : undefined;
-    return task?.kind === "handover" || task?.kind === "briefing" || task?.kind === "fall";
+    return task?.kind === "handover" || task?.kind === "briefing";
   };
   return world.order
     .map((id) => world.people.get(id)!)
-    .filter((p) => isCareStaff(p) && onWing(p) && !exclude.includes(p.id))
+    .filter((p) => available(world, p) && !exclude.includes(p.id))
     .sort((a, b) => Number(inMeeting(a)) - Number(inMeeting(b)) || Math.hypot(a.x - to.x, a.y - to.y) - Math.hypot(b.x - to.x, b.y - to.y) || a.id.localeCompare(b.id));
 }
 
-function join(world: World, taskId: string, p: Person): void {
+function join(world: World, task: Task, p: Person): void {
   pullOff(world, p, "called to a fall");
-  p.staff!.taskId = taskId;
-  world.tasks.get(taskId)!.assigned.push(p.id);
+  p.staff!.taskId = task.id;
+  task.assigned.push(p.id);
+  task.status = "active";
+  task.data.helpRequestedT = null;
+}
+
+/** A fall nobody is with or on the way to. */
+function unattended(world: World, except?: Task): boolean {
+  for (const t of world.tasks.values()) if (t.kind === "fall" && t !== except && t.assigned.length === 0) return true;
+  return false;
+}
+
+/** The floating carer or the on-call RN is on the way. */
+function helpOnTheWay(world: World): boolean {
+  return world.float.status === "coming" || world.onCallRn.status === "coming";
+}
+
+const first = (p: Person) => p.name.split(" ")[0]!;
+
+/** What every care staff member on the wing is doing, for a fall nobody can come to yet. */
+function whyNobody(world: World): string {
+  const carers = world.order.map((id) => world.people.get(id)!).filter((p) => isCareStaff(p) && onWing(p));
+  if (carers.length === 0) return "no care staff on the wing";
+  const doing = carers.map((p) => {
+    const task = p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined;
+    if (task?.kind === "fall") return `${first(p)} with ${first(world.people.get(task.residentId!)!)} (fall)`;
+    return `${first(p)}: ${task ? task.label : "free"}`;
+  });
+  const lone = isNight(world.t) && carers.filter((p) => p.kind === "staff" || p.kind === "agency").length === 1;
+  return `${lone ? "lone night carer with another fall" : "no one free"} (${doing.join("; ")})`;
+}
+
+/**
+ * Nobody can come to this fall now: ask for help once. At night the floating carer is called out,
+ * or if she's already here the on-call RN comes over; otherwise the next person free comes
+ * (`staffFalls`). The fall counts as attended to by that request (the `fall_unattended` invariant).
+ */
+function requestHelp(world: World, task: Task, reason = whyNobody(world)): void {
+  if (task.data.helpRequestedT !== null && task.data.helpRequestedT !== undefined) return;
+  task.data.helpRequestedT = world.t;
+  const r = world.people.get(task.residentId!)!;
+  let called: "floating_carer" | "on_call_rn" | "on_the_way" | "next_free" = "next_free";
+  if (isNight(world.t)) {
+    if (world.float.status === "off") {
+      world.metrics.floatCallouts += 1;
+      emit(world, "second_carer.called", [floatPerson(world).id], { reason: "a fall with nobody free", residentIds: [r.id], outOfRound: true });
+      comeIn(world, false, world.rng.falls.int(8, 12));
+      called = "floating_carer";
+    } else if (world.float.status === "coming") called = "on_the_way";
+    else if (world.onCallRn.status === "off") {
+      world.onCallRn = { status: "coming", arriveT: world.t + world.rng.falls.int(8, 12) * 60, residentId: r.id };
+      emit(world, "on_call_rn.called", [r.id], { residentId: r.id, reason: "a fall with nobody free" });
+      called = "on_call_rn";
+    } else if (world.onCallRn.status === "coming") called = "on_the_way";
+  }
+  task.data.helpCalled = called;
+  task.data.helpReason = `${reason}; help: ${called.replace(/_/g, " ")} at ${formatSimTime(world.t).slice(-5)}`;
+  emit(world, "fall.help_requested", [r.id], { residentId: r.id, reason, called });
+}
+
+/**
+ * Every tick (and before each assignment pass): each fall nobody is with gets the nearest person
+ * whose work can wait, ahead of any other work; otherwise help is asked for.
+ */
+export function staffFalls(world: World): void {
+  for (const task of world.tasks.values()) {
+    if (task.kind !== "fall" || task.assigned.length > 0) continue;
+    const p = nearestAvailable(world, world.people.get(task.residentId!)!, [])[0];
+    if (p) {
+      join(world, task, p);
+      continue;
+    }
+    // The help that was on its way has arrived and gone to another fall: ask the next in line.
+    if (task.data.helpCalled === "on_the_way" && !helpOnTheWay(world)) task.data.helpRequestedT = null;
+    requestHelp(world, task);
+  }
+}
+
+/** Every tick: when each fallen resident was last left with nobody coming and no help asked for. */
+export function watchFalls(world: World): void {
+  for (const id of world.order) {
+    const p = world.people.get(id)!;
+    const fall = p.resident?.fall;
+    if (!fall) continue;
+    const task = world.tasks.get(fall.taskId);
+    const covered = !!task && (task.assigned.some((s) => world.people.get(s)?.onMap) || (task.data.helpRequestedT !== null && task.data.helpRequestedT !== undefined));
+    fall.uncoveredSinceT = covered ? null : (fall.uncoveredSinceT ?? world.t);
+  }
 }
 
 /** Applies an `inject_fall` input. */
@@ -68,7 +176,8 @@ export function injectFall(world: World, residentId: string, severity: FallSever
   // Whatever they were doing stops.
   for (const task of [...world.tasks.values()]) {
     if (task.residentId !== r.id) continue;
-    if (task.kind === "self_toilet") {
+    // Their own trip to the WC or the Lounge ends here (a reset one would never run again).
+    if (task.kind === "self_toilet" || task.kind === "self_move") {
       world.tasks.delete(task.id);
       r.task = null;
     } else if (task.status === "active") resetTask(world, task, "resident fell");
@@ -112,7 +221,7 @@ export function injectFall(world: World, residentId: string, severity: FallSever
     deadlineT: null,
     members: null,
     assigned: [] as string[],
-    status: "active" as const,
+    status: "open" as Task["status"],
     bt: newBtState(),
     data: {
       severity,
@@ -122,13 +231,19 @@ export function injectFall(world: World, residentId: string, severity: FallSever
       phoneMins: world.rng.falls.int(3, 5),
       rn: null,
       lastStayCheck: 0,
+      helpRequestedT: null,
+      helpCalled: null,
+      helpReason: null,
+      ambulance: 0,
+      waitingForLift: 0,
     } as Record<string, number | string | string[] | null>,
   };
   world.tasks.set(task.id, task);
   res.busyTaskId = task.id;
-  res.fall = { t: world.t, severity, assessed: false, taskId: task.id };
-  const responder = nearestCarers(world, r, [])[0];
-  if (responder) join(world, task.id, responder);
+  res.fall = { t: world.t, severity, assessed: false, taskId: task.id, uncoveredSinceT: null };
+  const responder = nearestAvailable(world, r, [])[0];
+  if (responder) join(world, task, responder);
+  else requestHelp(world, task);
 }
 
 function point(c: Ctx): string {
@@ -161,23 +276,29 @@ function cleanUp(c: Ctx): void {
   c.resident!.badges = [];
 }
 
-/** Someone else to help lift: by day the nearest other carer; at night the floating carer. */
+/**
+ * Someone else to help lift: by day the nearest other carer; at night the floating carer. Falls
+ * nobody has reached come first. If everyone on the wing is with a fallen resident and no more
+ * help can come, two of them lift one resident at a time (`pairUp`).
+ */
 const secondPairOfHands: BtNode<Ctx> = leaf("get a second pair of hands", (c) => {
   const { world, task } = c;
   const float = floatPerson(world);
   if (task.assigned.length < 2) {
+    task.data.waitingForLift = 1;
     // The nearest other carer on the wing (the floating carer counts if she's here); at night,
     // with nobody else, call her out.
-    const others = nearestCarers(world, c.resident!, task.assigned).filter((p) => p.staff!.duty === "on_shift" && !isNurse(p));
+    const others = unattended(world) ? [] : nearestAvailable(world, c.resident!, task.assigned).filter((p) => p.staff!.duty === "on_shift" && !isNurse(p));
     const other = isNight(world.t) ? (others.find((p) => p.id === float.id) ?? others[0]) : others.find((p) => p.id !== float.id) ?? others[0];
-    if (other) join(world, task.id, other);
+    if (other) join(world, task, other);
     else if (world.float.status === "off") {
       world.metrics.floatCallouts += 1;
       emit(world, "second_carer.called", [float.id], { reason: "help to lift after a fall", residentIds: [c.resident!.id], outOfRound: true });
       comeIn(world, false, world.rng.falls.int(8, 12));
-    }
+    } else if (!helpOnTheWay(world) && !unattended(world)) pairUp(c);
   }
   if (task.assigned.length < 2) return "running";
+  task.data.waitingForLift = 0;
   let moving = false;
   for (const p of task.assigned.map((id) => world.people.get(id)!)) {
     if (p.atPoint !== point(c)) {
@@ -187,6 +308,26 @@ const secondPairOfHands: BtNode<Ctx> = leaf("get a second pair of hands", (c) =>
   }
   return moving ? "running" : "success";
 });
+
+/**
+ * Everyone on the wing is with a fallen resident, each waiting for a second pair of hands to lift,
+ * and nobody else can come: the carer of the next fall comes to help lift this one (the earlier
+ * fall first), then they go back together. The resident they leave, already assessed and made
+ * comfortable, has help asked for, so the next person free comes (logged as `fall.help_requested`).
+ */
+function pairUp(c: Ctx): void {
+  const { world, task } = c;
+  const later = [...world.tasks.values()].find((t) => t.kind === "fall" && t.id > task.id && t.assigned.length === 1 && t.data.waitingForLift === 1);
+  if (!later) return;
+  const helper = world.people.get(later.assigned[0]!)!;
+  later.assigned = [];
+  later.status = "open";
+  later.bt = newBtState();
+  later.data.waitingForLift = 0;
+  helper.staff!.taskId = null;
+  requestHelp(world, later, `${first(helper)} helping to lift ${first(c.resident!)}`);
+  join(world, task, helper);
+}
 
 /** Waits with the resident until the paramedics are with them. */
 const waitForParamedics: BtNode<Ctx> = until("stay with them until the paramedics arrive", (c) => {
@@ -203,21 +344,32 @@ export const fallTree: BtNode<Ctx> = seq(
   "fall",
   goTo("go to them", (c) => [responder(c)], (c) => [point(c)]),
   act("found", (c) => {
-    c.task.startedT = c.world.t;
-    emit(c.world, "fall.found", [c.resident!.id, responder(c).id], { residentId: c.resident!.id, staffId: responder(c).id });
+    // Someone coming back to a fall already found (after helping with another resident's lift) doesn't find it again.
+    if (c.task.startedT === null) {
+      c.task.startedT = c.world.t;
+      emit(c.world, "fall.found", [c.resident!.id, responder(c).id], { residentId: c.resident!.id, staffId: responder(c).id });
+    }
     setBadges([responder(c)], ["alert"], c.task.label);
     markChecked(c.world, c.resident!, [responder(c)], false);
   }),
   sel(
     "assessment",
+    cond("already assessed?", (c) => c.resident!.resident!.fall!.assessed),
     seq(
       "the RN comes (day)",
-      cond("RN on the wing?", (c) => c.task.data.byPhone === 0 && rnOnWing(c.world) !== null),
-      act("call the RN", (c) => {
-        const rn = isNurse(responder(c)) ? responder(c) : rnOnWing(c.world)!;
-        if (rn !== responder(c)) join(c.world, c.task.id, rn);
+      // By day the RN comes; at night an on-call RN who came over for another fall assesses in person.
+      cond("RN on the wing?", (c) => (c.task.data.byPhone === 0 && rnOnWing(c.world) !== null) || isNurse(responder(c))),
+      leaf("call the RN", (c) => {
+        const rn = isNurse(responder(c)) ? responder(c) : rnOnWing(c.world);
+        if (!rn) return "failure"; // gone off shift while we waited: phone the on-call RN
+        if (rn !== responder(c)) {
+          // With another resident, or needed first by a fall nobody has reached: the carer stays and waits for her.
+          if (!available(c.world, rn) || unattended(c.world)) return "running";
+          join(c.world, c.task, rn);
+        }
         c.task.data.rn = rn.id;
         emit(c.world, "fall.rn_called", [c.resident!.id, responder(c).id], { residentId: c.resident!.id, staffId: responder(c).id, onCall: false });
+        return "success";
       }),
       goTo("the RN comes", (c) => [c.world.people.get(String(c.task.data.rn))!], (c) => [point(c)]),
       waitMins("the RN assesses", () => RN_ASSESS_MINS),
@@ -267,8 +419,10 @@ export const fallTree: BtNode<Ctx> = seq(
       "serious: ambulance",
       act("dial 999", (c) => {
         const { world, task } = c;
+        if (task.data.ambulance === 1) return; // already on its way
+        task.data.ambulance = 1;
         emit(world, "ambulance.called", [c.resident!.id, responder(c).id], { residentId: c.resident!.id, staffId: responder(c).id });
-        world.paramedics = { taskId: task.id, dueT: world.t + world.rng.falls.int(30, 90) * 60 };
+        world.paramedics.push({ taskId: task.id, dueT: world.t + world.rng.falls.int(30, 90) * 60 });
         // Only one carer needs to stay; anyone else goes back to work.
         for (const p of c.staff.slice(1)) {
           p.staff!.taskId = null;
@@ -307,7 +461,7 @@ export const fallTree: BtNode<Ctx> = seq(
         const paramedics = world.people.get(PARAMEDICS_ID)!;
         paramedics.staff!.duty = "leaving";
         walkTo(world, paramedics, "ExitDoor");
-        world.paramedics = null;
+        world.paramedics = world.paramedics.filter((call) => call.taskId !== c.task.id);
       }),
     ),
   ),
@@ -322,8 +476,9 @@ export function fallsMinute(world: World): void {
     rn.staff!.duty = "arriving";
     world.spawnQueue.push(ON_CALL_RN_ID);
   }
-  const seriousFallOngoing = world.paramedics !== null || [...world.tasks.values()].some((t) => t.kind === "fall" && t.data.severity === "serious");
-  if (call.status === "on_site" && rn.onMap && rn.staff!.duty === "on_shift" && !rn.staff!.taskId && !seriousFallOngoing) {
+  // She stays while any fall is in progress (she may have come because nobody was free for one).
+  const fallOngoing = world.paramedics.length > 0 || [...world.tasks.values()].some((t) => t.kind === "fall");
+  if (call.status === "on_site" && rn.onMap && rn.staff!.duty === "on_shift" && !rn.staff!.taskId && !fallOngoing) {
     call.status = "leaving";
     rn.staff!.duty = "leaving";
     rn.badges = [];
@@ -331,7 +486,8 @@ export function fallsMinute(world: World): void {
     walkTo(world, rn, "ExitDoor");
   }
 
-  const due = world.paramedics;
+  // One crew answers the calls in turn, the one due soonest first.
+  const due = nextCall(world);
   const paramedics = world.people.get(PARAMEDICS_ID)!;
   if (due && world.t >= due.dueT && !paramedics.onMap && !world.spawnQueue.includes(PARAMEDICS_ID)) {
     paramedics.staff!.duty = "arriving";
@@ -350,9 +506,14 @@ export function onCallRnDeparted(world: World, rn: Person): void {
   emit(world, "on_call_rn.departed", [rn.id], { personId: rn.id });
 }
 
+function nextCall(world: World): { taskId: string; dueT: number } | undefined {
+  return [...world.paramedics].sort((a, b) => a.dueT - b.dueT || a.taskId.localeCompare(b.taskId))[0];
+}
+
 /** Called when the paramedics appear at the exit door. */
 export function paramedicsArrived(world: World, paramedics: Person): void {
-  const task = world.paramedics ? world.tasks.get(world.paramedics.taskId) : undefined;
+  const call = nextCall(world);
+  const task = call ? world.tasks.get(call.taskId) : undefined;
   paramedics.staff!.duty = "on_shift";
   if (!task) return;
   emit(world, "paramedics.arrived", [task.residentId!, paramedics.id], { residentId: task.residentId! });

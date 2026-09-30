@@ -74,6 +74,8 @@ export interface EventPayloads {
 
   "resident.fell": { residentId: string; severity: FallSeverity; roomId: string };
   "fall.found": { residentId: string; staffId: string };
+  /** Nobody could come to a fall: help was asked for (at night the floating carer or on-call RN; otherwise the next person free). */
+  "fall.help_requested": { residentId: string; reason: string; called: "floating_carer" | "on_call_rn" | "on_the_way" | "next_free" };
   "fall.rn_called": { residentId: string; staffId: string; onCall: boolean };
   "fall.assessed": { residentId: string; by: string; outcome: "cleared_to_move" | "wait_for_ambulance" };
   "fall.lifted": { residentId: string; staffIds: string[]; to: string };
@@ -111,7 +113,7 @@ export interface EventPayloads {
 }
 
 /** Service targets (docs/11): reported when missed, not failures. */
-export type ServiceTarget = "request_wait" | "resident_check" | "reposition" | "lounge_supervision";
+export type ServiceTarget = "request_wait" | "resident_check" | "reposition" | "lounge_supervision" | "fall_attendance";
 
 export type EventType = keyof EventPayloads;
 
