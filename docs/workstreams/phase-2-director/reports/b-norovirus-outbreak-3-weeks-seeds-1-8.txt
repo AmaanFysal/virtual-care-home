@@ -217,7 +217,7 @@
   Thu 05 Nov  scripted   1 ill (infection), 1 breach
     09:10  Peggy caught norovirus (brought in, Room5)
     09:10  Peggy ill with norovirus, isolated in their room
-    09:10  norovirus OUTBREAK declared (Stan, Peggy, Anjali): Lounge closed, essential visits only
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Anjali, Kasia): Lounge closed, essential visits only
     21:40  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Peggy, Stan isolated)]
   Fri 06 Nov  scripted   1 breach
     08:49  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Peggy, Stan isolated)]
@@ -227,10 +227,8 @@
     13:06  Kasia caught norovirus (contact from Peggy, Ensuite5)
     14:15  Anjali ill with norovirus
   Mon 09 Nov  scripted   0 breaches
-    05:22  norovirus outbreak over after 3.8 days, 3 cases
   Tue 10 Nov  scripted   1 ill (infection), 0 breaches
     02:12  Kasia ill with norovirus
-    02:12  norovirus OUTBREAK declared (Anjali, Kasia): Lounge closed, essential visits only
   Wed 11 Nov  scripted   1 sick, 0 breaches
     00:00  Kasia off sick for early.ca at 07:00 (engine)
     00:00    cover: agency Emma Walsh, arriving 06:50
@@ -241,7 +239,7 @@
   Sat 14 Nov  scripted   1 sick, 0 breaches
     00:00  Kasia off sick for early.lead at 07:00 (engine)
     00:00    cover: agency Liam Doyle, arriving 06:50
-    17:14  norovirus outbreak over after 4.6 days, 2 cases
+    17:14  norovirus outbreak over after 9.3 days, 4 cases
   Sun 15 Nov  scripted   0 breaches
   Mon 16 Nov  scripted   0 breaches
   Tue 17 Nov  scripted   0 breaches
@@ -359,10 +357,10 @@
   Sun 15 Nov  scripted   1 ill (infection), 0 breaches
     01:05  Marco ill with norovirus
   Mon 16 Nov  scripted   0 breaches
-    12:04  norovirus outbreak over after 11.1 days, 6 cases
   Tue 17 Nov  scripted   0 breaches
   Wed 18 Nov  scripted   0 breaches
   Thu 19 Nov  scripted   0 breaches
+    18:25  norovirus outbreak over after 14.4 days, 6 cases
   Fri 20 Nov  scripted   0 breaches
   Sat 21 Nov  scripted   0 breaches
   Sun 22 Nov  scripted   0 breaches
@@ -450,5 +448,5 @@
        1  reposition, no emergency
        1  reposition, isolation care
   infection cases (ill): norovirus 41; caught by route: introduced 16, contact 32, airborne (proxy) 1; staff sent home ill: 4
-  outbreaks: 10 over; norovirus 3 days, 2 cases; norovirus 5 days, 3 cases; norovirus 4.7 days, 4 cases; norovirus 8.4 days, 4 cases; norovirus 6.9 days, 5 cases; norovirus 3.8 days, 3 cases; norovirus 4.6 days, 2 cases; norovirus 7.1 days, 7 cases; norovirus 11.1 days, 6 cases; norovirus 7.8 days, 5 cases; visits cancelled: 257
+  outbreaks: 9 over; norovirus 3 days, 2 cases; norovirus 5 days, 3 cases; norovirus 4.7 days, 4 cases; norovirus 8.4 days, 4 cases; norovirus 6.9 days, 5 cases; norovirus 9.3 days, 4 cases; norovirus 7.1 days, 7 cases; norovirus 14.4 days, 6 cases; norovirus 7.8 days, 5 cases; visits cancelled: 269
   hard violations: 0

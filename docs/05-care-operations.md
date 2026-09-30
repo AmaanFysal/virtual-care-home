@@ -228,7 +228,10 @@ The residents' day room and dining room (docs/02). The waiting area is for visit
 
 - **Isolation:** a resident with symptoms of norovirus or flu is isolated in their room, with care and meals there and no Lounge. Every visit (care, help, drinks, medication) takes 3 minutes longer for PPE. Isolation lasts until 48 hours (norovirus) or 24 hours (flu) after symptoms end.
 - **Staff:** a carer with symptoms goes home (once the floor is covered; the rest of the shift is covered by the cover rule), and misses every shift until 48 or 24 hours after symptoms end.
-- **Outbreak:** 2 cases of the same disease within 48 hours declare an outbreak. The Lounge closes (no Lounge trips, meals in rooms, no activity session), and only essential visits go ahead (a resident at the end of their life); other visits are cancelled. It's over 48 hours after the last case is symptom-free (norovirus), or 5 days after the last case's symptoms started (flu, UKHSA 2024), and never while a case is still ill.
+- **Outbreak** (docs/10, UK guidance per disease):
+  - **Norovirus:** declared at 2 cases within 48 hours (residents and staff); over 48 hours after the last case is symptom-free (and at least 72 hours after the last onset).
+  - **Flu:** declared at 2 resident cases within 5 days (staff cases are managed but not counted); over 5 days after the last resident case's symptoms started (UKHSA 2024).
+  - **Both:** never over while a counted case is still ill. While an outbreak is on, the Lounge closes (no Lounge trips, meals in rooms, no activity session), and only essential visits go ahead (a resident at the end of their life); other visits are cancelled.
 
 ## Notifications and safeguarding
 

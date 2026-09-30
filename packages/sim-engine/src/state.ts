@@ -244,6 +244,8 @@ export interface Outbreak {
   declaredT: number;
   lastCaseT: number;
   cases: string[];
+  /** When each counted case's symptoms end (kept here: agency workers leave the world after their shift). */
+  caseEndTs: number[];
   overT: number | null;
 }
 
@@ -334,7 +336,7 @@ export interface World {
   /** data/director.json: used by the director and by the rules it triggers (cover, infection), also when it's off. */
   config: DirectorConfig | null;
   /** Symptom onsets by disease (outbreak detection), and outbreaks declared so far. */
-  onsets: { personId: string; disease: Disease; t: number }[];
+  onsets: { personId: string; disease: Disease; t: number; symptomsEndT: number }[];
   outbreaks: Outbreak[];
   /** Sick calls and no-shows (docs/10). */
   absences: Absence[];

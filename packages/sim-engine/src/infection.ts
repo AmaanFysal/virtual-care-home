@@ -7,9 +7,11 @@
 //   term in the same slot, so steriliser experiments need that model, not the proxy.
 // The routes combine as independent risks, p = 1 - product(1 - p_route), so nothing is counted
 // twice. Residents with symptoms are isolated in their room; staff with symptoms go home and stay
-// off. Two cases within 48 hours declare an outbreak (the Lounge closes, only essential visits);
-// it ends 48 hours after the last case is symptom-free (norovirus) or 5 days after the last onset
-// (flu, UKHSA 2024), and never while a case is still ill. With nobody infected none of this runs or draws randomness.
+// off. An outbreak is declared and ended per disease as UK guidance has it (data/director.json):
+// norovirus at 2 cases (residents or staff) within 48 hours, over 48 hours after the last case is
+// symptom-free and at least 72 hours after the last onset; flu at 2 resident cases within 5 days,
+// over 5 days after the last resident onset (staff cases are managed but not counted). Never over
+// while a counted case is still ill. While one is on, the Lounge closes and only essential visits go ahead. With nobody infected none of this runs or draws randomness.
 
 import type { Disease, Source } from "@vch/shared-types";
 import { excludeUpcoming, sendHomeSick } from "./cover.js";
@@ -107,17 +109,21 @@ function onset(world: World, p: Person): void {
   if (p.resident) emit(world, "infection.isolated", [p.id], { personId: p.id, disease: inf.disease, roomId: p.resident.data.room.split(".")[0]! });
   else sendHomeSick(world, p);
 
-  world.onsets.push({ personId: p.id, disease: inf.disease, t: world.t });
+  // Only cases the disease's rule counts (flu: residents only) declare or prolong an outbreak.
+  const rule = cfg.outbreak.declare[inf.disease];
+  if (rule.count === "residents" && !p.resident) return;
+  world.onsets.push({ personId: p.id, disease: inf.disease, t: world.t, symptomsEndT: inf.symptomsEndT });
   const on = world.outbreaks.find((o) => o.disease === inf.disease && o.overT === null);
   if (on) {
     on.cases.push(p.id);
+    on.caseEndTs.push(inf.symptomsEndT);
     on.lastCaseT = world.t;
     return;
   }
-  const recent = world.onsets.filter((o) => o.disease === inf.disease && world.t - o.t <= cfg.outbreak.within_hours * HOUR);
-  if (recent.length >= cfg.outbreak.cases) {
+  const recent = world.onsets.filter((o) => o.disease === inf.disease && world.t - o.t <= rule.within_hours * HOUR);
+  if (recent.length >= rule.cases) {
     const cases = recent.map((o) => o.personId);
-    world.outbreaks.push({ disease: inf.disease, declaredT: world.t, lastCaseT: world.t, cases, overT: null });
+    world.outbreaks.push({ disease: inf.disease, declaredT: world.t, lastCaseT: world.t, cases, caseEndTs: recent.map((o) => o.symptomsEndT), overT: null });
     if (world.director) world.director.quietUntil = Number.MAX_SAFE_INTEGER;
     emit(world, "outbreak.declared", cases, { disease: inf.disease, cases });
   }
@@ -169,11 +175,13 @@ export function infectionMinute(world: World): void {
   const cfg = world.config!.infection.outbreak;
   for (const o of world.outbreaks) {
     if (o.overT !== null) continue;
-    const cases = o.cases.map((id) => world.people.get(id)?.infection).filter((inf) => inf?.disease === o.disease);
-    if (cases.some((inf) => !inf!.recovered)) continue;
+    // Every counted case symptom-free first (from the times recorded when each was counted).
+    const lastRecovery = Math.max(...o.caseEndTs);
+    if (t < lastRecovery) continue;
     const rule = cfg.end[o.disease];
-    const from = rule.after === "onset" ? o.lastCaseT : Math.max(...cases.map((inf) => inf!.symptomsEndT));
+    const from = rule.after === "onset" ? o.lastCaseT : lastRecovery;
     if (t - from < rule.hours * HOUR) continue;
+    if (rule.min_after_onset_hours !== undefined && t - o.lastCaseT < rule.min_after_onset_hours * HOUR) continue;
     o.overT = t;
     emit(world, "outbreak.over", o.cases, { disease: o.disease, cases: o.cases, days: Math.round(((t - o.declaredT) / 86400) * 10) / 10 });
     if (world.director && !outbreakOn(world)) world.director.quietUntil = t + (world.director.settings.config.pacing.outbreak_quiet_days * 86400);

@@ -60,11 +60,19 @@ function outbreakOutcomes(r: Run): void {
   const over = ofType(r.events, "outbreak.over");
   expect(declared.length).toBeGreaterThan(0);
   expect(over.length).toBe(declared.length);
-  // Declared at the second case within 48 hours; over exactly 48 hours after the last case.
+  // Declared per disease (norovirus: 2 cases within 48 hours, residents or staff; flu: 2 resident
+  // cases within 5 days), counting only the cases the rule counts.
   const onsets = ofType(r.events, "infection.symptomatic");
   for (const d of declared) {
-    const window = onsets.filter((o) => o.payload.disease === d.payload.disease && o.t <= d.t && d.t - o.t <= 48 * 3600);
-    expect(window.length).toBeGreaterThanOrEqual(2);
+    const rule = config.infection.outbreak.declare[d.payload.disease];
+    const counted = (id: string) => rule.count === "residents_and_staff" || id.startsWith("res_");
+    for (const id of d.payload.cases) expect(counted(id), `${id} counted`).toBe(true);
+    const window = onsets.filter((o) => o.payload.disease === d.payload.disease && counted(o.payload.personId) && o.t <= d.t && d.t - o.t <= rule.within_hours * 3600);
+    expect(window.length).toBeGreaterThanOrEqual(rule.cases);
+  }
+  for (const o of over) {
+    const rule = config.infection.outbreak.declare[o.payload.disease];
+    for (const id of o.payload.cases) expect(rule.count === "residents_and_staff" || id.startsWith("res_")).toBe(true);
   }
   // Over as UK practice has it (norovirus: 48 hours after the last case is symptom-free; flu: 5 days
   // after the last onset), and never while a case is still ill.
@@ -75,7 +83,11 @@ function outbreakOutcomes(r: Run): void {
     const lastRecovery = Math.max(...recovered.filter(mine).map((x) => x.t));
     expect(recovered.filter(mine).length, "every case symptom-free first").toBe(o.payload.cases.length);
     const rule = config.infection.outbreak.end[o.payload.disease];
-    const due = rule.after === "onset" ? Math.max(lastOnset + rule.hours * 3600, lastRecovery) : lastRecovery + rule.hours * 3600;
+    const due = Math.max(
+      rule.after === "onset" ? lastOnset + rule.hours * 3600 : lastRecovery + rule.hours * 3600,
+      lastRecovery,
+      lastOnset + (rule.min_after_onset_hours ?? 0) * 3600,
+    );
     expect(o.t - due).toBeGreaterThanOrEqual(0);
     expect(o.t - due).toBeLessThan(60);
   }
@@ -143,7 +155,7 @@ describe("the norovirus-outbreak scenario", () => {
     expect(scenarioRun("norovirus-outbreak", 16).hash).toBe(r.hash);
   });
 
-  it("isolates Stan and Peggy, declares the outbreak at Peggy's case, closes the Lounge, restricts visits, and ends it 48 hours after the last case is symptom-free", () => {
+  it("isolates Stan and Peggy, declares the outbreak at Peggy's case, closes the Lounge, restricts visits, and ends it 48 hours after the last case is symptom-free (at least 72 hours after the last onset)", () => {
     const iso = ofType(r.events, "infection.isolated").map((e) => e.payload.personId);
     expect(iso.slice(0, 2)).toEqual(["res_stan", "res_peggy"]);
     const declared = ofType(r.events, "outbreak.declared")[0]!;
@@ -183,16 +195,37 @@ describe("the flu-outbreak scenario", () => {
     expect(scenarioRun("flu-outbreak", 16).hash).toBe(r.hash);
   });
 
-  it("isolates Win, keeps Tom off work, declares the outbreak at Tom's case and ends it 5 days after the last onset, once everyone is symptom-free", () => {
-    expect(ofType(r.events, "infection.isolated")[0]!.payload.personId).toBe("res_win");
+  it("isolates Win, keeps Tom off work without counting him, declares the outbreak at Arthur's case (2 residents within 5 days) and ends it 5 days after the last resident onset, once they're symptom-free", () => {
+    expect(ofType(r.events, "infection.isolated").slice(0, 2).map((e) => e.payload.personId)).toEqual(["res_win", "res_arthur"]);
     const declared = ofType(r.events, "outbreak.declared")[0]!;
-    expect(declared.payload).toMatchObject({ disease: "flu", cases: ["res_win", "stf_tom"] });
-    // Tom was ill at home before his Friday early: he's off sick for it, with cover.
+    expect(declared.payload).toMatchObject({ disease: "flu", cases: ["res_win", "res_arthur"] });
+    expect(formatSimTime(declared.t)).toMatch(/^Sat .* 16:00$/);
+    // Tom was ill at home before his Friday early: off sick with cover, logged, but no outbreak on his case.
+    const tom = ofType(r.events, "infection.symptomatic").find((e) => e.payload.personId === "stf_tom")!;
+    expect(tom.t).toBeLessThan(declared.t);
+    expect(ofType(r.events, "outbreak.declared").filter((e) => e.t <= tom.t + 60)).toEqual([]);
     const absent = ofType(r.events, "staff.absent").filter((e) => e.payload.staffId === "stf_tom");
     expect(absent.length).toBeGreaterThan(0);
     expect(absent[0]!.payload.reason).toBe("sick");
+    for (const o of ofType(r.events, "outbreak.over")) expect(o.payload.cases).not.toContain("stf_tom");
     outbreakOutcomes(r);
   });
+});
+
+describe("an outbreak's end", () => {
+  it("waits for every counted case, even one who has left the world since (an agency worker after their shift)", () => {
+    const sim = createSim({ seed: "1", data, director: { config, random: false, scenario: loadScenario("norovirus-outbreak") } });
+    while (sim.world.outbreaks.length === 0) sim.step();
+    const o = sim.world.outbreaks[0]!;
+    // A case whose person is gone from the world, still ill for 10 more days.
+    o.cases.push("agy_999");
+    o.caseEndTs.push(sim.t + 10 * SECONDS_PER_DAY);
+    for (let i = 0; i < 9 * DAY; i++) sim.step();
+    expect(o.overT).toBeNull();
+    for (let i = 0; i < 3 * DAY; i++) sim.step();
+    expect(o.overT).not.toBeNull();
+    expect(o.overT! - (o.caseEndTs.at(-1)! + 48 * 3600)).toBeGreaterThanOrEqual(0);
+  }, 60000);
 });
 
 describe("staff going home ill", () => {

@@ -46,8 +46,11 @@ Sub-milestone (a) merged (PR #7). Sub-milestone (b) built on branch `director-ou
   - **Web:** an unwell icon, the infection status in the inspector, infection triggers in the Director tab, Notable lines for cases and outbreaks.
   - **Fixed along the way:** a night bridge booked for a carer who then went home ill left the floor uncovered (found on norovirus seed 6).
   - **Tests:** `outbreaks.test.ts` (routes, both scenarios with outcomes and replays, staff going home ill, introductions); a web icon test.
-  - **Outbreak end** switched to UK practice on review (norovirus 48 h after the last case is symptom-free; flu 5 days after the last onset, UKHSA 2024; never while a case is ill).
-  - **Results:** 4 weeks random, seeds 1 to 8: 0 hard violations, 18 breaches, 2 outbreaks (6.2 and 5.3 days). Both scenarios on seeds 1 to 8 over 3 weeks: 0 hard violations; outbreaks 3 to 14.6 days (reports in `reports/b-*.txt`).
+  - **On review:** outbreaks are declared and ended per disease as UK guidance has it.
+    - Norovirus: 2 cases within 48 hours; over 48 h after the last case is symptom-free and 72 h after the last onset.
+    - Flu: 2 resident cases within 5 days, staff not counted; over 5 days after the last resident onset (UKHSA 2024).
+    - Fixed: an outbreak could end while an agency worker who had caught it was still ill, because they had left the world.
+  - **Results:** 4 weeks random, seeds 1 to 8: 0 hard violations, 20 breaches, 1 outbreak (5.3 days). Both scenarios on seeds 1 to 8 over 3 weeks: 0 hard violations; norovirus outbreaks 3 to 14.4 days, flu 5 to 12.6 (reports in `reports/b-*.txt`).
 
 ## In progress
 

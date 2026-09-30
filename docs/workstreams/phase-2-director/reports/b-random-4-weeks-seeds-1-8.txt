@@ -249,19 +249,20 @@
     13:21  Shanice off sick for late.ca at 14:00 (director)
     13:21    cover: agency Ioana Radu, arriving 15:14
     15:04  Catherine caught flu (airborne (proxy) from Peggy, Room5)
-  Mon 16 Nov  ordinary   1 sick, 2 ill (infection), 1 no-show, 0 breaches
+  Mon 16 Nov  ordinary   1 sick, 2 ill (infection), 1 no-show, 1 breach
     00:00  Florin off sick for night.carer at 21:15 (engine)
     00:00    cover: bank Lucy Brennan, arriving 21:05
     14:35  Aisha ill with flu
     14:35  Aisha went home ill for late.ca at 14:35 (engine)
     14:35    cover: agency Kwame Asante, arriving 16:26
-    14:35  flu OUTBREAK declared (Florin, Aisha, Catherine): Lounge closed, essential visits only
+    15:41  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Aisha didn't turn up (late), agency from 16:26]
     16:46  Catherine ill with flu
-  Tue 17 Nov  ordinary   2 sick, 0 breaches
+  Tue 17 Nov  ordinary   2 sick, 1 breach
     00:00  Aisha off sick for late.ca at 14:00 (engine)
     00:00    cover: agency Rohan Pillai, arriving 13:50
     00:00  Florin off sick for night.carer at 21:15 (engine)
     00:00    cover: bank Lucy Brennan, arriving 21:05
+    20:08  breach request_wait: Toilet for Peggy waiting 30 min [no emergency]
   Wed 18 Nov  ordinary   2 sick, 0 breaches
     00:00  Aisha off sick for late.ca at 14:00 (engine)
     00:00    cover: bank Shanice Clarke, arriving 13:50
@@ -275,7 +276,6 @@
     00:00    cover: agency Emma Walsh, arriving 21:05
   Sat 21 Nov  ordinary   0 breaches
   Sun 22 Nov  busy       0 breaches
-    19:11  flu outbreak over after 6.2 days, 3 cases
   Mon 23 Nov  ordinary   1 sick, 0 breaches
     00:00  Aisha off sick for late.ca at 14:00 (engine)
     00:00    cover: bank Shanice Clarke, arriving 13:50
@@ -427,17 +427,17 @@
   cover: bank 17, agency 39, main building 2 (late carer bridging 2), none 2
   held back by pacing caps: none
   skipped when due: none
-  service breaches: 18 (2 on days with no director event, 16 on days with one)
+  service breaches: 20 (2 on days with no director event, 18 on days with one)
        4  reposition, short-staffed
-       2  lounge_supervision, short-staffed
+       3  lounge_supervision, short-staffed
        2  request_wait, short-staffed
        2  reposition, no emergency
+       2  request_wait, no emergency
        2  resident_check, short-staffed
        2  reposition, isolation care
        1  reposition, short-staffed + isolation care
        1  request_wait, short-staffed + isolation care
        1  resident_check, isolation care
-       1  request_wait, no emergency
   infection cases (ill): flu 7, norovirus 4; caught by route: introduced 4, airborne (proxy) 5, contact 4; staff sent home ill: 2
-  outbreaks: 2 over; flu 6.2 days, 3 cases; norovirus 5.3 days, 3 cases; visits cancelled: 37
+  outbreaks: 1 over; norovirus 5.3 days, 3 cases; visits cancelled: 18
   hard violations: 0

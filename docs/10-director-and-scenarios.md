@@ -126,7 +126,7 @@ No event type is meaningfully suppressed.
   - `calm-week`: no events and no random ones. This is the baseline for the tuning-debt review.
   - `short-staffed-weekend`: Tom off sick on Friday's early (agency from about 07:20); Saturday's agency night carer doesn't come and Shanice stays on; Aisha off sick on Monday's late, covered by Lucy. It's checked by `test/director.test.ts` (0 hard violations on every tick, and a byte-identical replay).
   - `norovirus-outbreak`: Stan falls ill on Wednesday at 14:20 and Peggy on Thursday at 09:10, which declares the outbreak.
-  - `flu-outbreak`: Win falls ill with flu on Thursday at 10:00 (brought in by a visitor) and Tom on Friday at 05:30, at home before his early shift.
+  - `flu-outbreak`: Win falls ill with flu on Thursday at 10:00 (brought in by a visitor); Tom on Friday at 05:30, at home before his early shift (a staff case: off work and logged, not counted); Arthur on Saturday at 16:00, the second resident case within 5 days, which declares the outbreak.
   - Both are checked by `test/outbreaks.test.ts`: expected outcomes and a byte-identical replay (seed 1, 16 days).
 
 ## Admin panel, Notable feed and event log (docs/08)
@@ -196,13 +196,20 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
 - **Staff.** A member of staff with symptoms goes home, and misses every shift until they're clear:
   - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, the main-building night carer comes, and they stay until she's here.
   - **Taken ill off duty:** each shift before they're clear is a sick call, with cover.
-- **Outbreaks.**
-  - **Declared** at 2 cases of the same disease within 48 hours (`outbreak.declared`, with the cases). Then the Lounge closes (everyone stays in their room, and Bev's session doesn't run), and only essential visits go ahead (to a resident at the end of their life: Dennis). Other planned visits are cancelled (`visit.cancelled`); anyone visiting finishes and goes.
-  - **Over** as UK practice has it, and never while any case is still ill (`outbreak.over`, with its length):
-    - **Norovirus:** 48 hours after the last case is symptom-free.
-    - **Flu:** 5 days after the onset of symptoms in the most recent case. This follows UKHSA, [Management of acute respiratory infection outbreaks in care homes](https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance) (updated 24 July 2024): "Outbreak measures can be lifted 5 days after the onset of symptoms in the most recent symptomatic resident".
-    - **Cases counted:** staff cases count as well as residents (more cautious than the guidance, which counts residents).
-    - **Where it's set:** `infection.outbreak.end` in `data/director.json`, with the citation.
+- **Outbreaks**, declared and ended per disease as UK guidance has it (`infection.outbreak` in `data/director.json`, with the citations):
+
+  | | Declared | Counted cases | Over, and never while a counted case is still ill |
+  |---|---|---|---|
+  | Norovirus | 2 or more linked cases within 48 hours | residents and staff | 48 hours after the last case is symptom-free, and at least 72 hours after the last onset |
+  | Flu | 2 or more linked resident cases within 5 days | residents only; staff cases are managed (off work, logged) but not counted | 5 days after the onset of symptoms in the most recent resident case |
+
+  - **Sources:**
+    - Norovirus Working Party, [*Guidelines for the management of norovirus outbreaks in acute and community health and social care settings*](https://www.gov.uk/government/publications/norovirus-managing-outbreaks-in-acute-and-community-health-and-social-care-settings) (2012, published by PHE on gov.uk). The start: "two or more cases linked in time and place". The end: "48h after the resolution of vomiting and/or diarrhoea in the last known case and at least 72h after the initial onset of the last new case". The 48-hour window for declaring is from local care-home guidance, for example Bolton Council's *Diarrhoea & Vomiting (Enteric) Outbreaks in Care Homes* flow chart: "If there is 2 or more linked cases within 48 hours".
+    - UKHSA, [*Management of acute respiratory infection outbreaks in care homes*](https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance) (updated 24 July 2024). An outbreak is "2 or more ARI or ILI cases in epidemiologically-linked residents", with "a 5-day window for case onset". The end: "Outbreak measures can be lifted 5 days after the onset of symptoms in the most recent symptomatic resident".
+    - All six residents of the wing count as linked.
+  - **While one is on:** the Lounge closes (everyone stays in their room, and Bev's session doesn't run), and only essential visits go ahead (to a resident at the end of their life: Dennis). Other planned visits are cancelled (`visit.cancelled`); anyone visiting finishes and goes.
+  - **Logged as** `outbreak.declared` (with the counted cases) and `outbreak.over` (with its length).
+  - **Every counted case's symptom end is recorded on the outbreak** when it's counted. So an outbreak waits for a case who has since left the world, such as an agency worker after their shift.
 - **Infection state**, readable by the future air model: `person.infection` holds `{disease, exposedT, route, infectiousFromT, symptomaticFromT, symptomsEndT, infectiousUntilT, isolatedUntilT, …}`. Every change is an event (`infection.exposed` with the route, source and room; `infection.symptomatic`; `infection.recovered`). `PersonView.infection` gives the status and isolation for the badge.
 - **Breach causes:** "during norovirus outbreak (Stan, Peggy isolated)", or "isolation care (Stan)" before an outbreak is declared.
 - **Calibration** (both scenarios, seeds 1 to 8, 3 weeks each):
@@ -210,19 +217,13 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
   - **Flu:** 15 residents and 23 staff ill, almost all by the airborne proxy. Six seeds stop at the 2 scripted cases; seeds 6 and 8 spread widely through people infectious before their symptoms.
   - These are plausible for a care home but not fitted to data: every number is in `data/director.json`.
 
-**Results with the UK end rules (2026-09-30):**
+**Results with the UK declaration and end rules (2026-09-30):**
 
 | Run | Ill (residents / staff) | Outbreaks, days | Service breaches | Hard violations |
 |---|---|---|---|---|
-| Random, seeds 1 to 8, 4 weeks | 4 / 7 (4 brought in) | 2: flu 6.2, norovirus 5.3 | 18 | 0 |
-| `norovirus-outbreak`, seeds 1 to 8, 3 weeks | 18 / 23 | 10: 3 to 11.1 (median about 6) | 19 | 0 |
-| `flu-outbreak`, seeds 1 to 8, 3 weeks | 10 / 19 | 8: 5 to 14.6 (six of 5 to 7.6, two of 14.6), none still on | 16 | 0 |
-
-**Compared with the first rule** (48 hours after the last onset):
-- Outbreaks last longer, since none ends while a case is ill.
-- A flu wave is no longer split into several outbreaks: 13 declared before, 8 now.
-- More visits are cancelled.
-- Fewer people fall ill, since the Lounge stays closed until the wave has passed (flu: 15 to 10 residents and 23 to 19 staff; norovirus staff: 28 to 23).
+| Random, seeds 1 to 8, 4 weeks | 4 / 7 (4 brought in) | 1: norovirus 5.3 (a flu cluster among staff alone is managed but isn't an outbreak) | 20 | 0 |
+| `norovirus-outbreak`, seeds 1 to 8, 3 weeks | 18 / 23 | 9: 3 to 14.4 (median about 7) | 19 | 0 |
+| `flu-outbreak` (Win, Tom, Arthur), seeds 1 to 8, 3 weeks | 18 / 25 (16 and 8 of them scripted) | 8: seven of 5 to 5.9, one of 12.6 | 23 | 0 |
 
 ## Deaths switch
 

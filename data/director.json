@@ -56,11 +56,13 @@
     "ppe": { "contact": 0.3, "airborne": 0.5 },
     "ppe_extra_mins": 3,
     "outbreak": {
-      "cases": 2,
-      "within_hours": 48,
+      "declare": {
+        "norovirus": { "cases": 2, "within_hours": 48, "count": "residents_and_staff", "note": "2 or more linked cases within 48 hours, residents and staff. Norovirus Working Party, Guidelines for the management of norovirus outbreaks in acute and community health and social care settings (2012, published by PHE on gov.uk): 'two or more cases linked in time and place'; the 48-hour window as in local care-home guidance, e.g. Bolton Council, Diarrhoea & Vomiting (Enteric) Outbreaks in Care Homes flow chart: 'If there is 2 or more linked cases within 48 hours'. https://www.gov.uk/government/publications/norovirus-managing-outbreaks-in-acute-and-community-health-and-social-care-settings" },
+        "flu": { "cases": 2, "within_hours": 120, "count": "residents", "note": "2 or more linked resident cases within 5 days; staff cases are managed and logged but don't count. UKHSA, Management of acute respiratory infection outbreaks in care homes (updated 24 July 2024): '2 or more ARI or ILI cases in epidemiologically-linked residents', with 'a 5-day window for case onset'. https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance" }
+      },
       "end": {
-        "norovirus": { "hours": 48, "after": "recovery", "note": "Over 48 hours after the last case is symptom-free (UK practice; project decision 2026-09-30)." },
-        "flu": { "hours": 120, "after": "onset", "note": "UKHSA, Management of acute respiratory infection outbreaks in care homes (updated 24 July 2024): outbreak measures can be lifted 5 days after the onset of symptoms in the most recent symptomatic resident. https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance" }
+        "norovirus": { "hours": 48, "after": "recovery", "min_after_onset_hours": 72, "note": "48 hours after the last case is symptom-free, and at least 72 hours after the last onset. Norovirus Working Party (2012): '48h after the resolution of vomiting and/or diarrhoea in the last known case and at least 72h after the initial onset of the last new case'." },
+        "flu": { "hours": 120, "after": "onset", "note": "5 days after the onset of symptoms in the most recent resident case. UKHSA (updated 24 July 2024): 'Outbreak measures can be lifted 5 days after the onset of symptoms in the most recent symptomatic resident'." }
       }
     },
     "index_staff_share": 0.3

@@ -94,11 +94,18 @@ export interface DirectorConfig {
     /** Extra minutes per care visit to an isolated resident (putting PPE on and off). */
     ppe_extra_mins: number;
     /**
-     * An outbreak is declared at `cases` cases within `within_hours`. It's over `end[disease].hours`
-     * after the last case's symptom onset or recovery (norovirus: 48 h after the last case is
-     * symptom-free; flu: 5 days after the last onset, UKHSA 2024), and never while a case is still ill.
+     * Per disease, as UK guidance has it (citations in data/director.json):
+     * - declared at `cases` cases within `within_hours`, counting residents and staff (norovirus: 2
+     *   within 48 hours) or residents only (flu: 2 within 5 days; staff cases managed and logged but
+     *   not counted towards declaring or ending it);
+     * - over `hours` after the last counted case's onset or recovery (norovirus: 48 h after the last
+     *   case is symptom-free and at least 72 h after the last onset; flu: 5 days after the last
+     *   onset), and never while a counted case is still ill.
      */
-    outbreak: { cases: number; within_hours: number; end: Record<Disease, { hours: number; after: "onset" | "recovery"; note?: string }> };
+    outbreak: {
+      declare: Record<Disease, { cases: number; within_hours: number; count: "residents_and_staff" | "residents"; note?: string }>;
+      end: Record<Disease, { hours: number; after: "onset" | "recovery"; min_after_onset_hours?: number; note?: string }>;
+    };
     /** Share of introductions that start with a member of staff (the rest with a resident). */
     index_staff_share: number;
   };

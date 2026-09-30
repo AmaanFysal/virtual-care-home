@@ -63,7 +63,10 @@ Decisions made while building (b):
 16. **Introductions** are major events, and none comes while an outbreak is on or within 14 days of one ending.
 17. **The rules need the tuning file** even with the director off (a manual infection case): `createSim({ config })`, always passed by the server.
 18. **A night bridge** is whoever is on the late shift when the night starts (the one booked may have gone home ill); without one, the late staff stay until relieved. **A night carer taken ill in the night** stays until the main-building carer arrives.
-19. **Outbreak end** (project owner, 2026-09-30): UK practice. Norovirus 48 hours after the last case is symptom-free; flu 5 days after the last onset (UKHSA, updated 24 July 2024); never while a case is still ill.
+19. **Outbreak declaration and end** (project owner, 2026-09-30): UK guidance per disease, with citations in data/director.json and docs/10.
+    - **Norovirus:** 2 cases within 48 hours (residents and staff); over 48 hours after the last case is symptom-free and at least 72 hours after the last onset (Norovirus Working Party 2012).
+    - **Flu:** 2 linked resident cases within 5 days, with staff cases managed and logged but not counted; over 5 days after the last resident onset (UKHSA, updated 24 July 2024).
+    - **Both:** never over while a counted case is still ill.
 20. **Breach causes** include "during norovirus outbreak (…isolated)" and "isolation care (…)".
 
 ## Acceptance for each sub-milestone
