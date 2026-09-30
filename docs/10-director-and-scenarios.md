@@ -6,9 +6,10 @@
 > - Sub-milestone (a) is built: the director core, falls, sick calls and no-shows, scenario files, the admin panel, the Notable feed and the per-day report.
 > - Sub-milestone (b) is built: infection state, spread through pluggable routes, isolation, outbreaks and the two outbreak scenarios.
 > - Sub-milestone (c) is built: illness, hospital stays by cause with care changes after, end of life, death and new admissions.
-> - Sub-milestones (d) and (e) are designed below.
+> - Sub-milestone (d) is built: visitors' missed weeks with causes and seasons, birthdays and festivals.
+> - Sub-milestone (e) is designed below.
 >
-> Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`, `src/health.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
+> Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`, `src/health.ts`, `src/celebrations.ts`, `src/director/calendar.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
 
 ## How it works
 
@@ -42,11 +43,11 @@ Rates are for six residents. Every number is in `data/director.json`.
 |---|---|---|---|---|---|
 | 1 | Fall (`inject_fall`) | 1.249 per resident a year (1,249 per 1,000 residents; plan-v2), about 7.5 a year on the wing. 12% serious (a major event) | Hour weights with a morning peak (06:00 to 10:00). ×1.5 for 4 h from a sundowning resident's onset: this moves their falls to dusk rather than adding more. Falls risk high ×2, medium ×1, low ×0.3, bed-bound ×0.1: these share out the wing's rate rather than adding to it. ×1.3 during a shift with a planned absence. ×1.5 while ill, and ×1.5 for 2 weeks after a hospital return (these add falls) | The fall procedure, unchanged | (a) built; illness and return factors (c) |
 | 2 | Sick call (`staff_sick {staffId, cover?}`) and agency no-show (`shift_no_show {slot, cover?}`) | Each rostered shift in a care or RN slot: the staff card's `sickness_propensity` (about 1.2 calls a week); each agency shift 2%. Winter (Nov to Mar) ×1.3 | The call comes 30 to 60 min before the shift; a no-show is found at the shift start | The cover rule (below) | (a) built |
-| 3 | Visitor misses a week (`visitor_week_off {visitorId, cause}`) | With the director on, the weekly quota uses every pattern day; absences come from here at 1 − reliability per visitor-week | Holidays in summer and at Christmas; illness in winter | That week's visits cancelled, with the cause logged | (d) |
+| 3 | Visitor misses a week (`visitor_week_off {visitorId, cause}`) | About 5 weeks a year for each regular visitor (reliability 0.5 or more), at most 1 − reliability of their weeks; their other weeks are scaled up so visits stay the same on average. Occasional visitors keep their pattern | Holidays in July, August and at Christmas; illness in winter | The rest of that week's visits cancelled, with the cause logged | (d) built |
 | 4 | Illness (`resident_illness {residentId, kind, severity}`), hospital admission and return | 0.70 unplanned admissions per resident a year (Health Foundation 2019), 4.2 a year on the wing: serious falls plus severe illness. About 5 more illnesses a year looked after at home | Chest infections ×1.5 in winter | Mild: rest in their room, hourly checks, drinks at every contact, falls ×1.5. Severe: GP, then ambulance. A stay by cause, then care changes stored as overrides (see "Illness, hospital, end of life and admissions") | (c) built |
 | 5 | Infection (`infection_case {personId, disease}`) | Norovirus about 1 a winter, flu about 1 a winter | Season; visitors and new admissions can bring it in | Symptomatic residents isolated (care and meals in their room, no Lounge, +3 min per care visit for PPE); sick staff go off through the cover rule for 48 h after symptoms stop. Outbreak declared at 2 cases within 48 h (Lounge closed, essential visits only) and over after 48 h with no new case. **Spread through per-disease routes: contact, plus an airborne proxy (time in the same room as an infectious person, scaled by the disease's airborne weight, logged as "airborne (proxy)"), replaced later by the air model in the same slot** (see "Infection routes") | (b) built |
 | 6 | End of life (`end_of_life_start {residentId, expectedDays}`), death, admission (`admission {cardId}`) | 0.262 deaths per resident a year (26.2% within a year; plan-v2), 1.6 a year on the wing, through a planned decline of 7 to 28 days | A resident already on an end-of-life plan (Dennis) ×10 | Checks hourly (every 30 min in the last 3 days), family visiting every day, later and for longer; death at the planned time, handled with dignity (family informed, the room left empty, a quiet log). A new admission 2 to 6 weeks later from `data/personas/admissions.json`, reviewed by the project owner first. Off with `deaths: false` | (c) built |
-| 7 | Celebrations (`celebration {kind, residentId?}`) | Birthdays from each dob; festivals from faith (Christmas, Easter, Vaisakhi for Raj, …) | — | All the family visits, longer visits, tea and cake in the Lounge | (d) |
+| 7 | Celebrations (`celebration {kind, name, residentIds}`) | Birthdays from each dob; festivals from faith: Christmas (everyone), Easter (Christian), Vaisakhi (Raj), Diwali (Kamala) | Not during an outbreak | More family, longer visits, tea and cake in the Lounge (or their room) with Bev if she's on | (d) built |
 
 ## The cover rule (sub-milestone a)
 
@@ -290,6 +291,55 @@ Code: `src/health.ts`, and the planner's steps 5 and 6 (`director/plan.ts`). Tun
 - A walking resident couldn't move into Raj's room (his wheelchair spot was still there).
 - In the last days, a bed-bound resident was still walked to the toilet on request.
 
+## Visitors' missed weeks and celebrations (sub-milestone d, built)
+
+Code: `src/visitors.ts`, `src/celebrations.ts`, `src/lounge.ts`, `src/director/calendar.ts`, and step 7 of the planner (`director/plan.ts`). Tuning: `data/director.json` `visitors` and `celebrations`. Missed weeks draw from their own `visitor_weeks` random stream, so every other event the director plans is the same with or without them.
+
+- **Missed weeks** (`visitor_week_off {visitorId, cause}` → `visitor.week_off {cause, untilT}`):
+  - **Who:** the 14 lead visitors whose reliability is 0.5 or more (Linda, Chloe, Funmi, Sister Grace, Hannah, Kuldip, Harpreet, Maureen, Tracey, Sarah, Paul, Mia, Pat and Father Michael), plus Kamala's daughter Hema once she moves in. The 7 occasional visitors (Gary 0.04, Bernard 0.05, Sheila 0.1, Tunde 0.12, Colin 0.25, Terry 0.3, Kayode 0.4) keep their weekly quota: their quiet weeks are how they visit, not absences, and logging "holiday" for 96% of Gary's weeks would say nothing. Companions miss the weeks their lead misses.
+  - **How often:** about 5 whole weeks a year (an assumption: about 3 on holiday, 1 ill, 1 for family reasons), at most 1 − reliability of their weeks (Kuldip, 0.95: at most 1 week in 20). Planned on Mondays (and on the first day, for the rest of that week).
+  - **Seasons:** holidays ×2 in July, ×2.5 in August and ×1.5 in December; illness ×1.8 from November to March; family reasons all year. The factors are normalised over the year.
+  - **Visits kept the same on average:** a regular visitor's other weeks use reliability / (1 − share of weeks off) for the weekly quota (docs/05), so over a year they visit as often as with the director off.
+  - **Applied:** the rest of that week's visits are off; a visit planned for later that day is cancelled (`visit.cancelled`, "week off (holiday)"); anyone already visiting finishes. Not for the family of a resident at the end of their life.
+  - **Why not 1 − reliability per week, as first designed:** Maureen (0.7) would miss 30% of weeks and Gary 96%, each with a cause. The share of weeks off is now a plausible 5 a year, and the rest of reliability stays in the weekly quota.
+- **Celebrations** (`celebration {kind, name, residentIds}` → `celebration.started {gathering}`):
+  - **From the calendar** in random mode (`origin: "calendar"`, the same in every run): a birthday for each resident on the wing from their card's date of birth; festivals from their card's faith (`celebrations.faiths` maps words like "church", "Catholic" and "Pentecostal" to Christian):
+
+    | Festival | For | Date |
+    |---|---|---|
+    | Christmas | everyone, faith or none | 25 December |
+    | Easter | Christian residents (Peggy, Win, Arthur, Dennis) | Western Easter Sunday (Gregorian computus) |
+    | Vaisakhi | Sikh (Raj: "be home for Vaisakhi") | 14 April |
+    | Diwali | Hindu (Kamala: "go to the temple for Diwali") | Lakshmi Puja, UK dates 2026 to 2029 from [Royal Museums Greenwich](https://www.rmg.co.uk/stories/time/when-diwali) and [diwali.info](https://diwali.info/diwali-dates) |
+
+    A scenario or the admin panel can start one on any day.
+  - **More family:** every lead visitor of the residents celebrating comes with their usual chance plus 0.5 (up to 0.95), arriving 14:00 to 15:00 and staying 1.5 times as long (at least 2 hours); one already coming later that day comes in time for tea instead, and one coming earlier stays until after it. Companions come with at least 0.8. A visitor away that week stays away.
+  - **Tea and cake, 15:00 to 16:00:** in the Lounge (everyone who uses it stays for it), or in the resident's room for someone who doesn't (Raj, Dennis). Bev leads it as a session when she's on (Monday to Thursday); otherwise it comes with the carers' afternoon tea. Everyone who came during the hour is logged when it ends (`celebration.tea {roomId, staffId, residentIds, visitorIds}`).
+  - **Not during an outbreak:** `celebration.started` with `gathering: false` ("outbreak: no gathering, essential visits only"), no extra visits and no tea.
+- **Scenario `birthday-party`:** Peggy's birthday on Wednesday, one of Bev's days. Tested on seeds 1 to 4: her family arrive 14:00 to 15:00 and stay at least 2 hours, at least two of them come to tea in the Lounge with Bev and Peggy, more of her family come than on an ordinary Wednesday and the Lounge is fuller at tea time, 0 hard violations, and a byte-identical replay.
+- **Reporting:** the per-day report gives each day's visitors and person-hours in the Lounge (residents and visitors, rebuilt from `person.entered_room`), missed weeks by cause and month, and visitors and the Lounge on celebration days against ordinary days, over the day and at tea (15:00 to 16:00).
+
+**Results (2026-09-30):**
+- **Realised rates** (planner only, seeds 1 to 8, 200 years each; `reports/d-realised-rates.txt`):
+  - missed weeks 66.96 a year against 67.60 (−0.9%) for the 14 regular visitors: holiday 55%, illness 25%, family 20%;
+  - by month, most in August (8.0) and July (7.0), then December (6.7); fewest in September (4.5);
+  - every other rate is unchanged from (c), because missed weeks have their own stream.
+- **Random director, seeds 1 to 8, a year each** (416 wing-weeks; `reports/d-random-52-weeks-seeds-1-8.txt`):
+
+  | Kind of day | Days | Visitors a day | Lounge person-hours a day (residents / visitors) | In the Lounge at tea, on average (residents / visitors) |
+  |---|---|---|---|---|
+  | Celebration | 78 | 8.6 | 17.3 / 5.9 | 4.0 / 3.9 |
+  | Ordinary | 2,799 | 4.9 | 17.8 / 1.6 | 3.6 / 1.0 |
+  | Outbreak | 26 | 1.3 | 1.9 / 0.1 | 0.2 / 0.1 |
+  | Celebration during an outbreak (no gathering) | 1 | 1.0 | 0 / 0 | 0 / 0 |
+
+  - The celebrations: every resident's birthday while they were on the wing, Christmas, Easter and Diwali on all 8 seeds (Kamala had moved in by October 2027), Vaisakhi on 6 (Raj had died on 2), and one birthday in a norovirus outbreak with no gathering.
+  - Residents' Lounge hours over the whole day aren't higher on celebration days: Christmas (a Friday) and Easter (a Sunday) have no morning session with Bev, and Raj's and Dennis's birthdays are in their rooms. At tea the Lounge is fuller, and visitors in it nearly four times as many.
+  - Missed weeks: 504 (holiday 262, illness 141, family 101), cancelling 135 planned visits.
+  - 0 hard violations; no sprite clashes.
+  - 469 service breaches, 181 on days without a director event. 158 of those are Dennis's turns on the three seeds where Kamala moved in while he was alive (docs/12); without them, calm days have about 0.05 breaches a week.
+- **`birthday-party`, seeds 1 to 8, a week each** (`reports/d-birthday-party-1-week-seeds-1-8.txt`): tea with Bev on every seed with 4 residents and 2 to 5 of Peggy's family; 7.5 visitors on the day against 5.2; at tea 3.9 residents and 3.7 visitors against 3.2 and 0.9; 1 service breach in 8 weeks; 0 hard violations.
+
 ## Deaths switch
 
 `deaths: false` (server `DEATHS=off`) turns off deaths and end-of-life decline for the public demo: the planner plans none, and a manual or scripted `end_of_life_start` is skipped ("deaths and end-of-life decline are off for this run"). It's on by default for experiments.
@@ -306,12 +356,12 @@ Code: `src/health.ts`, and the planner's steps 5 and 6 (`director/plan.ts`). Tun
   - the director-off golden test; ADR-0005.
 - **(b) Outbreaks and isolation** (built): infection state, pluggable routes, isolation, outbreaks, staff off sick, the `norovirus-outbreak` and `flu-outbreak` scenarios, the unwell badge and Health filter.
 - **(c) Illness, hospital, end of life and admissions** (built): sourced admission rate and stays by cause, illness at home, care changes after a stay, end of life, death, admissions from reviewed cards, the deaths switch.
-- **(d) Visitors' missed weeks and celebrations.**
+- **(d) Visitors' missed weeks and celebrations** (built): missed weeks with causes and seasons for regular visitors, birthdays and festivals from the cards with family visits and tea and cake, no gathering in an outbreak, the `birthday-party` scenario.
 - **(e) Tuning-debt review** against the calm-week baseline, one rule at a time (docs/12).
 
 ## Notes carried from Phase 1
 
-- **Visitors' weeks.** Phase 1 visitors come on a weekly quota of their pattern days (docs/05 "Visiting"), so there are no random bad weeks. With the director on, (d) replaces that with explained absences (illness, holiday, family), so the log gives a reason for a quiet spell.
+- **Visitors' weeks.** Phase 1 visitors come on a weekly quota of their pattern days (docs/05 "Visiting"), so there are no random bad weeks. With the director on, (d) adds explained absences (illness, holiday, family) for regular visitors, so the log gives a reason for a quiet spell.
 - **Already available to scenarios:**
   - the on-call RN coming over for serious night falls;
   - paramedics and conveyance to hospital;

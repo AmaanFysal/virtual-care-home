@@ -168,6 +168,7 @@ export function createSim(options: SimOptions): Sim {
     paramedics: [],
     loungeSeenT: startT,
     session: null,
+    celebrations: [],
     onCallRn: { status: "off", arriveT: null, residentId: null },
     pendingRounds: [],
     mainCarer: { status: "off", arriveT: null, retryT: 0 },

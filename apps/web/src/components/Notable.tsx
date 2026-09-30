@@ -45,6 +45,14 @@ export function notableText(e: AnySimEvent, people: Record<string, PersonView>):
       return `${e.payload.disease} outbreak declared (${e.payload.cases.map(first).join(", ")}): Lounge closed, essential visits only`;
     case "outbreak.over":
       return `${e.payload.disease} outbreak over after ${e.payload.days} days (${e.payload.cases.length} cases)`;
+    case "visitor.week_off":
+      return `${first(e.payload.visitorId)} away this week (${e.payload.cause}): no visits to ${first(e.payload.residentId)}`;
+    case "celebration.started":
+      return e.payload.gathering
+        ? `${e.payload.name}${e.payload.kind === "festival" ? ` (${e.payload.residentIds.map(first).join(", ")})` : ""}: family visiting, tea and cake this afternoon`
+        : `${e.payload.name}: no gathering (${e.payload.reason ?? "outbreak"})`;
+    case "celebration.tea":
+      return `Tea and cake for ${e.payload.name} in the ${e.payload.roomId}${e.payload.staffId ? ` with ${first(e.payload.staffId)}` : ""}: ${e.payload.residentIds.length} residents, ${e.payload.visitorIds.length} visitors`;
     case "input.skipped":
       return `${e.payload.inputType.replace(/_/g, " ")} not applied: ${e.payload.reason}`;
     case "sla.breached":

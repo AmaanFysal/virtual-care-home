@@ -11,7 +11,7 @@
 
 import { clockToSeconds, timeOfDay, type LoungeActivity } from "@vch/shared-types";
 import { emit } from "./emit.js";
-import { chairFor, isCareStaff, onDuty, type Person, type World } from "./state.js";
+import { chairFor, isCareStaff, onDuty, type Celebration, type Person, type World } from "./state.js";
 import { createCare, createLoungeCheck, createSelfMove } from "./tasks.js";
 import { isIsolated, outbreakOn } from "./infection.js";
 import { walkTo } from "./world/movement.js";
@@ -82,7 +82,10 @@ function wanted(world: World, p: Person, sessionDay: boolean): Want | null {
   const tod = timeOfDay(world.t);
   const session = sessionDay && tod >= TIMES.sessionGo && tod < TIMES.sessionUntil;
   const lunch = prefs.lunch && tod >= (sessionDay ? TIMES.sessionUntil : TIMES.lunchGo) && tod < TIMES.lunchUntil;
-  const afternoon = tod >= TIMES.afternoonFrom && tod < (prefs.tea ? TIMES.teaUntil : TIMES.noTeaUntil);
+  // A birthday or festival: everyone who uses the Lounge stays for tea and cake (docs/10).
+  const party = gatheringToday(world);
+  const partyUntil = party ? party.teaUntil - (world.t - tod) : 0;
+  const afternoon = tod >= TIMES.afternoonFrom && tod < (prefs.tea || party ? Math.max(TIMES.teaUntil, partyUntil) : TIMES.noTeaUntil);
   if (!session && !lunch && !afternoon) return tod >= TIMES.sessionGo && tod < at("18:00") ? "room" : null;
   if (lunch && !res.mealsServed.includes("lunch")) return "dining";
   const nap = res.data.routine.nap ? clockToSeconds(res.data.routine.nap) : null;
@@ -257,10 +260,11 @@ function routine(world: World, p: Person, sessionDay: boolean): void {
 function session(world: World, residents: Person[]): void {
   const tod = timeOfDay(world.t);
   const bev = activitiesCoordinator(world);
-  const here = residents.filter((p) => p.onMap && p.roomId === LOUNGE && !p.resident!.asleep).map((p) => p.id);
+  const room = world.session?.roomId ?? LOUNGE;
+  const here = residents.filter((p) => p.onMap && p.roomId === room && !p.resident!.asleep).map((p) => p.id);
   if (!world.session && bev && tod === TIMES.sessionFrom && !outbreakOn(world)) {
     walkTo(world, bev, "Lounge.Post");
-    world.session = { staffId: bev.id, activity: SESSION, residentIds: [...here], endT: world.t - tod + TIMES.sessionUntil };
+    world.session = { staffId: bev.id, activity: SESSION, residentIds: [...here], endT: world.t - tod + TIMES.sessionUntil, roomId: LOUNGE };
     emit(world, "activity.started", [bev.id, ...here], { staffId: bev.id, activity: SESSION, roomId: LOUNGE, residentIds: here });
   }
   const s = world.session;
@@ -268,11 +272,11 @@ function session(world: World, residents: Person[]): void {
   for (const id of here) if (!s.residentIds.includes(id)) s.residentIds.push(id);
   for (const id of here) {
     const p = world.people.get(id)!;
-    if (!p.resident!.busyTaskId) p.task = LABEL.session;
+    if (!p.resident!.busyTaskId) p.task = s.activity === SESSION ? LABEL.session : s.activity;
   }
   if (world.t >= s.endT || !bev) {
     const ids = [...s.residentIds].sort();
-    emit(world, "activity.ended", [s.staffId, ...ids], { staffId: s.staffId, activity: s.activity, roomId: LOUNGE, residentIds: ids });
+    emit(world, "activity.ended", [s.staffId, ...ids], { staffId: s.staffId, activity: s.activity, roomId: s.roomId, residentIds: ids });
     world.session = null;
   }
 }
@@ -312,9 +316,62 @@ function withStaff(world: World, p: Person): boolean {
   return !!task && task.assigned.length > 0;
 }
 
+/** Today's birthday or festival with a gathering (none during an outbreak). */
+function gatheringToday(world: World): Celebration | undefined {
+  const day = Math.floor(world.t / 86400);
+  return world.celebrations.find((c) => c.day === day && c.gathering && !outbreakOn(world));
+}
+
+/**
+ * Tea and cake (docs/10, sub-milestone d): from the tea time of each celebration today, in the
+ * Lounge (or in the resident's room, for someone who doesn't use the Lounge). Bev leads it as a
+ * session when she's on; otherwise it comes with the carers' afternoon tea. Everyone who comes
+ * during the hour is noted, and logged when it's over (`celebration.tea`). Not during an outbreak.
+ */
+function celebrationTea(world: World): void {
+  const day = Math.floor(world.t / 86400);
+  world.celebrations = world.celebrations.filter((c) => c.day >= day);
+  for (const c of world.celebrations) {
+    if (c.tea === "done" || world.t < c.teaFrom) continue;
+    if (c.tea === "pending") {
+      const people = c.residentIds.map((id) => world.people.get(id)!).filter((p) => p.onMap);
+      if (!c.gathering || outbreakOn(world) || people.length === 0 || world.t >= c.teaUntil) {
+        c.tea = "done";
+        continue;
+      }
+      c.tea = "on";
+      const lounge = people.some((p) => p.resident!.data.care.lounge);
+      c.teaRoom = lounge ? LOUNGE : people[0]!.resident!.data.room.split(".")[0]!;
+      const bev = activitiesCoordinator(world);
+      if (bev && !world.session) {
+        const label = c.kind === "birthday" ? `Birthday tea: ${c.name}` : `${c.name} tea`;
+        const here = world.order.filter((id) => world.people.get(id)!.resident && world.people.get(id)!.onMap && world.people.get(id)!.roomId === c.teaRoom).sort();
+        walkTo(world, bev, lounge ? "Lounge.Post" : `${people[0]!.resident!.data.room}.Side`);
+        world.session = { staffId: bev.id, activity: label, residentIds: here, endT: c.teaUntil, roomId: c.teaRoom };
+        emit(world, "activity.started", [bev.id, ...here], { staffId: bev.id, activity: label, roomId: c.teaRoom, residentIds: here });
+      }
+    }
+    for (const id of world.order) {
+      const p = world.people.get(id)!;
+      if (!p.onMap || p.roomId !== c.teaRoom) continue;
+      if (p.resident && !c.came.residents.includes(id)) c.came.residents.push(id);
+      if (p.visitor && !c.came.visitors.includes(id)) c.came.visitors.push(id);
+    }
+    if (world.t >= c.teaUntil) {
+      c.tea = "done";
+      const residentIds = [...c.came.residents].sort();
+      const visitorIds = [...c.came.visitors].sort();
+      // Led by Bev if her session for it is still on (it ends in the same minute, just after this).
+      const led = world.session && world.session.roomId === c.teaRoom && world.session.activity.includes(c.name) ? world.session.staffId : null;
+      emit(world, "celebration.tea", [...(led ? [led] : []), ...residentIds, ...visitorIds], { name: c.name, roomId: c.teaRoom!, staffId: led, residentIds, visitorIds });
+    }
+  }
+}
+
 export function loungeMinute(world: World, residents: Person[]): void {
   const sessionDay = !!activitiesCoordinator(world);
   for (const p of residents) routine(world, p, sessionDay);
+  if (world.celebrations.length > 0) celebrationTea(world);
   session(world, residents);
   companyEffects(world, residents);
   // Nobody has been in for a while and Peggy or Stan is there: someone looks in.

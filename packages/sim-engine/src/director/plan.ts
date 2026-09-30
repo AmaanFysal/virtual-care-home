@@ -3,7 +3,7 @@
 // then applies the pacing caps. The engine calls it at 00:00 (and at the start); the rates
 // script calls it on its own to measure realised rates over many years.
 
-import { DISEASES, ILLNESS_KINDS, SECONDS_PER_DAY, clockToSeconds, simDate, type DayType, type DirectorConfig, type Resident, type ShiftName } from "@vch/shared-types";
+import { DISEASES, ILLNESS_KINDS, SECONDS_PER_DAY, WEEK_OFF_CAUSES, clockToSeconds, simDate, type DayType, type DirectorConfig, type Resident, type ShiftName, type WeekOffCause } from "@vch/shared-types";
 import type { Rng } from "../rng.js";
 import type { DirectorEvent } from "../state.js";
 
@@ -31,6 +31,14 @@ export interface ResidentRisk {
   extra?: number;
   /** Already ill or at the end of life: no new illness or decline for them today. */
   busy?: boolean;
+}
+
+/** A lead visitor, for their missed weeks (sub-milestone d). */
+export interface VisitorRisk {
+  id: string;
+  reliability: number;
+  /** Their resident is at the end of their life: the family doesn't go away. */
+  staying?: boolean;
 }
 
 /** What the planner remembers between days (pacing). */
@@ -84,7 +92,7 @@ export function planRandomDay(
   fromT: number,
   roster: RosterEntry[],
   residents: ResidentRisk[],
-  opts: { deaths?: boolean; endOfLifeOn?: boolean } = {},
+  opts: { deaths?: boolean; endOfLifeOn?: boolean; visitors?: VisitorRisk[]; visitorRng?: Rng } = {},
 ): DayPlan {
   const planned: DirectorEvent[] = [];
   const suppressed: DayPlan["suppressed"] = [];
@@ -240,8 +248,53 @@ export function planRandomDay(
     }
   }
 
+  // 7. Visitors' missed weeks (sub-milestone d): on Mondays, and on the first day for the rest of
+  //    that week. Not scaled by the day type: visitors' lives go on regardless. Drawn from their
+  //    own stream (`visitorRng`), so the rest of the plan is the same with or without them.
+  if (opts.visitors && opts.visitorRng && (day % 7 === 0 || fromT > dayStart)) {
+    const vr = opts.visitorRng;
+    const month = simDate(dayStart).month;
+    for (const v of opts.visitors) {
+      if (v.staying || v.reliability < config.visitors.regular_from_reliability) continue;
+      if (!vr.chance(weekOffChance(config, month, v.reliability))) continue;
+      const cause = drawCause(config, month, vr.next());
+      planned.push({ applyT: fromT + 60, type: "visitor_week_off", params: { visitorId: v.id, cause }, origin });
+    }
+  }
+
   planned.sort((a, b) => a.applyT - b.applyT);
   return { dayType, downgradedFrom, planned, suppressed };
+}
+
+/** A cause's month factor, normalised so its mean over the year is 1. */
+function monthFactor(config: DirectorConfig, cause: WeekOffCause, month: number): number {
+  const months = config.visitors.causes[cause].months ?? {};
+  const f = (m: number) => months[String(m)] ?? 1;
+  let sum = 0;
+  for (let m = 1; m <= 12; m++) sum += f(m);
+  return f(month) / (sum / 12);
+}
+
+/** The share of a regular visitor's weeks they miss on average: `weeks_off_per_year / 52`, at most 1 - reliability. */
+export function weekOffShare(config: DirectorConfig, reliability: number): number {
+  return Math.min(config.visitors.weeks_off_per_year / 52, 1 - reliability);
+}
+
+/** The chance a regular visitor misses a week starting in `month` (seasonal, at most 1 - reliability). */
+export function weekOffChance(config: DirectorConfig, month: number, reliability: number): number {
+  const seasonal = WEEK_OFF_CAUSES.reduce((s, c) => s + config.visitors.causes[c].share * monthFactor(config, c, month), 0);
+  return Math.min(weekOffShare(config, reliability) * seasonal, 1 - reliability);
+}
+
+/** Which cause, weighted by each cause's share and its month factor. */
+function drawCause(config: DirectorConfig, month: number, u: number): WeekOffCause {
+  const weights = WEEK_OFF_CAUSES.map((c) => config.visitors.causes[c].share * monthFactor(config, c, month));
+  let roll = u * weights.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < WEEK_OFF_CAUSES.length; i++) {
+    roll -= weights[i]!;
+    if (roll < 0) return WEEK_OFF_CAUSES[i]!;
+  }
+  return WEEK_OFF_CAUSES[WEEK_OFF_CAUSES.length - 1]!;
 }
 
 function sundowning(r: ResidentRisk, hour: number, hours: number): boolean {

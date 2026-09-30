@@ -157,7 +157,8 @@ export class Runner {
 
   /** Queues a manual event for the next tick (source "user"), logged before it's applied. */
   private inject(type: InputType, params: SimInput["payload"]): ServerMessage | null {
-    const errors = validateInput(type, params, this.data);
+    // Against the world as it is now, so a resident who moved in mid-run (docs/10) can be picked.
+    const errors = validateInput(type, params, this.sim.world.data);
     if (errors.length > 0) return { type: "error", message: errors.join("; ") };
     this.inputSeq += 1;
     const input: SimInput = { seq: this.inputSeq, applyTick: this.sim.tick + 1, type, payload: params, source: "user" };

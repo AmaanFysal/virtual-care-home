@@ -52,6 +52,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 | Working on | Read |
 |---|---|
 | Project rules, anything contentious | `docs/00-constitution.md` |
+| Phases, milestones, what comes next (v1.0-testbed) | `docs/roadmap.md` |
 | Packages, dependencies, tooling, infra | `docs/01-system-and-monorepo.md` |
 | Floor plan, rooms, doors, entities | `docs/02-world-model.md` |
 | Tick loop, clock, RNG, inputs | `docs/03-simulation-engine.md` |

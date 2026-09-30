@@ -3,7 +3,7 @@
 **Goal:** a director that makes unplanned events happen at realistic, context-adjusted rates without an LLM, and runs scripted scenarios exactly, so hard days can be watched, replayed and compared.
 
 Source: [docs/10](../../10-director-and-scenarios.md) (the design), [ADR-0005](../../adr/0005-scenario-director-before-llm-minds.md) (why it comes before LLM minds, and the design decisions). Constraints: [00-constitution](../../00-constitution.md).
-Status: **agreed 2026-09-30.** Sub-milestones (a), (b) and (c) built; (d) and (e) to come. Tasks are in [plan.md](plan.md).
+Status: **agreed 2026-09-30.** Sub-milestones (a) to (d) built; (e) to come. Tasks are in [plan.md](plan.md).
 
 ## In scope
 
@@ -77,6 +77,11 @@ Decisions made while building (c):
 24. **Death:** the family told, CQC Regulation 16 flagged, the room left empty, visitors stop; anyone working with the resident is freed for other work (also when someone leaves for hospital).
 25. **Admissions:** the first card (Kamala Shah) reviewed and approved as drafted (project owner, 2026-09-30). The room is set up for the new resident's seating (a chair, a wheelchair spot or neither). Kamala, Hema and Kiran have their own characters; a later card without one gets a stand-in by gender, and a check finds anyone on screen sharing a sheet (`spriteClashes`: audit flag and report totals).
 26. **Nikos Georgiou** (project owner, 2026-09-30) is the main building's one cover carer (`rota.json`), for a night nobody else can cover and for help during falls, never both at once. Walking sticks are drawn as an overlay for everyone whose card says they use one.
+
+Decisions made while building (d):
+
+27. **Missed weeks** for regular visitors only (reliability 0.5 or more): about 5 a year with a seasonal cause, at most 1 − reliability of their weeks, with the other weeks' quota scaled up so visits stay the same on average. The first design (absences at 1 − reliability per visitor-week) would have had Maureen miss 30% of weeks and Gary 96%, each with a cause. Drawn from a `visitor_weeks` stream of their own.
+28. **Celebrations from the calendar** (birthdays from the dob, festivals from the faith: Christmas for everyone, Easter, Vaisakhi, Diwali) are planned by the random director with origin "calendar". Tea and cake is in the Lounge, or in the room of a resident who doesn't use it; Bev leads it on her days, otherwise it comes with the carers' afternoon tea. No gathering during an outbreak.
 
 ## Acceptance for each sub-milestone
 

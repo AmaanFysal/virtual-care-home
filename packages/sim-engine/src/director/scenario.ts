@@ -8,6 +8,7 @@ import {
   DISEASES,
   ILLNESS_KINDS,
   ROTA_SLOTS,
+  WEEK_OFF_CAUSES,
   clockToSeconds,
   dayIndex,
   type InputPayloads,
@@ -17,7 +18,7 @@ import {
 } from "@vch/shared-types";
 import type { DirectorEvent } from "../state.js";
 
-export const INPUT_TYPES: InputType[] = ["inject_fall", "staff_sick", "shift_no_show", "infection_case", "resident_illness", "end_of_life_start", "admission"];
+export const INPUT_TYPES: InputType[] = ["inject_fall", "staff_sick", "shift_no_show", "infection_case", "resident_illness", "end_of_life_start", "admission", "visitor_week_off", "celebration"];
 const SLOTS: readonly string[] = ROTA_SLOTS;
 const COVERS: readonly string[] = COVER_CHOICES;
 
@@ -48,6 +49,15 @@ export function validateInput(type: string, params: unknown, data: WorldData): s
     if (!Number.isInteger(p.expectedDays) || Number(p.expectedDays) < 1) errors.push("end_of_life_start: expectedDays must be a whole number of days, at least 1");
   } else if (type === "admission") {
     if (typeof p.cardId !== "string" || !p.cardId) errors.push("admission: cardId is required");
+  } else if (type === "visitor_week_off") {
+    if (!data.visitors.some((v) => v.id === p.visitorId)) errors.push(`visitor_week_off: unknown visitor "${String(p.visitorId)}"`);
+    if (!(WEEK_OFF_CAUSES as readonly string[]).includes(String(p.cause))) errors.push(`visitor_week_off: cause must be one of ${WEEK_OFF_CAUSES.join(", ")}`);
+  } else if (type === "celebration") {
+    if (p.kind !== "birthday" && p.kind !== "festival") errors.push("celebration: kind must be birthday or festival");
+    if (typeof p.name !== "string" || !p.name) errors.push("celebration: name is required");
+    const ids = Array.isArray(p.residentIds) ? (p.residentIds as unknown[]) : [];
+    if (ids.length === 0) errors.push("celebration: residentIds must list at least one resident");
+    for (const id of ids) if (!data.residents.some((r) => r.id === id)) errors.push(`celebration: unknown resident "${String(id)}"`);
   } else if (type === "shift_no_show") {
     if (!SLOTS.includes(String(p.slot))) errors.push(`shift_no_show: slot must be one of ${SLOTS.join(", ")}`);
     cover();

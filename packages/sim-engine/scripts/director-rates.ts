@@ -5,7 +5,7 @@
 
 import { parseArgs } from "node:util";
 import { AGENCY, SECONDS_PER_DAY, WEEKDAYS, clockToSeconds, simDate, type DayType, type ShiftName } from "@vch/shared-types";
-import { createRng, planRandomDay, residentRisk, type PlanMemory, type RosterEntry } from "../src/index.js";
+import { createRng, planRandomDay, residentRisk, weekOffShare, type PlanMemory, type RosterEntry } from "../src/index.js";
 import { loadDirectorConfig, loadWorldData } from "../tools/load-data.js";
 
 const { values } = parseArgs({ options: { years: { type: "string", default: "200" }, seeds: { type: "string", default: "1-8" } } });
@@ -14,6 +14,9 @@ const config = loadDirectorConfig();
 const residents = () => data.residents.map(residentRisk); // fresh each day (the planner marks who's busy)
 const propensity = new Map(data.staff.map((s) => [s.id, s.contract.sickness_propensity]));
 const FIRST_DAY = 1; // Tue 3 Nov 2026, as in a normal run
+// Lead visitors, for their missed weeks (sub-milestone d); the regular ones are counted.
+const visitors = data.visitors.filter((v) => !v.accompanies).map((v) => ({ id: v.id, reliability: v.visit_pattern.reliability }));
+const regular = visitors.filter((v) => v.reliability >= config.visitors.regular_from_reliability);
 
 function roster(day: number): RosterEntry[] {
   const r = data.rota.week[WEEKDAYS[day % 7]!];
@@ -37,18 +40,19 @@ function roster(day: number): RosterEntry[] {
 const [from, to] = values.seeds!.split("-").map(Number);
 const years = Number(values.years);
 const days = Math.round(years * 365.25);
-const count = { days: 0, types: { ordinary: 0, busy: 0, hard: 0 } as Record<DayType, number>, downgraded: 0, minor: 0, serious: 0, sick: 0, noShow: 0, intro: { norovirus: 0, flu: 0 } as Record<string, number>, illnessSevere: 0, illnessMild: 0, endOfLife: 0 };
+const count = { days: 0, types: { ordinary: 0, busy: 0, hard: 0 } as Record<DayType, number>, downgraded: 0, minor: 0, serious: 0, sick: 0, noShow: 0, intro: { norovirus: 0, flu: 0 } as Record<string, number>, illnessSevere: 0, illnessMild: 0, endOfLife: 0, weeksOff: 0, weeksOffByCause: {} as Record<string, number>, weeksOffByMonth: new Array<number>(13).fill(0) };
 const suppressed = new Map<string, number>();
 let expectedSick = 0;
 let expectedNoShow = 0;
 for (let seed = from!; seed <= (to ?? from)!; seed++) {
   const rng = createRng(`${seed}/director`);
+  const visitorRng = createRng(`${seed}/visitor_weeks`);
   const memory: PlanMemory = { dayTypes: new Map(), majorTs: [] };
   for (let day = FIRST_DAY; day < FIRST_DAY + days; day++) {
     const list = roster(day);
     const winter = config.absence.winter_months.includes(simDate(day * SECONDS_PER_DAY).month) ? config.absence.winter_factor : 1;
     for (const a of list) if (config.absence.slots.includes(a.slot)) a.agency ? (expectedNoShow += config.absence.agency_no_show) : (expectedSick += a.propensity * winter);
-    const plan = planRandomDay(config, rng, memory, day, day * SECONDS_PER_DAY - 1, list, residents());
+    const plan = planRandomDay(config, rng, memory, day, day * SECONDS_PER_DAY - 1, list, residents(), { visitors, visitorRng });
     memory.dayTypes.set(day, plan.dayType);
     memory.dayTypes.delete(day - 8);
     memory.majorTs = memory.majorTs.filter((t) => t > (day - 7) * SECONDS_PER_DAY);
@@ -62,6 +66,12 @@ for (let seed = from!; seed <= (to ?? from)!; seed++) {
       if (e.type === "infection_case") count.intro[(e.params as { disease: string }).disease]! += 1;
       if (e.type === "resident_illness") (e.params as { severity: string }).severity === "severe" ? count.illnessSevere++ : count.illnessMild++;
       if (e.type === "end_of_life_start") count.endOfLife += 1;
+      if (e.type === "visitor_week_off") {
+        const cause = (e.params as { cause: string }).cause;
+        count.weeksOff += 1;
+        count.weeksOffByCause[cause] = (count.weeksOffByCause[cause] ?? 0) + 1;
+        count.weeksOffByMonth[simDate(day * SECONDS_PER_DAY).month]! += 1;
+      }
     }
     for (const s of plan.suppressed) {
       const key = `${s.event.type}${s.event.type === "inject_fall" ? ` (${(s.event.params as { severity: string }).severity})` : ""}: ${s.reason}`;
@@ -90,6 +100,9 @@ for (const disease of ["norovirus", "flu"] as const) {
   const d = config.infection.diseases[disease];
   line(`${disease} brought in`, count.intro[disease]! / seedYears, d.per_winter + d.per_summer);
 }
+line("visitors' weeks off", count.weeksOff / seedYears, regular.reduce((s, v) => s + weekOffShare(config, v.reliability) * 52, 0));
+console.log(`    ${regular.length} regular visitors; by cause: ${Object.entries(count.weeksOffByCause).sort().map(([k, v]) => `${k} ${((100 * v) / count.weeksOff).toFixed(0)}%`).join(", ")}`);
+console.log(`    by month: ${count.weeksOffByMonth.slice(1).map((v, i) => `${i + 1}:${(v / seedYears).toFixed(1)}`).join(" ")}`);
 console.log("  (base = the rate before day types, short staffing and caps; introductions here ignore outbreaks' quiet periods)");
 console.log("Held back by the pacing caps:");
 for (const [k, n] of [...suppressed].sort((a, b) => b[1] - a[1])) console.log(`  ${(n / seedYears).toFixed(3).padStart(7)} a year  ${k}`);

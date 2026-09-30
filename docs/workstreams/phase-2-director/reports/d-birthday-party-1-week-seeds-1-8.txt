@@ -1,0 +1,125 @@
+=== seed 1 ===
+  Tue 03 Nov  scripted   0 breaches; 5 visitors, Lounge 18.1 resident-h, 2.2 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 8 visitors, Lounge 18.8 resident-h, 5.9 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 4 visitors
+  Thu 05 Nov  scripted   0 breaches; 6 visitors, Lounge 18.1 resident-h, 2.1 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 1 visitors, Lounge 13.7 resident-h, 0.0 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 5 visitors, Lounge 13.8 resident-h, 1.1 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 9 visitors, Lounge 13.7 resident-h, 2.0 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 4 visitors, Lounge 18.0 resident-h, 0.9 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 2 ===
+  Tue 03 Nov  scripted   0 breaches; 7 visitors, Lounge 18.0 resident-h, 3.8 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 8 visitors, Lounge 18.7 resident-h, 4.7 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 4 visitors
+  Thu 05 Nov  scripted   0 breaches; 7 visitors, Lounge 18.0 resident-h, 2.8 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 3 visitors, Lounge 13.4 resident-h, 0.2 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 5 visitors, Lounge 13.6 resident-h, 2.3 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 7 visitors, Lounge 13.4 resident-h, 0.0 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 4 visitors, Lounge 17.9 resident-h, 2.3 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 3 ===
+  Tue 03 Nov  scripted   0 breaches; 6 visitors, Lounge 18.1 resident-h, 2.1 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 7 visitors, Lounge 18.7 resident-h, 5.4 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 4 visitors
+  Thu 05 Nov  scripted   0 breaches; 6 visitors, Lounge 18.2 resident-h, 1.6 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 3 visitors, Lounge 13.7 resident-h, 1.1 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 4 visitors, Lounge 13.5 resident-h, 0.2 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 8 visitors, Lounge 13.4 resident-h, 0.0 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 5 visitors, Lounge 18.1 resident-h, 0.9 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 4 ===
+  Tue 03 Nov  scripted   0 breaches; 6 visitors, Lounge 18.2 resident-h, 2.7 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 7 visitors, Lounge 18.8 resident-h, 5.1 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 4 visitors
+  Thu 05 Nov  scripted   0 breaches; 6 visitors, Lounge 18.1 resident-h, 2.3 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 4 visitors, Lounge 13.6 resident-h, 2.6 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 8 visitors, Lounge 13.8 resident-h, 2.8 visitor-h
+  Sun 08 Nov  scripted   1 breach; 7 visitors, Lounge 13.4 resident-h, 0.9 visitor-h
+    20:20  breach request_wait: Toilet for Raj waiting 30 min [no emergency]
+  Mon 09 Nov  scripted   0 breaches; 5 visitors, Lounge 18.0 resident-h, 1.5 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 5 ===
+  Tue 03 Nov  scripted   0 breaches; 7 visitors, Lounge 18.2 resident-h, 2.1 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 5 visitors, Lounge 18.8 resident-h, 2.8 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 2 visitors
+  Thu 05 Nov  scripted   0 breaches; 7 visitors, Lounge 18.1 resident-h, 2.4 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 4 visitors, Lounge 13.6 resident-h, 2.1 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 5 visitors, Lounge 13.4 resident-h, 0.7 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 7 visitors, Lounge 13.7 resident-h, 1.0 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 4 visitors, Lounge 18.0 resident-h, 0.3 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 6 ===
+  Tue 03 Nov  scripted   0 breaches; 4 visitors, Lounge 18.0 resident-h, 1.1 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 8 visitors, Lounge 18.8 resident-h, 5.6 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 4 visitors
+  Thu 05 Nov  scripted   0 breaches; 7 visitors, Lounge 18.1 resident-h, 1.4 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 4 visitors, Lounge 13.5 resident-h, 2.2 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 3 visitors, Lounge 13.5 resident-h, 1.3 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 6 visitors, Lounge 13.8 resident-h, 0.0 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 5 visitors, Lounge 18.0 resident-h, 2.2 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 7 ===
+  Tue 03 Nov  scripted   0 breaches; 5 visitors, Lounge 18.2 resident-h, 2.3 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 9 visitors, Lounge 18.8 resident-h, 7.8 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 5 visitors
+  Thu 05 Nov  scripted   0 breaches; 7 visitors, Lounge 18.1 resident-h, 1.8 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 4 visitors, Lounge 13.6 resident-h, 3.0 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 6 visitors, Lounge 13.5 resident-h, 0.7 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 6 visitors, Lounge 13.7 resident-h, 0.9 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 2 visitors, Lounge 17.9 resident-h, 0.0 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== seed 8 ===
+  Tue 03 Nov  scripted   0 breaches; 6 visitors, Lounge 18.1 resident-h, 3.0 visitor-h
+  Wed 04 Nov  scripted   Peggy's birthday, 0 breaches; 8 visitors, Lounge 18.7 resident-h, 4.6 visitor-h
+    00:05  Peggy's birthday
+    16:00  tea and cake for Peggy's birthday in the Lounge with Bev: 4 residents, 5 visitors
+  Thu 05 Nov  scripted   0 breaches; 7 visitors, Lounge 18.1 resident-h, 3.2 visitor-h
+  Fri 06 Nov  scripted   0 breaches; 2 visitors, Lounge 13.8 resident-h, 0.0 visitor-h
+  Sat 07 Nov  scripted   0 breaches; 6 visitors, Lounge 13.4 resident-h, 1.2 visitor-h
+  Sun 08 Nov  scripted   0 breaches; 4 visitors, Lounge 13.6 resident-h, 1.0 visitor-h
+  Mon 09 Nov  scripted   0 breaches; 5 visitors, Lounge 18.0 resident-h, 0.9 visitor-h
+  Tue 10 Nov  scripted   0 breaches; 0 visitors, Lounge 0.0 resident-h, 0.0 visitor-h
+
+=== totals, seeds 1-8, 168 h each ===
+  days: 64 (scripted 64 (100%)); hard days capped to busy: 0
+  falls: 0 (0 minor, 0 serious) = 0.00 a week
+  sick calls: 0 = 0.00 a week; agency no-shows: 0
+  cover: bank 0, agency 0, main building 0 (late carer bridging 0), none 0
+  held back by pacing caps: none
+  skipped when due: none
+  service breaches: 1 (1 on days with no director event, 0 on days with one)
+       1  request_wait, no emergency
+  infection cases (ill): none; caught by route: none; staff sent home ill: 0
+  outbreaks: 0 over; visits cancelled: 0
+  illness: none; back from hospital: none; care changes logged: 0
+  end of life begun: 0; deaths: 0; residents moved in: 0
+  visitors' weeks off: 0 (none); visits cancelled for them: 0
+  visitors and the Lounge by kind of day (a day's visitors; person-hours in the Lounge, a day; people in the Lounge on average at tea, 15:00 to 16:00):
+    celebration                               8 days: 7.5 visitors, Lounge 18.8 resident-h, 5.2 visitor-h; at tea 3.9 residents, 3.7 visitors
+    ordinary                                 40 days: 5.2 visitors, Lounge 15.4 resident-h, 1.4 visitor-h; at tea 3.2 residents, 0.9 visitors
+  celebrations:
+    Wed 04 Nov Peggy's birthday: 8 visitors, Lounge 18.8 resident-h, 5.9 visitor-h; at tea 3.9 residents, 3.8 visitors
+    Wed 04 Nov Peggy's birthday: 8 visitors, Lounge 18.7 resident-h, 4.7 visitor-h; at tea 3.8 residents, 3.8 visitors
+    Wed 04 Nov Peggy's birthday: 7 visitors, Lounge 18.7 resident-h, 5.4 visitor-h; at tea 3.7 residents, 3.6 visitors
+    Wed 04 Nov Peggy's birthday: 7 visitors, Lounge 18.8 resident-h, 5.1 visitor-h; at tea 3.8 residents, 3.8 visitors
+    Wed 04 Nov Peggy's birthday: 5 visitors, Lounge 18.8 resident-h, 2.8 visitor-h; at tea 3.8 residents, 1.9 visitors
+    Wed 04 Nov Peggy's birthday: 8 visitors, Lounge 18.8 resident-h, 5.6 visitor-h; at tea 3.9 residents, 4.0 visitors
+    Wed 04 Nov Peggy's birthday: 9 visitors, Lounge 18.8 resident-h, 7.8 visitor-h; at tea 3.9 residents, 5.0 visitors
+    Wed 04 Nov Peggy's birthday: 8 visitors, Lounge 18.7 resident-h, 4.6 visitor-h; at tea 3.8 residents, 4.1 visitors
+  hard violations: 0
+  people on screen drawn with the same sheet: none

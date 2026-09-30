@@ -1,0 +1,9 @@
+{
+  "id": "birthday-party",
+  "name": "Peggy's birthday on Wednesday",
+  "description": "It's Peggy's birthday on Wednesday, one of Bev's days: her family come in the afternoon and stay longer, and there's tea and cake in the Lounge from 15:00 with Bev and whoever is there.",
+  "random": false,
+  "events": [
+    { "day": "Wed", "time": "00:05", "type": "celebration", "params": { "kind": "birthday", "name": "Peggy's birthday", "residentIds": ["res_peggy"] } }
+  ]
+}

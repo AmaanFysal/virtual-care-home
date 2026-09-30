@@ -26,6 +26,8 @@ import type {
   SimInput,
   StaffRole,
   WorldData,
+  CelebrationKind,
+  WeekOffCause,
 } from "@vch/shared-types";
 import type { BtState } from "./bt.js";
 import type { Rng, StreamName } from "./rng.js";
@@ -198,6 +200,24 @@ export interface VisitorState {
   stepT: number | null;
   /** Days (day index since the epoch) this week's visits fall on, from the weekly quota. */
   weekDays: number[];
+  /** Missing this week (docs/10, sub-milestone d): no visits until `untilDay`. */
+  weekOff: { cause: WeekOffCause; untilDay: number } | null;
+}
+
+/** A birthday or festival today (docs/10, sub-milestone d). */
+export interface Celebration {
+  day: number;
+  kind: CelebrationKind;
+  name: string;
+  residentIds: string[];
+  /** False during an outbreak: no gathering, no extra visits, no tea. */
+  gathering: boolean;
+  teaFrom: number;
+  teaUntil: number;
+  tea: "pending" | "on" | "done";
+  /** Where tea is, and everyone who came to it (logged when it's over). */
+  teaRoom: string | null;
+  came: { residents: string[]; visitors: string[] };
 }
 
 /** Scheduled care done at the bedside (or chair). */
@@ -343,7 +363,9 @@ export interface World {
   /** Last time a carer was in the Lounge (the lounge_supervision service target). */
   loungeSeenT: number;
   /** A group activity running in the Lounge. */
-  session: { staffId: string; activity: string; residentIds: string[]; endT: number } | null;
+  session: { staffId: string; activity: string; residentIds: string[]; endT: number; roomId: string } | null;
+  /** Today's birthdays and festivals (docs/10, sub-milestone d). */
+  celebrations: Celebration[];
   /** Ambulance calls in the order they were made; one crew answers them in turn (off the map until due). */
   paramedics: { taskId: string; dueT: number }[];
   metrics: { floatCallouts: number; medInterruptions: number };
