@@ -22,10 +22,14 @@ export function onFloor(world: World, p: Person): boolean {
 /**
  * Whether someone other than `p` is covering the floor. With `carersOnly`, the RN doesn't count:
  * breaks are staggered between carers so the nurse isn't left alone on the floor with the meds.
+ * With `stayingOnly`, only staff on a shift count, not helpers who leave when their job is done
+ * (the floating carer on a visit, a carer from the main building for falls, the on-call RN): a
+ * day break or going home mustn't rely on someone about to go.
  */
-export function coveredWithout(world: World, p: Person, carersOnly = false, ignore: Set<string> = new Set()): boolean {
+export function coveredWithout(world: World, p: Person, carersOnly = false, ignore: Set<string> = new Set(), stayingOnly = false): boolean {
   for (const id of world.order) {
     const q = world.people.get(id)!;
+    if (stayingOnly && !q.staff?.shift) continue;
     if (q.id !== p.id && !ignore.has(q.id) && onFloor(world, q) && !(carersOnly && isNurse(q))) return true;
   }
   return false;

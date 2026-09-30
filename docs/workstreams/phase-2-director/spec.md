@@ -3,7 +3,7 @@
 **Goal:** a director that makes unplanned events happen at realistic, context-adjusted rates without an LLM, and runs scripted scenarios exactly, so hard days can be watched, replayed and compared.
 
 Source: [docs/10](../../10-director-and-scenarios.md) (the design), [ADR-0005](../../adr/0005-scenario-director-before-llm-minds.md) (why it comes before LLM minds, and the design decisions). Constraints: [00-constitution](../../00-constitution.md).
-Status: **agreed 2026-09-30.** Sub-milestones (a) to (d) built; (e) to come. Tasks are in [plan.md](plan.md).
+Status: **agreed 2026-09-30.** Sub-milestones (a) to (e) done. Tasks are in [plan.md](plan.md).
 
 ## In scope
 
@@ -82,6 +82,13 @@ Decisions made while building (d):
 
 27. **Missed weeks** for regular visitors only (reliability 0.5 or more): about 5 a year with a seasonal cause, at most 1 − reliability of their weeks, with the other weeks' quota scaled up so visits stay the same on average. The first design (absences at 1 − reliability per visitor-week) would have had Maureen miss 30% of weeks and Gary 96%, each with a cause. Drawn from a `visitor_weeks` stream of their own.
 28. **Celebrations from the calendar** (birthdays from the dob, festivals from the faith: Christmas for everyone, Easter, Vaisakhi, Diwali) are planned by the random director with origin "calendar". Tea and cake is in the Lounge, or in the room of a resident who doesn't use it; Bev leads it on her days, otherwise it comes with the carers' afternoon tea. No gathering during an outbreak.
+
+Decisions made in (e):
+
+29. **The tuning review's method:** each rule switched off on its own against the calm-week baseline (seeds 1 to 8, a week, director off), kept if removing it pushes a week over 2 breaches; then the removals combined and checked on held-out seeds 9 to 16, putting rules back one at a time where needed. Also reported: the same weeks with Kamala in Raj's room, and three-falls sets including the break windows. The director-off golden fixture is re-recorded, as the review changes director-off runs on purpose.
+30. **A general rule for Dennis's turns before the handover:** nobody starts long care that a two-person turn they're needed for would fall due during, and the only people free for a pressing turn nobody has reserved yet keep to short work or pressing turns (the sole-partner principle, before a reservation and looking ahead).
+31. **Floor cover for a day break or going home counts only staff on a shift**, not visiting helpers.
+32. **The final decision rule** (project owner, 2026-09-30) goes beyond the calm-week breach criterion: a rule also stays if removing it fails the held-out seeds (the sole-partner rule), the Kamala weeks (the new turn rule), clearly harms short-staffed days (the floating carer's planning, the evening-crunch move, the briefing hold), or leaves residents' hunger, thirst or toileting needs unmet in the audit, service target or not (the breakfast boost, the breakfast-first hold, the tea deadline, the drink with the tablets). The female-only rules stay: they protect a real care requirement. 15 kept, 9 removed.
 
 ## Acceptance for each sub-milestone
 

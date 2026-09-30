@@ -2,6 +2,7 @@
 // visits on planned rounds, aligned with Dennis's turns, and is called out between rounds only
 // for urgent two-person or same-sex personal care.
 
+import { tuned } from "./tuning.js";
 import { clockToSeconds, timeOfDay } from "@vch/shared-types";
 import { FLOAT_TURNS } from "./care.js";
 import { emit } from "./emit.js";
@@ -28,7 +29,8 @@ const PAD_CHANGE_DUE = 0.4;
 const MORNING_HANDOVER = { from: clockToSeconds("06:45"), until: clockToSeconds("07:30") };
 
 /** When a turn should be started by: its due time, or 06:45 if it falls due during the morning handover. */
-function plannedBy(due: number): number {
+function plannedBy(world: World, due: number): number {
+  if (!tuned(world, "float_planning")) return due;
   const tod = timeOfDay(due);
   return tod >= MORNING_HANDOVER.from && tod < MORNING_HANDOVER.until ? due - tod + MORNING_HANDOVER.from : due;
 }
@@ -95,7 +97,8 @@ export function floatMinute(world: World): void {
   // that still lets the turns falling due together each start on time, one after another.
   const upcoming = nightTurnsDue(world).filter((d) => !hasCare(world, d.p.id, "reposition")).sort((a, b) => a.due - b.due);
   const batch = upcoming.filter((d) => upcoming[0] && d.due - upcoming[0].due <= BATCH_TURNS_WITHIN_MINS * 60);
-  const startBy = Math.min(...batch.map((d, i) => plannedBy(d.due) - i * TURN_MINS * 60));
+  // (Without the tuning rule: she comes for the first turn due, not planning the batch back to back.)
+  const startBy = tuned(world, "float_planning") ? Math.min(...batch.map((d, i) => plannedBy(world, d.due) - i * TURN_MINS * 60)) : Math.min(...batch.map((d) => d.due));
   const due = batch.length > 0 && t >= startBy - ARRIVE_EARLY_MINS * 60 ? batch : [];
   if (due.length > 0 && world.float.status === "off") {
     roundWork(world);

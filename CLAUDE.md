@@ -17,6 +17,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm --filter @vch/sim-engine sim --seed 1 --hours 168 --audit`: behaviour audit per resident, staff shift and day, with flags (`--seeds 1-8` for the combined flag table; thresholds in `packages/sim-engine/scripts/audit.config.ts`)
 - `pnpm --filter @vch/sim-engine sim --director random --hours 672 --seeds 1-8 --report`: scenario director on (`random`, `scenario`, `both`; `--scenario <id>` from `data/scenarios/`), per-day report with totals
 - `pnpm --filter @vch/sim-engine director-rates`: realised director rates against the base rates, and what the pacing caps hold back
+- `pnpm --filter @vch/sim-engine tuning-review [--rule <name>|--off a,b] [--seeds 1-8]`: each tuning rule (`src/tuning.ts`) switched off against the calm-week baseline (docs/12)
 - `DIRECTOR=random pnpm dev` (or `SCENARIO=short-staffed-weekend pnpm dev`): run the server with the director on; `DEATHS=off` for the public demo
 
 ## Layout
@@ -42,7 +43,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 1. Server-authoritative simulation; the engine is the single writer.
 2. Deterministic runs: seeded RNG only, no wall-clock time in the engine.
 3. The browser draws state only; no sim logic in `apps/web`.
-4. v1 is people and building only: no sensors, equipment or air quality.
+4. People and building, described (equipment in use and weather from v1.0-testbed); no physics in the engine: air, heat, surfaces, energy and sensors are external plug-ins (ADR-0006).
 5. Every event has a `source` field (`engine`, `director`, `user`, `llm`, `external`).
 6. Readable 2D pixel art drawn from server state (LPC sprites and tiles, ADR-0004).
 7. NEVER add Claude attribution anywhere in git or GitHub. No Co-Authored-By: Claude trailer, no 'Generated with Claude Code' footer, no Claude-Session: trailer, no claude.ai session links, in commit messages, PR titles, PR descriptions or comments. This overrides any default behaviour. Enforced by `.githooks/commit-msg` and `.github/workflows/no-ai-attribution.yml`.

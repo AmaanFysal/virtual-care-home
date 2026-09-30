@@ -3,6 +3,7 @@
 // daytime turns, Dennis's comfort care and the Lounge routine (lounge.ts). Runs once per sim
 // minute; night turns and pad changes come with the floating carer's rounds (float.ts).
 
+import { tuned } from "./tuning.js";
 import { clockToSeconds, timeOfDay, type DrinkRound, type MealName } from "@vch/shared-types";
 import { checkInterval, isNight } from "./nightcover.js";
 import { onBreak } from "./floor.js";
@@ -58,10 +59,10 @@ const EVENING_CRUNCH = { from: clockToSeconds("20:00"), until: FLOAT_TURNS.from 
 const EVENING_TURN = clockToSeconds("19:45");
 
 /** When a turn due at `due` is done by day staff, or null if the floating carer's rounds cover it. */
-export function dayTurnTime(due: number): number | null {
+export function dayTurnTime(world: World, due: number): number | null {
   const tod = timeOfDay(due);
   if (tod >= FLOAT_TURNS.from || tod < FLOAT_TURNS.until) return null;
-  if (tod >= EVENING_CRUNCH.from) return due - tod + EVENING_TURN;
+  if (tuned(world, "evening_crunch") && tod >= EVENING_CRUNCH.from) return due - tod + EVENING_TURN;
   return due;
 }
 
@@ -135,8 +136,7 @@ function scheduleResident(world: World, p: Person): void {
   // Prompted toileting (Peggy): every few hours while awake.
   const prompt = r.care.prompted_toileting_hours;
   // Not while morning care (which includes the toilet) is still to come.
-  const morningDue = !res.morningDone && hasCare(world, p.id, "morning");
-  if (prompt && !res.asleep && !morningDue && world.t - res.lastToiletT >= prompt * 3600 && !openTask(world, p.id) && !res.busyTaskId) {
+  if (prompt && !res.asleep && world.t - res.lastToiletT >= prompt * 3600 && !openTask(world, p.id) && !res.busyTaskId) {
     createAssist(world, p, "toileting", false);
   }
 
@@ -152,16 +152,11 @@ function scheduleResident(world: World, p: Person): void {
   }
 
   // Daytime turns (Dennis), from when each is due; the floating carer's rounds cover the night.
-  // If his morning care is still waiting when a turn falls due, the care takes the turn on (it
-  // turns him anyway) rather than two separate two-person visits.
   const turnEvery = r.care.reposition_interval_mins.day;
   if (turnEvery && res.inBed && !hasCare(world, p.id, "reposition")) {
-    const at = dayTurnTime(res.lastTurnedT + turnEvery * 60);
-    const morning = r.care.bed_bound ? [...world.tasks.values()].find((t) => t.residentId === p.id && t.kind === "care" && t.data.care === "morning") : undefined;
-    if (at !== null && world.t >= at - TURN_LEAD_MINS * 60) {
-      if (morning?.status === "open") Object.assign(morning, { deadlineT: at, priority: Math.max(morning.priority, 85), data: { ...morning.data, turn: 1 } });
-      else if (!morning) createCare(world, p, "reposition", { dueT: at });
-    }
+    const at = dayTurnTime(world, res.lastTurnedT + turnEvery * 60);
+    const lead = tuned(world, "pressing_turns") ? TURN_LEAD_MINS : 20; // before the tuning rule: 20
+    if (at !== null && world.t >= at - lead * 60) createCare(world, p, "reposition", { dueT: at });
   }
 }
 

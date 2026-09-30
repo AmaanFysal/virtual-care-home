@@ -3,14 +3,15 @@
 // briefings and breaks. Each minute, free staff are matched to open tasks by utility score;
 // every tick, active tasks advance their behaviour tree (trees.ts).
 
+import { tuned } from "./tuning.js";
 import { clockToSeconds, timeOfDay, type DrinkRound, type MealName, type NeedName } from "@vch/shared-types";
 import { newBtState, tickTree, type Status } from "./bt.js";
 import { emit } from "./emit.js";
 import { breakInterruptible, coveredWithout, onBreak, onFloor } from "./floor.js";
-import { supervisedResidents } from "./lounge.js";
 import { coverableOnSite, isNight, requestDeadline } from "./nightcover.js";
 import { chairFor, isCareStaff, isNurse, onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
 import type { Ctx } from "./trees.js";
+import { FLOAT_TURNS } from "./care.js";
 import { TREES } from "./treeset.js";
 import { startIdleActivity } from "./idle.js";
 
@@ -441,11 +442,6 @@ export function morningCareWaitMins(world: World, residentId: string): number {
   return work / Math.max(1, carers);
 }
 
-/** Breakfast offered before morning care (they'd been waiting over 30 minutes): care waits until they've eaten. */
-function breakfastFirst(world: World, residentId: string): boolean {
-  for (const t of world.tasks.values()) if (t.residentId === residentId && t.kind === "care" && t.data.meal === "breakfast" && t.data.first === 1) return true;
-  return false;
-}
 
 /** How long a request waits to be met on the same visit as care or a meal that's due (docs/04). */
 const ONE_VISIT_MINS = 15;
@@ -474,6 +470,8 @@ function deferToCare(world: World, request: Task): boolean {
  * possible partner) then keeps to short work, so nobody starts a 20-minute wash just before it.
  */
 const PRESSING_TURN_MINS = 25;
+/** Before the pressing-turns tuning rule (docs/12): 15 minutes. */
+const pressingMins = (world: World) => (tuned(world, "pressing_turns") ? PRESSING_TURN_MINS : 15);
 
 /** A request this close to its deadline may interrupt a medication round. */
 const INTERRUPT_MEDS_WITHIN_MINS = 10;
@@ -507,6 +505,25 @@ function twoPersonTurnSoon(world: World, p: Person): boolean {
   return others.length < 2;
 }
 
+
+/** Care with residents: scheduled care, help requests and drinks rounds (not a Lounge look-in or the door). */
+function isResidentCare(task: Task): boolean {
+  return task.kind === "care" || task.kind === "assist" || task.kind === "round";
+}
+
+/** In the floating carer's hours (turns due 21:30 to 08:00 are hers and the night carer's). */
+function floatCovers(due: number): boolean {
+  const tod = timeOfDay(due);
+  return tod >= FLOAT_TURNS.from || tod < FLOAT_TURNS.until;
+}
+
+/** Breakfast offered before morning care (they'd been waiting over 30 minutes): care waits until they've eaten. */
+function breakfastFirst(world: World, residentId: string): boolean {
+  if (!tuned(world, "breakfast_first")) return false;
+  for (const t of world.tasks.values()) if (t.residentId === residentId && t.kind === "care" && t.data.meal === "breakfast" && t.data.first === 1) return true;
+  return false;
+}
+
 /** An open female-only task is waiting and `p` is the only woman on duty who could do it. */
 function onlyOneFor(world: World, p: Person, open: Task[]): boolean {
   if (p.gender !== "female" || !open.some((t) => t.femaleOnly)) return false;
@@ -516,33 +533,7 @@ function onlyOneFor(world: World, p: Person, open: Task[]): boolean {
   });
 }
 
-/** Care with residents: scheduled care, help requests and drinks rounds (not a Lounge look-in or the door). */
-function isResidentCare(task: Task): boolean {
-  return task.kind === "care" || task.kind === "assist" || task.kind === "round";
-}
-
-/** A turn: a reposition, or a bed-bound resident's morning care that has taken on a turn falling due. */
-export function isTurn(task: Task): boolean {
-  return task.kind === "care" && (task.data.care === "reposition" || task.data.turn === 1);
-}
-
-/**
- * Care staff other than `except` who could look in on the Lounge: on the floor and not in a
- * handover, or on a break (an urgent look-in calls them back).
- */
-function lookInStaffExcept(world: World, except: string[]): number {
-  let n = 0;
-  for (const id of world.order) {
-    const q = world.people.get(id)!;
-    if (except.includes(id) || !isCareStaff(q) || q.staff!.duty !== "on_shift" || !q.onMap) continue;
-    const task = q.staff!.taskId ? world.tasks.get(q.staff!.taskId) : undefined;
-    if (task?.kind === "handover") continue;
-    if (onBreak(world, q) || onFloor(world, q)) n += 1;
-  }
-  return n;
-}
-
-/** Female-only personal care is waiting or still to come this morning (Peggy's wash and toilet). */
+/** Female-only personal care is waiting or still to come this morning (Peggy's and Kamala's washes and toilet). */
 function femaleOnlyPending(world: World): boolean {
   for (const t of world.tasks.values()) if (t.femaleOnly && t.status === "open") return true;
   const tod = timeOfDay(world.t);
@@ -560,16 +551,14 @@ function onlyWomanOnShift(world: World, p: Person): boolean {
   });
 }
 
-/** Care staff on the floor and not on a break (staff-room or interruptible), other than `except`. */
-function floorStaffExcept(world: World, except: string[]): number {
-  let n = 0;
-  for (const id of world.order) {
-    const q = world.people.get(id)!;
-    if (except.includes(id) || !isCareStaff(q) || q.staff!.duty !== "on_shift" || !onFloor(world, q) || onBreak(world, q)) continue;
-    n += 1;
-  }
-  return n;
+/** A turn (repositioning). */
+export function isTurn(task: Task): boolean {
+  return task.kind === "care" && task.data.care === "reposition";
 }
+
+
+
+
 
 /** Utility of one staff member taking one task (docs/04). Higher is better. */
 export function taskScore(world: World, p: Person, task: Task): number {
@@ -580,7 +569,7 @@ export function taskScore(world: World, p: Person, task: Task): number {
   // Deadlines: hard ones (checks, requests) press harder the closer they get; soft ones
   // (turns, pad changes) nudge a little.
   if (task.deadlineT !== null) {
-    const hard = task.request || task.kind === "lounge_check" || isTurn(task) || (task.kind === "care" && (task.data.care === "check" || task.data.care === "tea"));
+    const hard = task.request || task.kind === "lounge_check" || isTurn(task) || (task.kind === "care" && (task.data.care === "check" || (tuned(world, "tea_deadline") && task.data.care === "tea")));
     const window = hard ? 20 : 15;
     const left = (task.deadlineT - world.t) / 60;
     if (left < window) score += hard ? 60 + 6 * (window - Math.max(0, left)) : 30;
@@ -594,12 +583,12 @@ export function taskScore(world: World, p: Person, task: Task): number {
   // Morning care and breakfast rise faster the longer they've been awake, so both go roughly in
   // wake order and a late riser isn't left behind every breakfast (or an early riser's breakfast behind every wash).
   const woke = resident?.resident?.wokeT;
-  const morningWork = task.kind === "care" && (task.data.care === "morning" || task.data.meal === "breakfast");
+  const morningWork = task.kind === "care" && (task.data.care === "morning" || (tuned(world, "breakfast_boost") && task.data.meal === "breakfast"));
   if (morningWork && woke !== null && woke !== undefined) score += Math.min(90, 1.5 * ((world.t - woke) / 60));
-  // Women are the scarce staff for female-only care (Peggy): it comes first for them, and the only
-  // woman on shift is kept off two-person work others could pair for while such care is pending.
-  if (task.femaleOnly) score += 25;
-  else if (task.staffNeeded === 2 && p.gender === "female" && femaleOnlyPending(world) && onlyWomanOnShift(world, p)) score -= 30;
+  // Women are the scarce staff for female-only care (Peggy, Kamala): it comes first for them, and
+  // the only woman on shift is kept off two-person work others could pair for while such care is pending.
+  if (task.femaleOnly && tuned(world, "female_only_bonus")) score += 25;
+  else if (tuned(world, "only_woman_two_person") && task.staffNeeded === 2 && p.gender === "female" && femaleOnlyPending(world) && onlyWomanOnShift(world, p)) score -= 30;
   if (isNurse(p)) score -= 25; // nurses help, but carers go first
   if (p.staff!.taskId) score -= 10; // on an interruptible break or a medication round
   return score;
@@ -623,7 +612,12 @@ export function decideStaff(world: World): void {
         continue;
       }
       // Whoever is free first keeps to short work (up to 10 minutes) until the other is free too,
-      // rather than standing waiting for them in the morning rush.
+      // rather than standing waiting for them in the morning rush (it matters most when the shift
+      // is short: tuning review, docs/12). Without the rule, each joins as soon as they're free.
+      if (!tuned(world, "briefing_hold")) {
+        for (const p of task.members!.map((id) => world.people.get(id)!)) if (p.onMap && memberFree(p) && !task.assigned.includes(p.id)) assign(world, task, [p]);
+        continue;
+      }
       const both = task.members!.map((id) => world.people.get(id)!);
       const free = both.filter((p) => p.onMap && memberFree(p));
       if (task.assigned.length === 0 && free.length === 2) {
@@ -668,11 +662,10 @@ export function decideStaff(world: World): void {
     const doing = by?.staff?.taskId ? world.tasks.get(by.staff.taskId) : undefined;
     // Lapses if they've gone off shift or are doing anything longer than short work (a handover, a round).
     const barred = !!by && isNurse(by) && morningRoundPending(world) && isResidentCare(t);
-    if (!by || barred || by.staff?.duty !== "on_shift" || !by.onMap || (doing && doing.kind !== "idle" && !isShort(doing) && !breakInterruptible(world, by))) t.data.reservedBy = null;
+    if (!by || barred || by.staff?.duty !== "on_shift" || !by.onMap || (doing && doing.kind !== "idle" && !isShort(doing))) t.data.reservedBy = null;
     else reserverOf.set(by.id, t);
   }
 
-  const loungeOccupied = supervisedResidents(world).length > 0 || world.order.some((id) => world.people.get(id)!.roomId === "Lounge" && !!world.people.get(id)!.resident?.data.care.lounge?.escort);
 
   // 2. Resume a paused break, or start a due one if the floor stays covered.
   for (const p of staff) {
@@ -685,7 +678,7 @@ export function decideStaff(world: World): void {
       const paused = world.tasks.get(s.pausedBreakId)!;
       // A day break cut short (for a fall) resumes only once someone else covers the floor, as
       // when it started; the lone night carer's break counts as on the floor, so it just resumes.
-      if (paused.data.night !== 1 && isCareStaff(p) && !coveredWithout(world, p, true)) continue;
+      if (paused.data.night !== 1 && isCareStaff(p) && !coveredWithout(world, p, true, undefined, true)) continue;
       s.pausedBreakId = null;
       paused.status = "open";
       paused.assigned = [];
@@ -700,28 +693,74 @@ export function decideStaff(world: World): void {
     // Day staff wait for a two-person turn that's nearly due.
     if (isCareStaff(p) && !sole && twoPersonTurnSoon(world, p)) continue;
     // Not while there's waiting work only they can do (female-only care, and they're the only woman on).
-    if (isCareStaff(p) && onlyOneFor(world, p, open)) continue;
-    // With Peggy or Stan in the Lounge, breaks are staggered so two care staff stay on the floor.
-    if (isCareStaff(p) && !sole && loungeOccupied && floorStaffExcept(world, [p.id]) < 2) continue;
-    if (!isCareStaff(p) || sole || coveredWithout(world, p, true)) assign(world, createBreak(world, sole && isCareStaff(p)), [p]);
+    if (tuned(world, "break_waits_only_woman") && isCareStaff(p) && onlyOneFor(world, p, open)) continue;
+    if (!isCareStaff(p) || sole || coveredWithout(world, p, true, undefined, true)) assign(world, createBreak(world, sole && isCareStaff(p)), [p]);
   }
 
   // 3. Work: repeatedly take the best (task, staff) match.
   const night = isNight(world.t);
   const medsPending = morningRoundPending(world);
-  // The only possible partner for a reserved turn that's pressing keeps to short work too.
+  // The only people who could do a pressing turn keep to short work until it's done: the only
+  // possible partner of whoever reserved it, and (not yet reserved) the only people free for it,
+  // so nobody starts a 20-minute wash that would make it late.
+  const pressingTurn = (t: Task) => isTurn(t) && t.deadlineT !== null && (t.deadlineT - world.t <= pressingMins(world) * 60 || world.float.status !== "off");
   const solePartner = (): Map<string, Task> => {
     const out = new Map<string, Task>();
+    if (!tuned(world, "sole_partner")) return out;
     for (const [by, t] of reserverOf) {
-      const pressing = isTurn(t) && t.deadlineT !== null && (t.deadlineT - world.t <= PRESSING_TURN_MINS * 60 || world.float.status !== "off");
-      if (!pressing) continue;
+      if (!pressingTurn(t)) continue;
       const partners = staff.filter((q) => q.id !== by && isFree(world, q, true) && !reserverOf.has(q.id) && (!t.femaleOnly || q.gender === "female"));
       if (partners.length === 1) out.set(partners[0]!.id, t);
     }
     return out;
   };
+  // Two-person turns falling due soon (reserved, open, or not created yet: the next turn of anyone
+  // in bed who is turned), for looking ahead before starting long care.
+  const turnDues: number[] = [];
+  if (tuned(world, "turn_team")) {
+    for (const t of open) if (isTurn(t) && t.deadlineT !== null) turnDues.push(t.deadlineT);
+    for (const id of world.order) {
+      const q = world.people.get(id)!;
+      const res = q.resident;
+      if (!res || !q.onMap || !res.inBed || [...open].some((t) => isTurn(t) && t.residentId === id)) continue;
+      const care = res.data.care;
+      const every = care.bed_bound ? (isNight(res.lastTurnedT) ? care.reposition_interval_mins.night : care.reposition_interval_mins.day) : isNight(world.t) ? care.reposition_interval_mins.night : null;
+      if (every) turnDues.push(res.lastTurnedT + every * 60);
+    }
+  }
+  /**
+   * `p` shouldn't start long care that would still be going when a two-person turn falls due, if
+   * they're needed for it: fewer than two others could do it (the floating carer counts for turns
+   * in her hours). Short work, and anyone's request for help, is fine.
+   */
+  const neededForTurn = (p: Person, task: Task): boolean => {
+    // Scheduled care only: a resident asking for help (the toilet) isn't kept waiting for a turn.
+    if (turnDues.length === 0 || isShort(task) || isTurn(task) || task.request) return false;
+    const r = task.residentId ? world.people.get(task.residentId)?.resident : undefined;
+    // The care, and a few minutes to get to the turn afterwards.
+    const until = world.t + ((r?.data.care.personal_care_mins ?? 15) + 5) * 60;
+    const due = turnDues.filter((d) => d > world.t && d <= until).sort((a, b) => a - b)[0];
+    if (due === undefined) return false;
+    const floatId = world.data.rota.night_float.id;
+    let others = staff.filter((q) => q.id !== p.id && isCareStaff(q) && q.staff!.duty === "on_shift" && !onBreak(world, q)).length;
+    if (p.id !== floatId && !staff.some((q) => q.id === floatId) && floatCovers(due)) others += 1;
+    return others < 2;
+  };
+  // Not yet reserved: the only people free for a pressing turn keep to short work or pressing turns.
+  const turnTeam = (): Set<string> => {
+    const out = new Set<string>();
+    if (!tuned(world, "turn_team")) return out;
+    const reserved = new Set(reserverOf.values());
+    for (const t of open) {
+      if (t.status !== "open" || reserved.has(t) || !pressingTurn(t)) continue;
+      const team = staff.filter((q) => isFree(world, q, true) && !reserverOf.has(q.id) && (!t.femaleOnly || q.gender === "female"));
+      if (team.length === t.staffNeeded) for (const q of team) out.add(q.id);
+    }
+    return out;
+  };
   for (;;) {
     const partnerOf = solePartner();
+    const teamFor = turnTeam();
     let best: { task: Task; people: Person[]; score: number } | null = null;
     let bestReserve: { task: Task; person: Person; score: number; pressing: boolean } | null = null;
     for (const task of open) {
@@ -730,13 +769,12 @@ export function decideStaff(world: World): void {
       // One thing at a time: a resident busy with other care can't start this yet (though a turn
       // can still be reserved while someone does a quick check on them).
       const busyWith = resident?.busyTaskId && resident.busyTaskId !== task.id ? world.tasks.get(resident.busyTaskId) : undefined;
-      if (busyWith && !(isTurn(task) && isShort(busyWith))) continue;
+      if (busyWith) continue;
       if (task.request && deferToCare(world, task)) continue; // met on the same visit as care that's due
       if (task.data.care === "morning" && breakfastFirst(world, task.residentId!)) continue; // they eat first
       const needed = task.staffNeeded;
-      // Requests, checks and Lounge look-ins about to go over may interrupt a medication round;
-      // turns don't (they're reserved ahead and the floating carer comes for them).
-      const targetTask = task.request || task.kind === "lounge_check" || (task.kind === "care" && task.data.care === "check");
+      // Requests, checks, turns and Lounge look-ins about to go over may interrupt a medication round.
+      const targetTask = task.request || task.kind === "lounge_check" || isTurn(task) || (task.kind === "care" && task.data.care === "check");
       const urgent = targetTask && task.deadlineT !== null && task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60;
       const nurseOnMeds = medsPending && isResidentCare(task);
       const eligible = (p: Person) =>
@@ -745,6 +783,8 @@ export function decideStaff(world: World): void {
         // Someone holding a reservation (or its only partner) only takes short work, or the reserved task itself.
         (!reserverOf.has(p.id) || reserverOf.get(p.id) === task || isShort(task)) &&
         (!partnerOf.has(p.id) || partnerOf.get(p.id) === task || isShort(task)) &&
+        (!teamFor.has(p.id) || isShort(task) || pressingTurn(task)) &&
+        !neededForTurn(p, task) &&
         (!briefingHold.has(p.id) || isShort(task));
       // Someone whose shift has ended stays to do what only they can (e.g. the last woman on the wing).
       const onlyThem = (p: Person) => task.request && p.staff!.duty === "staying" && isCareStaff(p) && !p.staff!.taskId && !coverableOnSite(world, task);
@@ -754,10 +794,8 @@ export function decideStaff(world: World): void {
       const onNightBreak = (p: Person) => world.tasks.get(p.staff!.taskId ?? "")?.data.night === 1;
       let pool = staff.filter((p) => eligible(p) && ((isFree(world, p, true) && (!onNightBreak(p) || nightBreakCall)) || onlyThem(p)));
       if (urgent && pool.length < needed) pool = [...pool, ...staff.filter((p) => eligible(p) && isCareStaff(p) && interruptibleForUrgent(world, p))];
-      // A look-in on the Lounge about to go over its limit, or any work during a fall, calls
-      // someone back from a day break (it resumes afterwards).
-      const duringFall = world.fallLog.some((f) => f.endT === null);
-      if (((urgent && task.kind === "lounge_check") || duringFall) && pool.length < needed) {
+      // A look-in on the Lounge about to go over its limit calls someone back from a day break (it resumes afterwards).
+      if (tuned(world, "lounge_break_recall") && urgent && task.kind === "lounge_check" && pool.length < needed) {
         pool = [...pool, ...staff.filter((p) => eligible(p) && isCareStaff(p) && p.staff!.duty === "on_shift" && onBreak(world, p) && !pool.includes(p))];
       }
       const candidates = pool
@@ -772,18 +810,15 @@ export function decideStaff(world: World): void {
         if (!own || others.length === 0) continue;
         chosen = [own, others[0]!];
       } else if (reserver) {
-        // The reserver is on a short task (a minute or two): wait for them, unless it's pressing.
-        const soon = task.deadlineT !== null && (task.deadlineT - world.t <= INTERRUPT_MEDS_WITHIN_MINS * 60 || (isTurn(task) && task.deadlineT - world.t <= PRESSING_TURN_MINS * 60));
+        // The reserver with a partner, or (the reserver busy for a moment) two others.
         const own = candidates.find((c) => c.p.id === reserver);
-        if (own) chosen = [own, others[0]!];
-        else if (soon) chosen = others.slice(0, 2);
-        else continue;
+        chosen = own ? [own, others[0]!] : others.slice(0, 2);
       } else {
         // Reserve a waiting two-person task rather than let it starve: by day after 5 minutes,
         // and at any time for a turn about to go over its interval. One reservation at a time.
         // Pressing: a turn about to go over its interval, or one the floating carer has come in for.
-        const pressing = isTurn(task) && task.deadlineT !== null && (task.deadlineT - world.t <= PRESSING_TURN_MINS * 60 || world.float.status !== "off");
-        const free = candidates.length === 1 && isFree(world, candidates[0]!.p, true);
+        const pressing = isTurn(task) && task.deadlineT !== null && (task.deadlineT - world.t <= pressingMins(world) * 60 || world.float.status !== "off");
+        const free = candidates.length === 1 && isFree(world, candidates[0]!.p, false);
         if (needed === 2 && free && reserverOf.size === 0 && ((!night && world.t - task.createdT >= 5 * 60) || pressing)) {
           if (!bestReserve || candidates[0]!.score > bestReserve.score) bestReserve = { task, person: candidates[0]!.p, score: candidates[0]!.score, pressing };
           continue;
@@ -791,17 +826,11 @@ export function decideStaff(world: World): void {
         if (candidates.length < needed) continue;
         chosen = candidates.slice(0, needed);
       }
-      // Peggy or Stan in the Lounge: a two-person job that would leave nobody else on the floor to
-      // look in waits for someone to come back (unless it can't wait any longer).
-      // It waits at most 10 minutes (never into the last 20 before its limit), and not during a fall.
-      const falling = world.fallLog.some((f) => f.endT === null);
-      const canWait = !falling && (task.deadlineT === null ? world.t - task.createdT < 10 * 60 : task.deadlineT - world.t > 20 * 60);
-      if (loungeOccupied && chosen.length === 2 && canWait && lookInStaffExcept(world, chosen.map((c) => c.p.id)) === 0) continue;
-      if (busyWith) continue; // reservable, but they're busy for a moment
+
       const score = chosen.reduce((sum, c) => sum + c.score, 0) / chosen.length;
       if (!best || score > best.score) best = { task, people: chosen.map((c) => c.p), score };
     }
-    if (bestReserve && (!best || bestReserve.pressing)) {
+    if (bestReserve && (!best || (tuned(world, "pressing_first") && bestReserve.pressing))) {
       // The most pressing two-person task is reserved for its one free candidate: before anything
       // else if it's a turn about to fall due (so they don't start something long), otherwise
       // when nothing else can start.

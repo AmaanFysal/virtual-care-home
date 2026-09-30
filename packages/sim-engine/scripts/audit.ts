@@ -9,6 +9,7 @@ import { ACT_THRESHOLD } from "../src/needs.js";
 import { isNight } from "../src/nightcover.js";
 import { isCareStaff, type ShiftAssignment } from "../src/state.js";
 import { cellAt } from "../src/world/grid.js";
+import type { Tuning } from "../src/tuning.js";
 import { AUDIT, type AuditConfig } from "./audit.config.js";
 import { loadAdmissions, loadSprites } from "../tools/load-data.js";
 import { dayLines, dayReport } from "./day-report.js";
@@ -88,8 +89,8 @@ interface RoundRec {
   missed: string[];
 }
 
-export function runAudit(seed: string, hours: number, data: WorldData, cfg: AuditConfig = AUDIT, director?: DirectorSettings): AuditResult {
-  const sim = createSim({ seed, data, admissions: loadAdmissions(), ...(director ? { director } : {}) });
+export function runAudit(seed: string, hours: number, data: WorldData, cfg: AuditConfig = AUDIT, director?: DirectorSettings, tuning: Partial<Tuning> = {}): AuditResult {
+  const sim = createSim({ seed, data, admissions: loadAdmissions(), tuning, ...(director ? { director } : {}) });
   const all: AnySimEvent[] = [];
   const w = sim.world;
   const flags: Flag[] = [];

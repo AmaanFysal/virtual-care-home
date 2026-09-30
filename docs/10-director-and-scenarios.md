@@ -7,7 +7,7 @@
 > - Sub-milestone (b) is built: infection state, spread through pluggable routes, isolation, outbreaks and the two outbreak scenarios.
 > - Sub-milestone (c) is built: illness, hospital stays by cause with care changes after, end of life, death and new admissions.
 > - Sub-milestone (d) is built: visitors' missed weeks with causes and seasons, birthdays and festivals.
-> - Sub-milestone (e) is designed below.
+> - Sub-milestone (e) is done: the tuning review (docs/12), keeping 15 rules (one new) and removing 9.
 >
 > Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`, `src/health.ts`, `src/celebrations.ts`, `src/director/calendar.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
 
@@ -188,7 +188,7 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
 - **Spread**, once a minute, through separate, pluggable routes, each scaled by the disease's weight (norovirus: contact 0.8, airborne 0.2; flu: contact 0.2, airborne 0.8):
   - **Contact:** 0.006 a minute within 1.5 m of someone infectious (care, sitting together).
   - **Airborne (proxy):** 0.1 an hour in the same room as someone infectious, logged as "airborne (proxy)".
-    - It isn't an air model: it reads only who is in which room, so it keeps to constitution rule 4 (no air quality in v1).
+    - It isn't an air model: it reads only who is in which room, so it keeps to constitution rule 4 (no physics in the engine; ADR-0006).
     - The future air model (room air, for example Wells-Riley, which a steriliser can reduce) replaces this term in the same slot (`routeChances` in `infection.ts`), and nothing else changes.
     - **Experiments comparing sterilisers need the real air model, not the proxy:** the proxy has no ventilation or air cleaning, so a steriliser can't change it.
   - **PPE:** with an isolated resident, gloves and aprons scale contact by 0.3, and masks scale the airborne term by 0.5.
@@ -357,7 +357,7 @@ Code: `src/visitors.ts`, `src/celebrations.ts`, `src/lounge.ts`, `src/director/c
 - **(b) Outbreaks and isolation** (built): infection state, pluggable routes, isolation, outbreaks, staff off sick, the `norovirus-outbreak` and `flu-outbreak` scenarios, the unwell badge and Health filter.
 - **(c) Illness, hospital, end of life and admissions** (built): sourced admission rate and stays by cause, illness at home, care changes after a stay, end of life, death, admissions from reviewed cards, the deaths switch.
 - **(d) Visitors' missed weeks and celebrations** (built): missed weeks with causes and seasons for regular visitors, birthdays and festivals from the cards with family visits and tea and cake, no gathering in an outbreak, the `birthday-party` scenario.
-- **(e) Tuning-debt review** against the calm-week baseline, one rule at a time (docs/12).
+- **(e) Tuning-debt review** (done): each rule switched off on its own against the calm-week baseline, then combined and checked on held-out seeds, with a new resident's weeks, short-staffed days and the audit; 15 kept (one new), 9 removed; Dennis's turns before the morning handover fixed with a general rule; floor cover for breaks counts only staff on a shift (docs/12, `reports/e-tuning-review.txt`).
 
 ## Notes carried from Phase 1
 

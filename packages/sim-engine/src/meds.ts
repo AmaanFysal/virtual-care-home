@@ -5,6 +5,7 @@
 // (capped at 40%), following the CHUMS finding that interrupted rounds cause errors. A dose given
 // more than 60 minutes after the round time is late. Nothing here is clinical advice.
 
+import { tuned } from "./tuning.js";
 import { clockToSeconds, timeOfDay } from "@vch/shared-types";
 import { act, leaf, seq, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
@@ -112,7 +113,7 @@ function giveDose(c: Ctx, r: Person): void {
   emit(world, "med.administered", [r.id, giver.id], { residentId: r.id, round, staffId: giver.id, lateMins });
   // Tablets go down with a drink: someone awake who hasn't had their tea yet gets one now.
   const res = r.resident!;
-  if (!res.asleep && res.wokeT !== null && !res.teaDone && res.data.care.eating_support !== "mouth_care_only") {
+  if (tuned(world, "tea_with_tablets") && !res.asleep && res.wokeT !== null && !res.teaDone && res.data.care.eating_support !== "mouth_care_only") {
     res.needs.thirst = Math.max(0, res.needs.thirst - 0.3);
     res.fluidsMlToday += 100;
     emit(world, "drink.served", [r.id, giver.id], { residentId: r.id, round: "with_meds", staffId: giver.id, outcome: "drunk" });

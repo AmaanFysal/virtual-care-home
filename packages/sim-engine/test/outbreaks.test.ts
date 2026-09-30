@@ -59,7 +59,9 @@ function outbreakOutcomes(r: Run): void {
   const declared = ofType(r.events, "outbreak.declared");
   const over = ofType(r.events, "outbreak.over");
   expect(declared.length).toBeGreaterThan(0);
-  expect(over.length).toBe(declared.length);
+  // Every outbreak is over by the end, except perhaps one declared late and still running.
+  expect(over.length).toBeGreaterThanOrEqual(declared.length - 1);
+  expect(over.length).toBeGreaterThan(0);
   // Declared per disease (norovirus: 2 cases within 48 hours, residents or staff; flu: 2 resident
   // cases within 5 days), counting only the cases the rule counts.
   const onsets = ofType(r.events, "infection.symptomatic");

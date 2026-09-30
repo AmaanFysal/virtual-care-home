@@ -10,7 +10,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "sim": "tsx scripts/sim.ts",
-    "director-rates": "tsx scripts/director-rates.ts"
+    "director-rates": "tsx scripts/director-rates.ts",
+    "tuning-review": "tsx scripts/tuning-review.ts"
   },
   "dependencies": {
     "@vch/shared-types": "workspace:*"
