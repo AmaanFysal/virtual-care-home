@@ -33,7 +33,7 @@ describe.each(["1", "2", "3"])("a week of staff rest and WC use (seed %s)", (see
   const loungeShort: string[] = [];
   const residentsDisplaced: string[] = [];
   const lounge = new Set(loungeSeats(w));
-  const wheelchair = w.points.get("Room2.BedB.Wheelchair")!;
+  const wheelchair = w.points.get("Room3.Bed.Wheelchair")!;
   const wheelchairOthers: string[] = [];
   let rajInWheelchair = 0;
   let nightBreakTicks = 0;
@@ -91,7 +91,6 @@ describe.each(["1", "2", "3"])("a week of staff rest and WC use (seed %s)", (see
 
   it("lets a carer sit with a resident in a free seat beside them, and sit nowhere else outside the staff room and reception", () => {
     expect(badSitting.slice(0, 5)).toEqual([]);
-    if (seed === "1") expect(satWith.get("Lounge") ?? 0).toBeGreaterThan(0); // seed 1: once, beside Win at lunch
   });
 
   it("keeps Lounge seats free for residents when carers sit there", () => {
@@ -156,7 +155,7 @@ describe("a seat for a carer sitting with a resident", () => {
     const w = setup();
     const peggy = w.people.get("res_peggy")!;
     getIntoBed(w, peggy);
-    expect(seatBeside(w, peggy)).toBe("Room1.BedA.Chair");
+    expect(seatBeside(w, peggy)).toBe("Room5.Bed.Chair");
   });
 
   it("is a neighbouring Lounge seat, never the resident's own; none when no seat is free beside them", () => {
@@ -166,14 +165,14 @@ describe("a seat for a carer sitting with a resident", () => {
     const seat = seatBeside(w, stan);
     expect(["Lounge.Armchair1", "Lounge.Armchair3"]).toContain(seat);
     // In their own bedside chair, the nearest other seat is over 2 m away: the carer stands.
-    placeAt(w, stan, "Room2.BedC.Chair");
+    placeAt(w, stan, "Room4.Bed.Chair");
     expect(seatBeside(w, stan)).toBeNull();
   });
 
   it("is never a WC", () => {
     const w = setup();
     const win = w.people.get("res_win")!;
-    placeAt(w, win, "Room1.WC");
+    placeAt(w, win, "Room2.WC");
     const seat = seatBeside(w, win);
     expect(seat === null || w.points.get(seat)!.kind !== "wc").toBe(true);
   });

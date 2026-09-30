@@ -61,13 +61,18 @@ function interpolate(knots: Knots, v: number, from: 0 | 1): number {
 
 export function makeBanding(plan: FloorPlan): Banding {
   const lines = [...new Set(plan.walls.filter((w) => w.y1 === w.y2).map((w) => w.y1))].sort((a, b) => a - b);
+  // Only rooms that aren't inside another make bands: an en-suite's short internal walls are drawn
+  // as wall tops, since a face band there would push the whole map down (docs/08).
+  const inside = (a: FloorPlan["rooms"][number], b: FloorPlan["rooms"][number]) =>
+    a !== b && a.rect.x >= b.rect.x && a.rect.y >= b.rect.y && a.rect.x + a.rect.w <= b.rect.x + b.rect.w && a.rect.y + a.rect.h <= b.rect.y + b.rect.h;
+  const topLevel = plan.rooms.filter((r) => !plan.rooms.some((o) => inside(r, o)));
   const bands: Band[] = [];
   const knots: Knots = [];
   let shift = PAD_PX;
   for (const line of lines) {
-    const below = plan.rooms.some((r) => r.rect.y === line);
+    const below = topLevel.some((r) => r.rect.y === line);
     if (!below) continue;
-    const above = plan.rooms.some((r) => r.rect.y + r.rect.h === line);
+    const above = topLevel.some((r) => r.rect.y + r.rect.h === line);
     bands.push({ y: line, top: line * TILE_PX + shift, blended: above });
     if (above) {
       knots.push([line - BLEND_M, (line - BLEND_M) * TILE_PX + shift]);

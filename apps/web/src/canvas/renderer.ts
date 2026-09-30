@@ -263,10 +263,13 @@ export class WingRenderer {
     // Dark letters with a pale edge, so they read on light lino and dark carpet alike.
     const style = { fontFamily: "ui-monospace, Menlo, monospace", fontSize: 9, fill: 0x3b3530, fontWeight: "700" as const, letterSpacing: 1, stroke: { color: 0xfffaf0, width: 3 } };
     for (const room of plan.rooms) {
+      if (room.kind === "ensuite") continue;
       const t = new Text({ text: room.name.toUpperCase(), style, resolution: 4 });
       t.alpha = 0.8;
       const top = room.rect.y * 32 + b.offsetAt(room.rect.y);
-      t.position.set(Math.round(b.x(room.rect.x) + 6), Math.round(top + 4));
+      // Clear of an en-suite in the bottom-left corner.
+      const ensuite = plan.rooms.find((r) => r.kind === "ensuite" && r.rect.x === room.rect.x && r.rect.y + r.rect.h === room.rect.y + room.rect.h);
+      t.position.set(Math.round(b.x(room.rect.x + (ensuite ? ensuite.rect.w : 0)) + 6), Math.round(top + 4));
       if (room.kind === "bedroom" || room.kind === "lounge") t.position.y = Math.round(room.rect.y * 32 + b.offsetAt(room.rect.y + room.rect.h - 1e-6) + room.rect.h * 32 - 14);
       this.labels.addChild(t);
     }

@@ -23,7 +23,7 @@
     "waiting": { "image": "floors", "x": 32, "y": 416, "w": 32, "h": 32, "note": "green carpet" },
     "reception": { "image": "floors", "x": 0, "y": 1600, "w": 32, "h": 32, "note": "beige tiles" },
     "staff": { "image": "floors", "x": 0, "y": 1792, "w": 32, "h": 32, "note": "blue-grey lino" },
-    "wc": { "image": "floors", "x": 32, "y": 1600, "w": 32, "h": 32, "note": "small white tiles under each en-suite WC" },
+    "ensuite": { "image": "floors", "x": 32, "y": 1600, "w": 32, "h": 32, "note": "small white tiles in each en-suite" },
     "wood": { "image": "floors", "x": 128, "y": 1184, "w": 64, "h": 64, "note": "wood boards, for floor patches" },
     "grass": { "image": "terrain", "x": 32, "y": 384, "w": 32, "h": 32, "note": "outside" },
     "path": { "image": "terrain", "x": 608, "y": 768, "w": 32, "h": 32, "note": "flagstone path" }
@@ -79,7 +79,7 @@
       { "image": "wood", "x": 0, "y": 233, "w": 96, "h": 43, "lift": 18, "slice": { "l": 16, "r": 16, "t": 8, "b": 26 }, "note": "long table" }
     ],
     "desk": { "image": "wood", "x": 64, "y": 767, "w": 64, "h": 33, "lift": 17, "slice": { "l": 12, "r": 20, "t": 6, "b": 20 }, "note": "front-facing desk, drawers on the right" },
-    "wc": { "image": "toilet", "x": 0, "y": 0, "w": 24, "h": 34, "at": "top", "dy": 2, "partition": "west", "note": "LPC toilet on a tiled patch, with a partition" },
+    "wc": { "image": "toilet", "x": 0, "y": 0, "w": 24, "h": 34, "dy": 2, "note": "LPC toilet at the en-suite's WC point" },
     "bookshelf": {
       "image": "wood",
       "x": 224,

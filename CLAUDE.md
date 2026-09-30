@@ -30,7 +30,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - Engine tick = 5 sim seconds; needs, rota and decisions run once a sim minute (ADR-0001).
 - Sim time = integer seconds since Mon 2026-11-02 00:00; runs start Tue 06:00 (t = 108000).
 - Phase 1 event log is SQLite via `node:sqlite`, owned by `apps/server` (ADR-0002).
-- The wing has 7 rooms: Room 1, Room 2, the residents' Lounge (day and dining room), corridor, waiting area (visitors only), reception and staff room (docs/02).
+- The wing has six single en-suite bedrooms (Room 1 to Room 6, each en-suite a walled room inside the bedroom), the residents' Lounge (day and dining room), corridor, waiting area (visitors only; doors to the corridor and reception), reception and staff room (docs/02).
 - Two-person tasks are reserved, never held by one carer (ADR-0003); every room change is logged (`person.entered_room`).
 
 ## Non-negotiables (full text: docs/00-constitution.md)

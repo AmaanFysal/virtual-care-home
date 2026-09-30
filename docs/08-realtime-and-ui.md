@@ -64,9 +64,10 @@ Each person view (`PersonView`) carries their id, kind, name, initials, position
   - Each horizontal wall with a room below it gets a 64 px band: an 8 px wall top and a 56 px face.
   - Everything below a band moves down by 64 px. Where a wall has rooms on both sides, the band is blended over ±0.25 m, so people cross doorways smoothly.
   - The south outer wall is a top plus a short outside face.
+  - Only top-level rooms make bands. An en-suite's short internal walls are drawn as wall tops, since a band there would push the whole map down.
   - One mapping serves drawing, click-to-select, hover, Follow and the camera. Clicks pick the front-most drawn figure under the pointer (`figures.pickPerson`), so someone drawn over a wall face is still picked.
 - **Map (`canvas/mapPainter.ts`):** painted once to a canvas from the floor plan:
-  - grass, floors, rugs, wall faces (inside faces for rooms, light brick outside), doorways, wall tops, and the WC patches with partitions;
+  - grass, floors (largest room first, so each en-suite's tiles lie over its bedroom), rugs, wall faces (inside faces for rooms, light brick outside), doorways and wall tops;
   - windows on outer walls (over each bed, otherwise every 3 m);
   - pictures on inner walls, clear of doors;
   - a garden in the space outside the plan, with a path from the exit.

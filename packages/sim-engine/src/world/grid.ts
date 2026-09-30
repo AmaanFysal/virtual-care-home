@@ -68,7 +68,10 @@ export function buildGrid(plan: FloorPlan): Grid {
   const blockers = plan.furniture.filter((f) => f.blocks);
   for (let i = 0; i < count; i++) {
     const { x, y } = cellCentre(grid, i);
-    const room = plan.rooms.find((r) => x > r.rect.x && x < r.rect.x + r.rect.w && y > r.rect.y && y < r.rect.y + r.rect.h);
+    // The innermost room wins: a cell in an en-suite belongs to the en-suite, not the bedroom around it.
+    const room = plan.rooms
+      .filter((r) => x > r.rect.x && x < r.rect.x + r.rect.w && y > r.rect.y && y < r.rect.y + r.rect.h)
+      .sort((a, b) => a.rect.w * a.rect.h - b.rect.w * b.rect.h)[0];
     grid.roomOf[i] = room?.id ?? null;
     const blocked = blockers.some((f) => x > f.rect.x && x < f.rect.x + f.rect.w && y > f.rect.y && y < f.rect.y + f.rect.h);
     grid.walkable[i] = !!room && !blocked;

@@ -188,7 +188,7 @@ describe("checks (bedside at night and for Dennis; observation by day)", () => {
     const stan = w.people.get("res_stan")!;
     const florin = w.people.get("stf_florin")!;
     run(sim, 17); // 23:00
-    placeAt(w, florin, "Room2.BedC.Side"); // at Stan's bed, 2.5 m from Dennis
+    placeAt(w, florin, "Room4.Bed.Side"); // at Stan's bed, two rooms along from Dennis
     const before = dennis.resident!.lastCheckedT;
     markChecked(w, dennis, [florin], true);
     expect(dennis.resident!.lastCheckedT).toBe(before); // too far at night

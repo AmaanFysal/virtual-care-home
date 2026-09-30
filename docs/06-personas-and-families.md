@@ -30,7 +30,7 @@ References between files always use ids (a resident's `next_of_kin` and `lpa_hea
 Run by `pnpm test` and by the server at startup:
 
 - Unique ids, correct prefixes, every reference resolves.
-- Residents: bed is a real bed point, one resident per bed, Room 1 female and Room 2 male; valid times; walking speed consistent with transfer method; hoist means 2 staff; residents who can't ask for help have scheduled repositioning; next of kin and LPA are one of their own visitors.
+- Residents: bed is a real bed point, one resident per bed, each in their own single room with its own en-suite; valid times; walking speed consistent with transfer method; hoist means 2 staff; residents who can't ask for help have scheduled repositioning; next of kin and LPA are one of their own visitors.
 - Visitors: valid days and arrival window (no crossing midnight), reliability 0..1, `accompanies` points to a lead visitor for the same resident on the same days; every resident has at least one visitor.
 - Relationship edges: no self-edges, no duplicate pairs.
 - Rota: shift leads are named staff, late leads are meds-trained, the RN slot is an RN or agency, nobody on two shifts a day, 11 hours' rest (no late then early, no night then day shift).

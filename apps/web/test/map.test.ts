@@ -11,13 +11,13 @@ const plan = floorplan as unknown as FloorPlan;
 const banding = makeBanding(plan);
 
 describe("banded mapping", () => {
-  it("puts a 64 px face band at the three south-facing walls and none at the south outer wall", () => {
+  it("puts a 64 px face band at the three south-facing walls, none at the south outer wall, and none for the en-suites' inner walls", () => {
     expect(banding.bands.map((b) => [b.y, b.blended])).toEqual([
       [0, false],
       [5.5, true],
       [7.5, true],
     ]);
-    expect(banding.size).toEqual({ w: 26.5 * TILE_PX + 2 * PAD_PX, h: 13 * TILE_PX + 3 * FACE_PX + 2 * PAD_PX });
+    expect(banding.size).toEqual({ w: 33.5 * TILE_PX + 2 * PAD_PX, h: 13 * TILE_PX + 3 * FACE_PX + 2 * PAD_PX });
   });
 
   it("is 32 px a metre away from the walls, shifted by the bands above", () => {
@@ -50,9 +50,9 @@ describe("banded mapping", () => {
 describe("seat facings", () => {
   const facings = seatFacings(plan);
   it("turns chairs to their table or desk, armchairs to the TV, and bedside and reading chairs south, towards the camera", () => {
-    for (const id of ["Room1.BedA.chair", "Room1.BedB.chair", "Room2.BedA.chair", "Room2.BedC.chair"]) expect(facings.get(id), id).toBe("south");
+    for (const id of ["Room1.Bed.chair", "Room2.Bed.chair", "Room4.Bed.chair", "Room5.Bed.chair"]) expect(facings.get(id), id).toBe("south");
     // Raj sits in his wheelchair and Dennis is bed-bound: no bedside chairs for them.
-    for (const id of ["Room2.BedB.chair", "Room2.BedD.chair"]) expect(facings.has(id), id).toBe(false);
+    for (const id of ["Room3.Bed.chair", "Room6.Bed.chair"]) expect(facings.has(id), id).toBe(false);
     expect(facings.get("WaitingArea.chair1")).toBe("east");
     expect(facings.get("WaitingArea.chair3")).toBe("west");
     expect(facings.get("WaitingArea.chair5")).toBe("south");
@@ -129,7 +129,7 @@ describe("click to select", () => {
 });
 
 describe("sliding through turning points", () => {
-  // Out of Room 1 through its door (x 3 to 4 at y 5.5) and along the corridor.
+  // Out of a bedroom through a door (x 3 to 4 at y 5.5) and along the corridor.
   const slide = makeSlide([{ x: 2.25, y: 4.75 }, { x: 3.25, y: 5.25 }, { x: 3.25, y: 5.75 }, { x: 6.25, y: 6.75 }]);
 
   it("goes through each turning point in order, by distance", () => {
@@ -153,8 +153,8 @@ describe("sliding through turning points", () => {
   });
 
   it("faces the toilet when standing still beside it", () => {
-    expect(facingFixture(plan, 7.25, 4.75)).toBe("west"); // Room 1's standing point, east of the toilet
-    expect(facingFixture(plan, 6.75, 4.75)).toBeNull(); // on the seat itself
+    expect(facingFixture(plan, 1.25, 3.75)).toBe("west"); // Room 1's standing point in the en-suite, east of the toilet
+    expect(facingFixture(plan, 0.75, 3.75)).toBeNull(); // on the seat itself
     expect(facingFixture(plan, 3, 3)).toBeNull();
   });
 });

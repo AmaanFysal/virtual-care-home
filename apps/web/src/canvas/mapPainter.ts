@@ -130,16 +130,13 @@ export function paintMap(plan: FloorPlan, banding: Banding, images: Images, faci
 
   // ---------------------------------------------------------------- outside, floors, rugs
   fill(tileset.floors.grass, 0, 0, 0, W, H);
-  for (const r of plan.rooms) fillFloor(r, X(r.rect.x), roomTop(r), X(r.rect.x + r.rect.w), roomBottom(r));
+  // Largest first, so a room inside another (an en-suite) is drawn over it.
+  for (const r of [...plan.rooms].sort((a, b) => b.rect.w * b.rect.h - a.rect.w * a.rect.h)) fillFloor(r, X(r.rect.x), roomTop(r), X(r.rect.x + r.rect.w), roomBottom(r));
   for (const patch of tileset.floorPatches) {
     const parts = patch.around.map(byId).filter((f): f is Furniture => !!f);
     if (parts.length === 0) continue;
     const r = screenRect(clampTo(bounds(parts.map((f) => f.rect), patch.margin), roomOf(parts[0]!.room).rect, 0));
     fill(floors[patch.floor]!, r.y, r.x, r.y, r.x + r.w, r.y + r.h);
-  }
-  for (const f of plan.furniture.filter((f) => f.kind === "wc")) {
-    const r = screenRect(f.rect);
-    fill(tileset.floors.wc, r.y, r.x, r.y, r.x + r.w, r.y + r.h);
   }
   for (const rug of tileset.rugs) {
     const parts = rug.around.map(byId).filter((f): f is Furniture => !!f);
@@ -297,12 +294,6 @@ export function paintMap(plan: FloorPlan, banding: Banding, images: Images, faci
         y = Math.max(y, g1);
       }
     }
-  }
-  // The WC partitions are part of the room, so they're painted flat.
-  for (const f of plan.furniture.filter((f) => f.kind === "wc")) {
-    const r = screenRect(f.rect);
-    const px = tileset.furniture.wc.partition === "west" ? r.x : r.x + r.w;
-    trim(px - 3, r.y - 16, px + 3, r.y + r.h - 2);
   }
 
   // ---------------------------------------------------------------- furniture

@@ -13,6 +13,7 @@ import {
   type Staff,
   type WorldData,
 } from "@vch/shared-types";
+import { buildGrid } from "../world/grid.js";
 
 const EPS = 1e-6;
 
@@ -91,12 +92,43 @@ function validateFloorPlan(fp: FloorPlan, errors: string[]): void {
   const walls = new Map(fp.walls.map((w) => [w.id, w]));
   const bounds: Rect = { x: 0, y: 0, w: fp.size.w, h: fp.size.h };
 
+  // A room may sit inside another (an en-suite inside its bedroom); the outer room's area excludes it.
+  const nestedIn = (outer: { id: string; rect: Rect }) => fp.rooms.filter((r) => r.id !== outer.id && rectWithin(r.rect, outer.rect));
   for (const room of fp.rooms) {
     if (!rectWithin(room.rect, bounds)) errors.push(`floorplan: room ${room.id} is outside the wing`);
-    if (Math.abs(room.floor_area_m2 - room.rect.w * room.rect.h) > 0.01) {
+    const inner = nestedIn(room).reduce((a, r) => a + r.rect.w * r.rect.h, 0);
+    if (Math.abs(room.floor_area_m2 - (room.rect.w * room.rect.h - inner)) > 0.01) {
       errors.push(`floorplan: room ${room.id} floor_area_m2 ${room.floor_area_m2} does not match its rect`);
     }
     if (!(room.ceiling_height_m > 0)) errors.push(`floorplan: room ${room.id} needs a ceiling height`);
+    for (const inner of nestedIn(room)) {
+      if (inner.kind !== "ensuite" || room.kind !== "bedroom") errors.push(`floorplan: only an en-suite may sit inside a room, and only inside a bedroom (${inner.id} in ${room.id})`);
+    }
+  }
+  // Doorways never touch: the cells either side of each door are single-occupancy, so if two
+  // doors' cells were neighbours, two people could each hold one and wait for the other for ever.
+  const grid = buildGrid(fp);
+  for (const [a, cellsA] of grid.doorZones) {
+    for (const [b, cellsB] of grid.doorZones) {
+      if (a >= b) continue;
+      const touching = cellsA.some((ca) => cellsB.some((cb) => Math.abs((ca % grid.cols) - (cb % grid.cols)) <= 1 && Math.abs(Math.floor(ca / grid.cols) - Math.floor(cb / grid.cols)) <= 1));
+      if (touching) errors.push(`floorplan: doors ${a} and ${b} are too close: their doorways touch, which can lock two people in place`);
+    }
+  }
+  // Two carers work either side of a bed (turns, hoisting): clear floor both sides, along its length.
+  for (const bed of fp.furniture.filter((f) => f.kind === "bed")) {
+    const room = rooms.get(bed.room);
+    if (!room) continue;
+    const alongside = fp.furniture.filter((f) => f !== bed && f.room === bed.room && f.rect.y < bed.rect.y + bed.rect.h && f.rect.y + f.rect.h > bed.rect.y);
+    const west = Math.min(bed.rect.x - room.rect.x, ...alongside.filter((f) => f.rect.x + f.rect.w <= bed.rect.x).map((f) => bed.rect.x - (f.rect.x + f.rect.w)));
+    const east = Math.min(room.rect.x + room.rect.w - (bed.rect.x + bed.rect.w), ...alongside.filter((f) => f.rect.x >= bed.rect.x + bed.rect.w).map((f) => f.rect.x - (bed.rect.x + bed.rect.w)));
+    if (Math.min(west, east) < BED_SIDE_CLEARANCE_M) errors.push(`floorplan: ${bed.id} has ${west} m and ${east} m clear either side; two carers need at least ${BED_SIDE_CLEARANCE_M} m on both sides`);
+  }
+  // Single rooms: every bedroom has exactly one en-suite inside it, with a WC point.
+  for (const room of fp.rooms.filter((r) => r.kind === "bedroom")) {
+    const ensuites = nestedIn(room).filter((r) => r.kind === "ensuite");
+    if (ensuites.length !== 1) errors.push(`floorplan: bedroom ${room.id} needs exactly one en-suite, found ${ensuites.length}`);
+    for (const e of ensuites) if (!fp.points.some((p) => p.kind === "wc" && p.room === e.id)) errors.push(`floorplan: en-suite ${e.id} has no WC point`);
   }
 
   for (const door of fp.doors) {
@@ -114,11 +146,17 @@ function validateFloorPlan(fp: FloorPlan, errors: string[]): void {
         errors.push(`floorplan: door ${door.id} does not lie on wall ${door.wall}`);
       }
     }
+    if (door.clear_width_m !== undefined) {
+      const gap = Math.hypot(door.x2 - door.x1, door.y2 - door.y1);
+      // 0.8 m is about the least a wheelchair or hoist can pass through.
+      if (door.clear_width_m < 0.8 || door.clear_width_m > gap) errors.push(`floorplan: door ${door.id} clear width ${door.clear_width_m} m must be at least 0.8 m and fit its ${gap} m opening`);
+    }
     for (const roomId of door.rooms) {
       if (roomId === "Outside") continue;
       const room = rooms.get(roomId);
       if (!room) errors.push(`floorplan: door ${door.id} connects unknown room "${roomId}"`);
-      else if (!onRectEdge(door, room.rect)) errors.push(`floorplan: door ${door.id} is not on the edge of ${roomId}`);
+      // A door into an en-suite is on the en-suite's edge, inside the bedroom.
+      else if (!onRectEdge(door, room.rect) && !nestedIn(room).some((inner) => onRectEdge(door, inner.rect))) errors.push(`floorplan: door ${door.id} is not on the edge of ${roomId}`);
     }
   }
 
@@ -182,6 +220,9 @@ function checkClock(value: string | null, where: string, errors: string[]): void
   }
 }
 
+/** Clear floor needed either side of a bed for two carers (turns, hoisting), in metres. */
+const BED_SIDE_CLEARANCE_M = 1.2;
+
 /** Clear floor needed around a wheelchair spot for the hoist and the wheelchair (metres). */
 const WHEELCHAIR_CLEARANCE_M = 1;
 
@@ -240,8 +281,12 @@ function validatePeople(data: WorldData, errors: string[]): void {
     else {
       if (beds.has(r.room)) errors.push(`${where}: bed ${r.room} is already taken`);
       beds.add(r.room);
-      const expected = bed.room === "Room1" ? "female" : "male";
-      if (r.gender !== expected) errors.push(`${where}: ${bed.room} is a ${expected} room`);
+      // Single rooms: one bed per bedroom, and the resident's WC is their own en-suite's (RoomN.WC).
+      const sharing = floorplan.points.filter((p) => p.kind === "bed" && p.room === bed.room);
+      if (sharing.length !== 1) errors.push(`${where}: ${bed.room} should be a single room, but has ${sharing.length} beds`);
+      const wc = points.get(`${r.room.split(".")[0]}.WC`);
+      const ownEnsuite = floorplan.rooms.find((room) => room.kind === "ensuite" && wc?.room === room.id && rectWithin(room.rect, floorplan.rooms.find((b) => b.id === bed.room)!.rect));
+      if (!wc || !ownEnsuite) errors.push(`${where}: needs a WC point ${r.room.split(".")[0]}.WC in the en-suite of ${bed.room}`);
     }
     checkBedsideSeat(r, floorplan, where, errors);
     for (const t of r.medication_rounds) checkClock(t, where, errors);
