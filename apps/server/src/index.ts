@@ -60,7 +60,8 @@ const log = new EventLog(`${runsDir}/${runId}.sqlite`, {
     ? JSON.stringify({ mode, random: director.random, scenario: director.scenario?.id ?? null, scenarioHash: director.scenario ? hashString(JSON.stringify(director.scenario)) : null, configHash: hashString(JSON.stringify(config)), deaths })
     : "off",
 });
-const sim = createSim({ seed, data, ...(director ? { director } : {}) });
+// The tuning is passed even with the director off, for manual triggers (a sick call, an infection).
+const sim = createSim({ seed, data, config, ...(director ? { director } : {}) });
 const runner = new Runner(sim, data, log, directorView);
 
 const app = Fastify({ logger: { level: "warn" } });

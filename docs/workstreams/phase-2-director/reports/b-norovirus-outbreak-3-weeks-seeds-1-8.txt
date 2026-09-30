@@ -1,0 +1,454 @@
+
+=== seed 1 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy): Lounge closed, essential visits only
+  Fri 06 Nov  scripted   0 breaches
+  Sat 07 Nov  scripted   0 breaches
+    21:26  Dave caught norovirus (contact from Peggy, Room5)
+  Sun 08 Nov  scripted   0 breaches
+    09:17  norovirus outbreak over after 3 days, 2 cases
+  Mon 09 Nov  scripted   1 ill (infection), 0 breaches
+    12:30  Dave ill with norovirus
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Dave off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 13:50
+  Wed 11 Nov  scripted   1 sick, 0 breaches
+    00:00  Dave off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 13:50
+  Thu 12 Nov  scripted   0 breaches
+  Fri 13 Nov  scripted   1 sick, 0 breaches
+    00:00  Dave off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 13:50
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 2 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Tom): Lounge closed, essential visits only
+    12:20  Tom caught norovirus (contact from Stan, Room4)
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    03:33  Tom ill with norovirus
+    03:33  Tom off sick for early.ca at 07:00 (engine)
+    03:33    cover: agency Daniel Silva, arriving 06:50
+  Sat 07 Nov  scripted   0 breaches
+  Sun 08 Nov  scripted   0 breaches
+  Mon 09 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 06:50
+    23:04  Florin caught norovirus (contact from Peggy, Room5)
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 06:50
+    08:10  norovirus outbreak over after 5 days, 3 cases
+  Wed 11 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    06:17  Dennis caught norovirus (contact from Florin, Room6)
+    11:54  Florin ill with norovirus
+    11:54  Florin off sick for night.carer at 21:15 (engine)
+    11:54    cover: bank Shanice Clarke, arriving 21:05
+  Thu 12 Nov  scripted   0 breaches
+    19:28  Lucy caught norovirus (contact from Dennis, Room6)
+    20:46  Kasia caught norovirus (contact from Dennis, Room6)
+  Fri 13 Nov  scripted   2 ill (infection), 0 breaches
+    00:17  Dennis ill with norovirus, isolated in their room
+    00:17  norovirus OUTBREAK declared (Florin, Dennis, Kasia, Lucy): Lounge closed, essential visits only
+    19:20  Kasia ill with norovirus
+  Sat 14 Nov  scripted   1 sick, 1 ill (infection), 1 no-show, 0 breaches
+    00:00  Kasia off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Nadia Hussain, arriving 06:50
+    11:33  Lucy ill with norovirus
+    11:33  Lucy went home ill for early.ca at 11:33 (engine)
+    11:33    cover: agency Daniel Silva, arriving 13:27
+    11:40  Nadia caught norovirus (contact from Dennis, Room6)
+    22:02  Ioana caught norovirus (contact from Dennis, Room6)
+  Sun 15 Nov  scripted   2 sick, 0 breaches
+    00:00  Kasia off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 06:50
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 06:50
+  Mon 16 Nov  scripted   1 sick, 0 breaches
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 13:50
+  Tue 17 Nov  scripted   0 breaches
+    18:12  norovirus outbreak over after 4.7 days, 4 cases
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 3 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Shanice, Aisha): Lounge closed, essential visits only
+  Fri 06 Nov  scripted   1 breach
+    18:24  Shanice caught norovirus (contact from Peggy, Room5)
+    21:43  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Peggy, Stan isolated)]
+  Sat 07 Nov  scripted   1 ill (infection), 1 no-show, 1 breach
+    07:12  Aisha caught norovirus (contact from Peggy, Room5)
+    14:38  Shanice ill with norovirus
+    14:38  Shanice went home ill for late.ca at 14:38 (engine)
+    14:38    cover: agency Liam Doyle, arriving 15:50
+    15:20  breach request_wait: Toilet for Peggy waiting 30 min [short-staffed: Shanice didn't turn up (late), agency from 15:50; during norovirus outbreak (Peggy, Stan isolated)]
+  Sun 08 Nov  scripted   1 sick, 1 ill (infection), 3 breaches
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    no cover: no bank or agency cover; late.ca runs short
+    16:01  breach request_wait: Toilet for Peggy waiting 30 min [short-staffed: Shanice off sick (late), no cover; during norovirus outbreak (Peggy isolated)]
+    20:49  breach request_wait: Toilet for Raj waiting 30 min [short-staffed: Shanice off sick (late), no cover; during norovirus outbreak (Peggy isolated)]
+    21:17  Aisha ill with norovirus
+    21:26  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Shanice off sick (late), no cover; during norovirus outbreak (Peggy isolated)]
+  Mon 09 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+  Tue 10 Nov  scripted   2 sick, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 13:50
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 13:50
+  Wed 11 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+  Thu 12 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Daniel Silva, arriving 21:05
+  Fri 13 Nov  scripted   0 breaches
+    18:50  norovirus outbreak over after 8.4 days, 4 cases
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 4 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+    20:10  Aisha caught norovirus (contact from Stan, Room4)
+  Thu 05 Nov  scripted   1 sick, 2 ill (infection), 0 breaches
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Aisha, Blessing, Shanice): Lounge closed, essential visits only
+    10:40  Aisha ill with norovirus
+    10:40  Aisha off sick for night.carer at 21:15 (engine)
+    10:40    cover: agency Emma Walsh, arriving 21:05
+  Fri 06 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Nadia Hussain, arriving 21:05
+    11:14  Blessing caught norovirus (contact from Stan, Room4)
+    17:14  Oluwaseun caught norovirus (contact from Stan, Room4)
+    20:55  Shanice caught norovirus (airborne (proxy) from Peggy, Room5)
+    22:14  Nadia caught norovirus (contact from Stan, Room4)
+  Sat 07 Nov  scripted   1 sick, 2 ill (infection), 1 breach
+    02:35  Blessing ill with norovirus
+    11:15  Shanice ill with norovirus
+    11:15  Shanice off sick for late.ca at 14:00 (engine)
+    11:15    cover: agency Liam Doyle, arriving 13:50
+    16:08  breach request_wait: Toilet for Peggy waiting 30 min [during norovirus outbreak (Peggy, Stan isolated)]
+  Sun 08 Nov  scripted   1 sick, 0 breaches
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 13:50
+    21:05  Precious caught norovirus (contact from Peggy, Room5)
+  Mon 09 Nov  scripted   2 sick, 1 breach
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 06:50
+    09:54  breach request_wait: Toilet for Peggy waiting 30 min [during norovirus outbreak]
+  Tue 10 Nov  scripted   1 sick, 0 breaches
+    00:00  Blessing off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 06:50
+  Wed 11 Nov  scripted   0 breaches
+  Thu 12 Nov  scripted   0 breaches
+    06:18  norovirus outbreak over after 6.9 days, 5 cases
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   1 breach
+    21:38  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 5 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 1 breach
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+    21:40  breach reposition: res_dennis not turned for 120 min (interval 120) [isolation care (Stan)]
+  Thu 05 Nov  scripted   1 ill (infection), 1 breach
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Anjali): Lounge closed, essential visits only
+    21:40  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Peggy, Stan isolated)]
+  Fri 06 Nov  scripted   1 breach
+    08:49  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Peggy, Stan isolated)]
+  Sat 07 Nov  scripted   0 breaches
+    13:22  Anjali caught norovirus (contact from Peggy, Room5)
+  Sun 08 Nov  scripted   1 ill (infection), 0 breaches
+    13:06  Kasia caught norovirus (contact from Peggy, Ensuite5)
+    14:15  Anjali ill with norovirus
+  Mon 09 Nov  scripted   0 breaches
+    05:22  norovirus outbreak over after 3.8 days, 3 cases
+  Tue 10 Nov  scripted   1 ill (infection), 0 breaches
+    02:12  Kasia ill with norovirus
+    02:12  norovirus OUTBREAK declared (Anjali, Kasia): Lounge closed, essential visits only
+  Wed 11 Nov  scripted   1 sick, 0 breaches
+    00:00  Kasia off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Emma Walsh, arriving 06:50
+  Thu 12 Nov  scripted   1 sick, 0 breaches
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 13:50
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   1 sick, 0 breaches
+    00:00  Kasia off sick for early.lead at 07:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 06:50
+    17:14  norovirus outbreak over after 4.6 days, 2 cases
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 6 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    06:22  Florin caught norovirus (contact from Stan, Room4)
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Florin, Tom, Aisha, Shanice, Catherine): Lounge closed, essential visits only
+    14:16  Tom caught norovirus (contact from Stan, Room4)
+  Fri 06 Nov  scripted   1 ill (infection), 0 breaches
+    05:33  Aisha caught norovirus (contact from Peggy, Room5)
+    23:58  Florin ill with norovirus
+  Sat 07 Nov  scripted   2 ill (infection), 1 breach
+    10:44  Tom ill with norovirus
+    19:40  Shanice caught norovirus (contact from Peggy, Room5)
+    21:43  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Peggy, Stan isolated)]
+    22:25  Aisha ill with norovirus
+  Sun 08 Nov  scripted   2 sick, 1 ill (infection), 0 breaches
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: stay_on Shanice Clarke until 22:17
+    00:00    cover: main_building Main-building Night Carer, arriving 22:17
+    08:31  Shanice ill with norovirus
+    08:31  Shanice off sick for late.ca at 14:00 (engine)
+    08:31    cover: agency Daniel Silva, arriving 13:50
+    16:19  Catherine caught norovirus (contact from Peggy, Room5)
+  Mon 09 Nov  scripted   4 sick, 1 ill (infection), 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Shanice Clarke, arriving 13:50
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Nadia Hussain, arriving 21:05
+    00:00  Shanice off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Ioana Radu, arriving 06:50
+    06:25  Catherine ill with norovirus
+  Tue 10 Nov  scripted   3 sick, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    00:00  Florin off sick for night.carer at 21:15 (engine)
+    00:00    cover: agency Precious Moyo, arriving 21:05
+    00:00  Tom off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 06:50
+  Wed 11 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+  Thu 12 Nov  scripted   0 breaches
+    12:43  norovirus outbreak over after 7.1 days, 7 cases
+  Fri 13 Nov  scripted   0 breaches
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 7 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+  Thu 05 Nov  scripted   1 ill (infection), 0 breaches
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Aisha, Lucy, Win, Marco): Lounge closed, essential visits only
+  Fri 06 Nov  scripted   0 breaches
+    00:44  Aisha caught norovirus (contact from Peggy, Room5)
+  Sat 07 Nov  scripted   1 ill (infection), 0 breaches
+    13:22  Aisha ill with norovirus
+    23:47  Kwame caught norovirus (contact from Stan, Room4)
+  Sun 08 Nov  scripted   0 breaches
+  Mon 09 Nov  scripted   1 sick, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    20:13  Lucy caught norovirus (contact from Peggy, Room5)
+  Tue 10 Nov  scripted   1 sick, 1 ill (infection), 1 no-show, 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    15:03  Win caught norovirus (contact from Lucy, Room2)
+    19:04  Lucy ill with norovirus
+    19:04  Lucy went home ill for late.ca at 19:04 (engine)
+    19:04    cover: bank Shanice Clarke, arriving 19:41
+  Wed 11 Nov  scripted   2 sick, 1 ill (infection), 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    00:00  Lucy off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Rohan Pillai, arriving 13:50
+    15:35  Win ill with norovirus, isolated in their room
+  Thu 12 Nov  scripted   1 sick, 0 breaches
+    00:00  Lucy off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 13:50
+  Fri 13 Nov  scripted   1 breach
+    08:24  breach reposition: res_dennis not turned for 120 min (interval 120) [during norovirus outbreak (Win isolated)]
+  Sat 14 Nov  scripted   1 sick, 0 breaches
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Precious Moyo, arriving 06:50
+    13:05  Marco caught norovirus (contact from Win, Room2)
+  Sun 15 Nov  scripted   1 ill (infection), 0 breaches
+    01:05  Marco ill with norovirus
+  Mon 16 Nov  scripted   0 breaches
+    12:04  norovirus outbreak over after 11.1 days, 6 cases
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== seed 8 ===
+  Tue 03 Nov  scripted   0 breaches
+  Wed 04 Nov  scripted   1 ill (infection), 0 breaches
+    14:20  Stan caught norovirus (brought in, Lounge)
+    14:20  Stan ill with norovirus, isolated in their room
+    18:19  Aisha caught norovirus (contact from Stan, Room4)
+  Thu 05 Nov  scripted   2 ill (infection), 1 no-show, 6 breaches
+    09:10  Peggy caught norovirus (brought in, Room5)
+    09:10  Peggy ill with norovirus, isolated in their room
+    09:10  norovirus OUTBREAK declared (Stan, Peggy, Aisha, Lucy, Kasia): Lounge closed, essential visits only
+    21:27  Lucy caught norovirus (contact from Peggy, Room5)
+    21:44  Aisha ill with norovirus
+    21:44  Aisha went home ill for night.carer at 21:44 (engine)
+    21:44    cover: agency Ioana Radu, arriving 23:34
+    22:15  breach resident_check: res_stan unchecked for 60 min (interval 60) [short-staffed: Aisha didn't turn up (night), agency from 23:34; during norovirus outbreak (Peggy, Stan isolated)]
+    22:29  breach resident_check: res_peggy unchecked for 60 min (interval 60) [short-staffed: Aisha didn't turn up (night), agency from 23:34; during norovirus outbreak (Peggy, Stan isolated)]
+    22:31  breach resident_check: res_dennis unchecked for 60 min (interval 60) [short-staffed: Aisha didn't turn up (night), agency from 23:34; during norovirus outbreak (Peggy, Stan isolated)]
+    23:09  breach resident_check: res_raj unchecked for 120 min (interval 120) [short-staffed: Aisha didn't turn up (night), agency from 23:34; during norovirus outbreak (Peggy, Stan isolated)]
+    23:29  breach resident_check: res_arthur unchecked for 120 min (interval 120) [short-staffed: Aisha didn't turn up (night), agency from 23:34; during norovirus outbreak (Peggy, Stan isolated)]
+    23:31  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Aisha didn't turn up (night), agency from 23:34; during norovirus outbreak (Peggy, Stan isolated)]
+  Fri 06 Nov  scripted   1 sick, 1 ill (infection), 0 breaches
+    00:00  Aisha off sick for night.carer at 21:15 (engine)
+    00:00    cover: stay_on Shanice Clarke until 22:55
+    00:00    cover: main_building Main-building Night Carer, arriving 22:55
+    23:05  Lucy ill with norovirus
+  Sat 07 Nov  scripted   1 sick, 0 breaches
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Kwame Asante, arriving 06:50
+    08:09  Oluwaseun caught norovirus (contact from Stan, Room4)
+    11:02  Kasia caught norovirus (contact from Peggy, Ensuite5)
+  Sun 08 Nov  scripted   1 sick, 0 breaches
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Daniel Silva, arriving 06:50
+    02:22  Rohan caught norovirus (contact from Stan, Room4)
+  Mon 09 Nov  scripted   3 sick, 1 ill (infection), 0 breaches
+    00:00  Aisha off sick for late.ca at 14:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 13:50
+    00:00  Lucy off sick for late.ca at 14:00 (engine)
+    00:00    cover: agency Kwame Asante, arriving 13:50
+    04:53  Kasia ill with norovirus
+    04:53  Kasia off sick for late.lead at 14:00 (engine)
+    04:53    cover: agency Nadia Hussain, arriving 13:50
+  Tue 10 Nov  scripted   0 breaches
+  Wed 11 Nov  scripted   2 sick, 0 breaches
+    00:00  Kasia off sick for early.ca at 07:00 (engine)
+    00:00    cover: bank Lucy Brennan, arriving 06:50
+    00:00  Lucy off sick for early.ca at 07:00 (engine)
+    00:00    cover: agency Kwame Asante, arriving 06:50
+  Thu 12 Nov  scripted   1 sick, 0 breaches
+    00:00  Kasia off sick for late.lead at 14:00 (engine)
+    00:00    cover: agency Liam Doyle, arriving 13:50
+  Fri 13 Nov  scripted   0 breaches
+    03:48  norovirus outbreak over after 7.8 days, 5 cases
+  Sat 14 Nov  scripted   0 breaches
+  Sun 15 Nov  scripted   0 breaches
+  Mon 16 Nov  scripted   0 breaches
+  Tue 17 Nov  scripted   0 breaches
+  Wed 18 Nov  scripted   0 breaches
+  Thu 19 Nov  scripted   0 breaches
+  Fri 20 Nov  scripted   0 breaches
+  Sat 21 Nov  scripted   0 breaches
+  Sun 22 Nov  scripted   0 breaches
+  Mon 23 Nov  scripted   0 breaches
+  Tue 24 Nov  scripted   0 breaches
+
+=== totals, seeds 1-8, 504 h each ===
+  days: 176 (scripted 176 (100%)); hard days capped to busy: 0
+  falls: 0 (0 minor, 0 serious) = 0.00 a week
+  sick calls: 52 = 2.17 a week; agency no-shows: 4
+  cover: bank 15, agency 38, main building 2 (late carer bridging 2), none 1
+  held back by pacing caps: none
+  skipped when due: none
+  service breaches: 19 (3 on days with no director event, 16 on days with one)
+       5  reposition, during norovirus outbreak
+       5  resident_check, short-staffed + during norovirus outbreak
+       3  request_wait, short-staffed + during norovirus outbreak
+       2  reposition, short-staffed + during norovirus outbreak
+       2  request_wait, during norovirus outbreak
+       1  reposition, no emergency
+       1  reposition, isolation care
+  infection cases (ill): norovirus 41; caught by route: introduced 16, contact 32, airborne (proxy) 1; staff sent home ill: 4
+  outbreaks: 10 over; norovirus 3 days, 2 cases; norovirus 5 days, 3 cases; norovirus 4.7 days, 4 cases; norovirus 8.4 days, 4 cases; norovirus 6.9 days, 5 cases; norovirus 3.8 days, 3 cases; norovirus 4.6 days, 2 cases; norovirus 7.1 days, 7 cases; norovirus 11.1 days, 6 cases; norovirus 7.8 days, 5 cases; visits cancelled: 257
+  hard violations: 0

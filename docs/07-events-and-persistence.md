@@ -35,6 +35,7 @@ interface SimInput {
   payload: object;     // inject_fall: { residentId, severity: "minor" | "serious" }
                        // staff_sick: { staffId, cover?: "auto" | "bank" | "agency" | "none" }
                        // shift_no_show: { slot, cover? }
+                       // infection_case: { personId, disease: "norovirus" | "flu" }
   source: Source;      // "user" from the server; "director" when the scenario director plans it
 }
 ```
@@ -65,7 +66,8 @@ Clock commands (pause, step, set_speed) and inspect requests are not inputs: the
 | Off-map help | `second_carer.called` {reason, residentIds, outOfRound}, `second_carer.arrived` {personId, planned}, `second_carer.departed` (the floating night carer) |
 | Visitors | `visit.planned` {visitorId, residentId, arriveT, durationMins}, `visitor.rang_bell`, `visitor.let_in` {staffId}, `visitor.signed_in` {staffId: the receptionist, the carer who let them in, or `visitors_book`}, `visit.started`, `visit.ended`, `visitor.signed_out`; the "answer the door" task is `task.created` with kind `let_in` |
 | Director (Phase 2) | `director.day_planned` {day, dayType, planned, suppressed, downgradedFrom?}, `director.planned` {inputType, applyT, origin: `random` or `scenario:<id>`, reason, params}, `director.suppressed` {inputType, applyT, reason, params} (held back by a pacing cap), `input.skipped` {inputType, reason, params} (any source: an input that couldn't apply) |
-| Staffing (Phase 2) | `staff.absent` {staffId, name, slot, shift, reason: `sick` or `no_show`, shiftStartT}, `rota.cover_booked` {slot, shift, forStaffId, cover: `bank`, `agency`, `main_building` or `stay_on` (with `untilT`), staffId, arriveT}, `rota.no_cover` {slot, shift, forStaffId, reason}, `med_round.no_giver` {round} |
+| Infection (Phase 2) | `infection.exposed` {personId, disease, route: `contact`, `airborne (proxy)` or `introduced`, sourceId, roomId}, `infection.symptomatic` {personId, disease, roomId}, `infection.recovered`, `infection.isolated` {personId, disease, roomId}, `infection.isolation_ended`, `outbreak.declared` {disease, cases}, `outbreak.over` {disease, cases, days}, `visit.cancelled` {visitorId, residentId, reason} |
+| Staffing (Phase 2) | `staff.absent` {staffId, name, slot, shift, reason: `sick`, `no_show` or `went_home_sick`, shiftStartT}, `rota.cover_booked` {slot, shift, forStaffId, cover: `bank`, `agency`, `main_building` or `stay_on` (with `untilT`), staffId, arriveT}, `rota.no_cover` {slot, shift, forStaffId, reason}, `med_round.no_giver` {round} |
 | Checks | `invariant.violated` {rule, details}: a hard safety rule broke (must never happen); `sla.breached` {target: `request_wait`, `resident_check`, `reposition`, `lounge_supervision`, `fall_attendance` or `fall_waiting_check`, residentId, details, cause}: a service target was missed (reported; causes are a fall, short staffing ("short-staffed: Tom off sick (early), agency from 08:16"), or "no emergency", where for the Lounge the cause lists what each carer was doing). Both logged by the engine when the condition starts |
 
 New types follow the `new-event-type` skill and are added here.

@@ -9,6 +9,7 @@ import { onFloor } from "./floor.js";
 import { isNight } from "./nightcover.js";
 import { absorbInto, createBriefing, finish } from "./tasks.js";
 import { getIntoBed, getOutOfBed, placeAt, walkTo } from "./world/movement.js";
+import { ppeMins } from "./infection.js";
 
 export interface Ctx {
   world: World;
@@ -195,7 +196,7 @@ const assistTree: BtNode<Ctx> = seq(
     ),
     seq(
       "at the bedside",
-      waitMins("care", (c) => NEED_MINUTES[c.task.need!]),
+      waitMins("care", (c) => NEED_MINUTES[c.task.need!] + ppeMins(c.world, c.resident)),
       act("done", (c) => {
         relieve(c);
         c.task.data.phase = null;
@@ -428,7 +429,7 @@ const careAtResident: BtNode<Ctx> = seq(
     if (careKind(c) === "reposition" || (res.data.care.bed_bound && (careKind(c) === "morning" || careKind(c) === "bedtime"))) res.lastTurnedT = c.world.t;
     absorbRequest(c);
   }),
-  waitMins("care", careMinutes),
+  waitMins("care", (c) => careMinutes(c) + ppeMins(c.world, c.resident)),
   act("finish", (c) => {
     careEffects(c);
     meetAbsorbedRequest(c);
@@ -468,7 +469,7 @@ const roundTree: BtNode<Ctx> = seq(
         mem.start = c.world.t;
         markChecked(c.world, r, [staff], false, false);
       }
-      if (c.world.t - mem.start! < ROUND_MINUTES_EACH * 60) return "running";
+      if (c.world.t - mem.start! < (ROUND_MINUTES_EACH + ppeMins(c.world, r)) * 60) return "running";
       const round = c.task.data.round as DrinkRound;
       const mouthCare = res.data.care.eating_support === "mouth_care_only";
       let outcome: DrinkOutcome = "drunk";

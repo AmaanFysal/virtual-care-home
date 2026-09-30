@@ -39,6 +39,32 @@ export function shiftNoShow(world: World, slot: string, cover: CoverChoice, sour
   return null;
 }
 
+/**
+ * Someone off sick with an infection (docs/10) misses every planned shift that starts before
+ * they're clear. Shifts are planned a day at a time, so this runs every minute (from infection.ts).
+ */
+export function excludeUpcoming(world: World, staffId: string, untilT: number): void {
+  for (const a of world.shifts.filter((s) => s.personId === staffId && !s.spawned && !s.stayOn && s.startT < untilT)) markAbsent(world, a, "sick", "auto", world.t, "engine");
+}
+
+/**
+ * Symptoms start at work: they go home. Their shift ends now (they leave once the floor is
+ * covered, as anyone whose shift has ended does), and the rest of it is covered like a sick call.
+ */
+export function sendHomeSick(world: World, p: Person): void {
+  const a = world.shifts.find((s) => s.personId === p.id && s.started && !s.ended);
+  if (!a) return;
+  const endT = a.endT;
+  a.endT = world.t;
+  const rest: ShiftAssignment = { ...a, arriveT: world.t, startT: world.t, endT, spawned: false, started: false, ended: false, stayOn: false };
+  emit(world, "staff.absent", [p.id], { staffId: p.id, name: p.name, slot: a.slot, shift: a.shift, reason: "went_home_sick", shiftStartT: world.t });
+  world.absences = world.absences.filter((x) => x.endT > world.t - SECONDS_PER_DAY);
+  const absence: Absence = { staffId: p.id, name: p.name, slot: a.slot, shift: a.shift, reason: "went_home_sick", startT: world.t, endT, cover: null };
+  world.absences.push(absence);
+  bookCover(world, rest, absence, "auto", world.t);
+  world.shifts.sort((x, y) => x.arriveT - y.arriveT || x.personId.localeCompare(y.personId));
+}
+
 function nextShift(world: World, match: (a: ShiftAssignment) => boolean): ShiftAssignment | undefined {
   return world.shifts.filter((a) => match(a) && !a.spawned && !a.stayOn).sort((a, b) => a.startT - b.startT)[0];
 }
@@ -98,17 +124,19 @@ function bookCover(world: World, a: ShiftAssignment, absence: Absence, choice: C
     const day = dayIndex(a.startT);
     const late = holder(world, day, "late.ca") ?? holder(world, day, "late.lead");
     const lateShift = world.shifts.find((s) => s.personId === late && s.shift === "late" && dayIndex(s.startT) === day);
+    const coverT = Math.max(a.startT, bookT) + rng.int(60, 120) * 60;
     if (late && lateShift && !lateShift.ended) {
-      const coverT = Math.max(a.startT, bookT) + rng.int(60, 120) * 60;
       world.shifts.push({ personId: late, shift: "night", slot: a.slot, arriveT: a.startT, startT: a.startT, endT: coverT, spawned: false, started: false, ended: false, stayOn: true });
       emit(world, "rota.cover_booked", [late], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: "stay_on", staffId: late, arriveT: a.startT, untilT: coverT });
-      const cover = addMainBuildingCarer(world);
-      world.shifts.push({ personId: cover.id, shift: "night", slot: a.slot, arriveT: coverT, startT: coverT, endT: a.endT, spawned: false, started: false, ended: false });
-      absence.cover = { kind: "main_building", staffId: cover.id, name: cover.name, arriveT: coverT };
       absence.bridgedBy = late;
-      emit(world, "rota.cover_booked", [cover.id], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: "main_building", staffId: cover.id, arriveT: coverT });
-      return;
     }
+    // Otherwise (the night carer going home ill in the night) they stay until she's here: someone
+    // whose shift has ended leaves only once the floor is covered.
+    const cover = addMainBuildingCarer(world);
+    world.shifts.push({ personId: cover.id, shift: "night", slot: a.slot, arriveT: coverT, startT: coverT, endT: a.endT, spawned: false, started: false, ended: false });
+    absence.cover = { kind: "main_building", staffId: cover.id, name: cover.name, arriveT: coverT };
+    emit(world, "rota.cover_booked", [cover.id], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: "main_building", staffId: cover.id, arriveT: coverT });
+    return;
   }
   const reason = choice === "none" ? "no cover (scripted)" : choice === "bank" ? "no bank carer free" : "no bank or agency cover";
   emit(world, "rota.no_cover", [], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, reason });

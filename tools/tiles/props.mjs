@@ -271,6 +271,19 @@ const ICONS = {
     "rrrrrrrrrr",
     "..........",
   ],
+  // Ill with an infection or isolated: a green virus.
+  unwell: [
+    "....G.....",
+    ".G.GGG.G..",
+    "..GGGGG...",
+    ".GGwGGGG..",
+    "GGGGGwGGG.",
+    ".GGGGGGG..",
+    "..GGGGG...",
+    ".G.GGG.G..",
+    "....G.....",
+    "..........",
+  ],
   // Post-fall observations: a calm blue eye (being kept an eye on), not the red alert.
   observe: [
     "..........",

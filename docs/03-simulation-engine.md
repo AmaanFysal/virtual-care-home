@@ -30,7 +30,7 @@ The engine has no clock of its own. It exposes `step()`, which advances exactly 
 
 1. **Inputs:** apply every queued input whose `applyTick` is this tick, in `seq` order, then any director events that are due (docs/10).
 2. On a minute boundary only:
-   1. **Rota:** shift starts and ends, arrivals and departures, agency spawns, breaks due. At 00:00, with the director on, the director then plans the day.
+   1. **Rota:** shift starts and ends, arrivals and departures, agency spawns, breaks due. At 00:00, with the director on, the director then plans the day. Then infections move on and spread (only while someone is infected, docs/10).
    2. **Visitors:** at 00:00 sample the day's visits; spawn arrivals that are due.
    3. **Needs:** decay needs and staff workload by one minute.
    4. **Decisions:** raise help requests; create scheduled tasks (rounds, checks, meals); assign tasks to staff by utility; residents pick self-care actions.
@@ -45,12 +45,12 @@ Within each system, people are processed in ascending id order.
 ## Randomness
 
 - **Algorithm:** sfc32, seeded from a 32-bit hash of the run seed.
-- **Streams:** each system gets its own stream derived from the seed and a fixed name (`rota`, `visitors`, `needs`, `decisions`, `meds`, `falls`, `movement`, `director`, `cover`). A new random draw in one system never shifts another system's sequence. The `director` stream is drawn only by the scenario director's daily plans and `cover` only by the cover rule for absences, so with the director off and no absences neither is used.
+- **Streams:** each system gets its own stream derived from the seed and a fixed name (`rota`, `visitors`, `needs`, `decisions`, `meds`, `falls`, `movement`, `director`, `cover`, `infection`). A new random draw in one system never shifts another system's sequence. The `director` stream is drawn only by the scenario director's daily plans, `cover` only by the cover rule for absences, and `infection` only while someone is infected, so with the director off and nothing injected none of them is used.
 - **Rule:** `Math.random()` is never used in `packages/sim-engine` (constitution rule 2).
 
 ## Inputs
 
-An input is anything from outside the engine that changes the world: `inject_fall`, `staff_sick` and `shift_no_show` (docs/10).
+An input is anything from outside the engine that changes the world: `inject_fall`, `staff_sick`, `shift_no_show` and `infection_case` (docs/10). `createSim` also takes `config` (data/director.json) for the rules these trigger when the director is off; the server always passes it.
 
 - The server stamps each manual input with a monotonically increasing `seq`, the `source` (`user`), and `applyTick = currentTick + 1`, then logs it before handing it to the engine.
 - The scenario director plans its own inputs inside the engine (`source: "director"`), from the seed, the director settings and the scenario file. It logs each one as `director.planned` and applies it through the same dispatch (`applyInput`).

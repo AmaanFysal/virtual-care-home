@@ -51,6 +51,21 @@ Decisions made while building (a):
 12. **Hospital return** (user decision, 2026-09-30, ahead of c): 3 to 10 days after conveyance (seeded), back to their own bed with their care profile as before.
 13. **Fall icon:** red only while on the floor; a calm "observe" icon during post-fall observations, cleared when they end.
 
+Decisions made while building (b):
+
+14. **Infection course and spread** (docs/10 "Infections and outbreaks"):
+    - norovirus incubation 12 to 48 h, symptoms 1 to 3 days, infectious from 6 h before symptoms to 48 h after;
+    - flu incubation 1 to 4 days, symptoms 3 to 7 days, infectious from 24 h before to 24 h after;
+    - contact 0.006 a minute within 1.5 m; airborne proxy 0.1 an hour in the same room; PPE with isolated residents (contact ×0.3, airborne ×0.5).
+
+    All of it is in `data/director.json`, calibrated to plausible care-home attack rates.
+15. **Who can catch it:** residents, staff and agency workers; not visitors or people from the main building.
+16. **Introductions** are major events, and none comes while an outbreak is on or within 14 days of one ending.
+17. **The rules need the tuning file** even with the director off (a manual infection case): `createSim({ config })`, always passed by the server.
+18. **A night bridge** is whoever is on the late shift when the night starts (the one booked may have gone home ill); without one, the late staff stay until relieved. **A night carer taken ill in the night** stays until the main-building carer arrives.
+19. **Outbreak end** (project owner, 2026-09-30): UK practice. Norovirus 48 hours after the last case is symptom-free; flu 5 days after the last onset (UKHSA, updated 24 July 2024); never while a case is still ill.
+20. **Breach causes** include "during norovirus outbreak (…isolated)" and "isolation care (…)".
+
 ## Acceptance for each sub-milestone
 
 - `pnpm typecheck` and `pnpm test` pass, including the director-off golden test (seeds 1 to 8, a week each, byte-identical to main).

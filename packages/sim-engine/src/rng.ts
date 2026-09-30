@@ -60,8 +60,9 @@ export function createRng(seed: string): Rng {
 
 // "director" is drawn only by the scenario director's daily plans, and "cover" only by the cover
 // rule for absences (docs/10), so with the director off and no absences neither is used, and the
-// director's plans don't shift when how cover plays out changes.
-export const STREAMS = ["rota", "visitors", "needs", "decisions", "meds", "falls", "movement", "director", "cover"] as const;
+// director's plans don't shift when how cover plays out changes. "infection" is drawn only while
+// someone is infected (docs/10).
+export const STREAMS = ["rota", "visitors", "needs", "decisions", "meds", "falls", "movement", "director", "cover", "infection"] as const;
 export type StreamName = (typeof STREAMS)[number];
 
 export function createStreams(seed: string): Record<StreamName, Rng> {

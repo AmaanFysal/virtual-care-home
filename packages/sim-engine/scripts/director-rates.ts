@@ -37,7 +37,7 @@ function roster(day: number): RosterEntry[] {
 const [from, to] = values.seeds!.split("-").map(Number);
 const years = Number(values.years);
 const days = Math.round(years * 365.25);
-const count = { days: 0, types: { ordinary: 0, busy: 0, hard: 0 } as Record<DayType, number>, downgraded: 0, minor: 0, serious: 0, sick: 0, noShow: 0 };
+const count = { days: 0, types: { ordinary: 0, busy: 0, hard: 0 } as Record<DayType, number>, downgraded: 0, minor: 0, serious: 0, sick: 0, noShow: 0, intro: { norovirus: 0, flu: 0 } as Record<string, number> };
 const suppressed = new Map<string, number>();
 let expectedSick = 0;
 let expectedNoShow = 0;
@@ -59,6 +59,7 @@ for (let seed = from!; seed <= (to ?? from)!; seed++) {
       if (e.type === "inject_fall") (e.params as { severity: string }).severity === "serious" ? count.serious++ : count.minor++;
       if (e.type === "staff_sick") count.sick += 1;
       if (e.type === "shift_no_show") count.noShow += 1;
+      if (e.type === "infection_case") count.intro[(e.params as { disease: string }).disease]! += 1;
     }
     for (const s of plan.suppressed) {
       const key = `${s.event.type}${s.event.type === "inject_fall" ? ` (${(s.event.params as { severity: string }).severity})` : ""}: ${s.reason}`;
@@ -79,7 +80,11 @@ line("falls (all)", (count.minor + count.serious) / seedYears, wingFalls);
 line("falls (serious)", count.serious / seedYears, wingFalls * config.falls.serious_share);
 line("sick calls", count.sick / seedYears, expectedSick / seedYears);
 line("agency no-shows", count.noShow / seedYears, expectedNoShow / seedYears);
-console.log("  (base = the rate before day types, short staffing and caps)");
+for (const disease of ["norovirus", "flu"] as const) {
+  const d = config.infection.diseases[disease];
+  line(`${disease} brought in`, count.intro[disease]! / seedYears, d.per_winter + d.per_summer);
+}
+console.log("  (base = the rate before day types, short staffing and caps; introductions here ignore outbreaks' quiet periods)");
 console.log("Held back by the pacing caps:");
 for (const [k, n] of [...suppressed].sort((a, b) => b[1] - a[1])) console.log(`  ${(n / seedYears).toFixed(3).padStart(7)} a year  ${k}`);
 if (suppressed.size === 0) console.log("  nothing");

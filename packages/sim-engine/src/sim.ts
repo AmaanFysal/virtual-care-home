@@ -7,6 +7,7 @@ import {
   dayIndex,
   type AnySimEvent,
   type PersonView,
+  type DirectorConfig,
   type DirectorSettings,
   type Resident,
   type SimInput,
@@ -22,6 +23,7 @@ import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } fro
 import { floatMinute } from "./float.js";
 import { breachCause, checkInvariants, checkServiceTargets, staffBusyCause } from "./invariants.js";
 import { noteLoungeSupervision } from "./lounge.js";
+import { infectionMinute } from "./infection.js";
 import { initialNeeds, noAppetite, residentsMinute } from "./needs.js";
 import { createStreams, hashString } from "./rng.js";
 import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaLeaving, rotaMinute, sendIdleToPosts, staffPerson } from "./rota.js";
@@ -37,6 +39,11 @@ export interface SimOptions {
   startT?: number;
   /** The scenario director (docs/10). Off when absent: the run is exactly as without it. */
   director?: DirectorSettings;
+  /**
+   * data/director.json, for the rules the director triggers (cover, infection) when it's off, e.g.
+   * a manual infection case from the admin panel. Ignored when `director` is given (its config is used).
+   */
+  config?: DirectorConfig;
 }
 
 export interface Sim {
@@ -105,6 +112,7 @@ function residentPerson(r: Resident, world: World): Person {
       mealsServed: [],
     },
     visitor: null,
+    infection: null,
   };
 }
 
@@ -155,6 +163,9 @@ export function createSim(options: SimOptions): Sim {
     agencyCount: 0,
     inputs: [],
     director: null,
+    config: options.director?.config ?? options.config ?? null,
+    onsets: [],
+    outbreaks: [],
     absences: [],
     pending: [],
     seq: 0,
@@ -208,6 +219,7 @@ export function createSim(options: SimOptions): Sim {
       if (world.t % 60 === 0) {
         rotaMinute(world);
         if (world.director && world.t % 86400 === 0) planDirectorDay(world, world.t);
+        infectionMinute(world);
         residentsMinute(world);
         careMinute(world);
         medsMinute(world);
@@ -280,5 +292,14 @@ export function toView(p: Person): PersonView {
     badges: [...p.badges],
     task: p.task,
     ...(p.resident ? { bedId: p.resident.data.room, away: p.resident.away } : {}),
+    ...infectionView(p),
   };
+}
+
+/** The infection field of a person's view, only while it matters (so everyone else's view is unchanged). */
+function infectionView(p: Person): Pick<PersonView, "infection"> {
+  const inf = p.infection;
+  if (!inf || (inf.recovered && !inf.isolated)) return {};
+  const status = !inf.symptomatic ? "incubating" : !inf.recovered ? "symptomatic" : "recovering";
+  return { infection: { disease: inf.disease, status, isolated: inf.isolated } };
 }

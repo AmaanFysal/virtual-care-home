@@ -1,0 +1,10 @@
+{
+  "id": "flu-outbreak",
+  "name": "Flu from Thursday",
+  "description": "Win comes down with flu on Thursday morning, brought in by a visitor, and Tom rings in sick with it the next day: an outbreak is declared, the Lounge closes and only essential visits go ahead until 48 hours pass with no new case.",
+  "random": false,
+  "events": [
+    { "day": "Thu", "time": "10:00", "type": "infection_case", "params": { "personId": "res_win", "disease": "flu" } },
+    { "day": "Fri", "time": "05:30", "type": "infection_case", "params": { "personId": "stf_tom", "disease": "flu" } }
+  ]
+}
