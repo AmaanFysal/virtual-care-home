@@ -78,6 +78,8 @@ export interface Breach {
 const FALL_UNATTENDED_SECS = 120;
 /** Someone should be with a fallen resident within this many minutes (the `fall_attendance` service target). */
 export const FALL_ATTENDANCE_MINS = 5;
+/** A resident left waiting for a lift (docs/05 "Several falls at once") is looked in on at least this often. */
+export const FALL_WAITING_CHECK_MINS = 5;
 
 /**
  * Service targets: every request helped within its limit; everyone checked within their interval;
@@ -118,6 +120,19 @@ export function checkServiceTargets(world: World): Breach[] {
       key: task.id,
       details: `${r.id} on the floor ${Math.round((world.t - task.createdT) / 60)} min before anyone reached them`,
       cause: task.data.helpReason ? String(task.data.helpReason) : "a carer on the way",
+    });
+  }
+  // A resident left waiting on the floor while their carer helps with another lift is looked in on every 5 minutes.
+  for (const task of world.tasks.values()) {
+    if (task.kind !== "fall" || task.data.leftT === null || task.data.leftT === undefined || task.assigned.length > 0) continue;
+    const since = world.t - Number(task.data.lastCheckT);
+    if (since <= FALL_WAITING_CHECK_MINS * 60) continue;
+    out.push({
+      target: "fall_waiting_check",
+      residentId: task.residentId!,
+      key: task.id,
+      details: `${task.residentId} waiting on the floor for a lift, not looked in on for ${Math.round(since / 60)} min`,
+      cause: `${String(task.data.leftReason)}; nobody else free to look in`,
     });
   }
   const unsupervised = supervisedResidents(world);

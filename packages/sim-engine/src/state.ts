@@ -47,7 +47,7 @@ export interface ShiftAssignment {
 }
 
 export interface StaffState {
-  role: StaffRole | "agency_carer" | "agency_nurse" | "paramedic";
+  role: StaffRole | "agency_carer" | "agency_nurse" | "paramedic" | "main_building_carer";
   competencies: Competency[];
   /** "staying" means the shift has ended but they can't leave yet (task or floor cover). */
   duty: "off" | "arriving" | "on_shift" | "staying" | "leaving";
@@ -236,6 +236,8 @@ export interface World {
   float: FloatState;
   /** The on-call RN coming over from the main building for a serious fall. */
   onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
+  /** A carer from the main building, asked for when every care staff member here is with a fallen resident. */
+  mainCarer: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; retryT: number };
   /** Recent falls, for explaining missed service targets. */
   fallLog: { residentId: string; severity: "minor" | "serious"; t: number; endT: number | null }[];
   /** Last time a carer was in the Lounge (the lounge_supervision service target). */
@@ -252,7 +254,7 @@ export interface World {
   seq: number;
 }
 
-export const CARE_ROLES = new Set(["senior_carer", "care_assistant", "registered_nurse", "agency_carer", "agency_nurse"]);
+export const CARE_ROLES = new Set(["senior_carer", "care_assistant", "registered_nurse", "agency_carer", "agency_nurse", "main_building_carer"]);
 
 export function isCareStaff(p: Person): boolean {
   return !!p.staff && CARE_ROLES.has(p.staff.role);

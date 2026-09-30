@@ -33,8 +33,9 @@ interface Run {
   floorChanges: string[];
 }
 
-function run(seed: string, falls: { residentId: string; at: string; severity: FallSeverity }[], hours = 6): Run {
+function run(seed: string, falls: { residentId: string; at: string; severity: FallSeverity }[], hours = 6, noMainCarer = false): Run {
   const sim = createSim({ seed, data });
+  if (noMainCarer) sim.world.mainCarer.retryT = Number.MAX_SAFE_INTEGER; // nobody can be spared from the main building
   falls.forEach((f, i) => sim.enqueue({ seq: i + 1, applyTick: tickAt(f.at), type: "inject_fall", payload: { residentId: f.residentId, severity: f.severity }, source: "user" }));
   const end = Math.max(...falls.map((f) => tickAt(f.at))) + hours * HOUR;
   const events: AnySimEvent[] = [];
@@ -60,10 +61,25 @@ function run(seed: string, falls: { residentId: string; at: string; severity: Fa
   return { sim, events, hard, floorChanges };
 }
 
-function threeFalls(seed: string, at: string, severities: FallSeverity[]): Run {
+function threeFalls(seed: string, at: string, severities: FallSeverity[], noMainCarer = false): Run {
   const [h, m] = at.split(":").map(Number);
   const plus = (i: number) => `${String(h).padStart(2, "0")}:${String(m! + i).padStart(2, "0")}`;
-  return run(seed, THREE.map((residentId, i) => ({ residentId, at: plus(i), severity: severities[i]! })));
+  return run(seed, THREE.slice(0, severities.length).map((residentId, i) => ({ residentId, at: plus(i), severity: severities[i]! })), 6, noMainCarer);
+}
+
+/**
+ * Everyone left waiting for a lift was assessed as not injured and made comfortable first, and
+ * looked in on at least every 5 minutes until someone came back (no `fall_waiting_check` breach).
+ */
+function leftSafely(r: Run): number {
+  const left = ofType(r.events, "fall.made_comfortable");
+  for (const e of left) {
+    const assessed = ofType(r.events, "fall.assessed").find((a) => a.payload.residentId === e.payload.residentId)!;
+    expect(assessed.t).toBeLessThanOrEqual(e.t);
+    expect(assessed.payload.outcome).toBe("cleared_to_move");
+  }
+  expect(ofType(r.events, "sla.breached").filter((b) => b.payload.target === "fall_waiting_check")).toEqual([]);
+  return left.length;
 }
 
 function everyoneSeenTo(r: Run, severities: FallSeverity[]): void {
@@ -106,11 +122,43 @@ describe("golden: three falls one minute apart", () => {
     }
   }
 
-  it("at night with three minor falls, two carers lift one resident at a time; the one left has help asked for", () => {
+  it("at night with three minor falls, two carers lift one resident at a time; the one left has help asked for, was assessed, made comfortable and looked in on", () => {
     const r = threeFalls("1", "02:00", ["minor", "minor", "minor"]);
     const paired = ofType(r.events, "fall.help_requested").filter((e) => / helping to lift /.test(e.payload.reason));
     expect(paired.length).toBeGreaterThan(0);
+    expect(leftSafely(r)).toBe(paired.length);
     expect(r.hard).toEqual([]);
+  });
+
+  it("asks the main building for a carer when everyone on the wing is with a fallen resident; she comes in about 15 minutes and goes when all are seen to", () => {
+    for (const [seed, at] of [["1", "02:00"], ["2", "10:00"]] as const) {
+      const r = threeFalls(seed, at, ["minor", "minor", "minor"]);
+      const called = ofType(r.events, "main_carer.called");
+      expect(called.length, `${seed} ${at}`).toBeGreaterThan(0);
+      const coming = called.find((e) => e.payload.available)!;
+      const arrived = ofType(r.events, "main_carer.arrived")[0]!;
+      expect((arrived.t - coming.t) / 60).toBeGreaterThanOrEqual(12);
+      expect((arrived.t - coming.t) / 60).toBeLessThanOrEqual(19);
+      expect(ofType(r.events, "main_carer.departed").length).toBe(1);
+      expect(r.hard).toEqual([]);
+      leftSafely(r);
+    }
+  });
+
+  it("with nobody to spare from the main building, the carers still pair up for lifts, and a carer waiting with another resident steps across to look in", () => {
+    for (const seed of ["1", "2", "3"]) {
+      const r = threeFalls(seed, "02:00", ["minor", "minor", "minor"], true);
+      everyoneSeenTo(r, ["minor", "minor", "minor"]);
+      expect(ofType(r.events, "main_carer.called")).toEqual([]);
+      for (const c of ofType(r.events, "fall.checked")) expect(c.payload.sinceMins).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it("two minor falls at night with only two carers and nobody to spare: they pair up anyway, and the missed look-ins are reported with their cause", () => {
+    const r = threeFalls("1", "02:00", ["minor", "minor"], true);
+    expect(r.hard).toEqual([]);
+    expect(ofType(r.events, "fall.lifted")).toHaveLength(2);
+    for (const b of ofType(r.events, "sla.breached").filter((e) => e.payload.target === "fall_waiting_check")) expect(b.payload.cause).toMatch(/helping to lift .*; nobody else free to look in/);
   });
 });
 
@@ -137,6 +185,35 @@ describe("what a fall may interrupt", () => {
       if (task && task.data.phase === "performing") expect(task.assigned).toEqual(held!.staff);
     }
     expect(ofType(events, "task.interrupted").filter((e) => e.payload.taskId === held!.taskId)).toEqual([]);
+  });
+});
+
+describe("personal care interrupted by a fall", () => {
+  it("a carer called from a wash first makes the resident safe (covered, lying or seated), logged, and the wash is done later", () => {
+    const sim = createSim({ seed: "1", data });
+    let wash: { taskId: string; staffId: string; residentId: string } | null = null;
+    for (let i = 0; i < 24 * HOUR && !wash; i++) {
+      sim.step();
+      for (const t of sim.world.tasks.values()) {
+        const r = t.residentId ? sim.world.people.get(t.residentId)! : null;
+        if (t.kind === "care" && t.data.care === "morning" && t.status === "active" && t.startedT !== null && t.staffNeeded === 1 && r && !r.move && sim.t - t.startedT > 60) {
+          wash = { taskId: t.id, staffId: t.assigned[0]!, residentId: r.id };
+          break;
+        }
+      }
+    }
+    expect(wash).not.toBeNull();
+    // Enough falls at once that everyone whose work can wait is called, the washing carer included.
+    const others = data.residents.filter((r) => r.id !== wash!.residentId && sim.world.people.get(r.id)!.onMap).slice(0, 4);
+    others.forEach((r, i) => sim.enqueue({ seq: i + 1, applyTick: sim.tick + 1, type: "inject_fall", payload: { residentId: r.id, severity: "minor" }, source: "user" }));
+    const events: AnySimEvent[] = [];
+    for (let i = 0; i < 6 * HOUR; i++) events.push(...sim.step());
+    const safe = ofType(events, "care.made_safe").find((e) => e.payload.staffId === wash!.staffId);
+    expect(safe, "made safe").toBeDefined();
+    expect(safe!.payload).toMatchObject({ residentId: wash!.residentId, care: "morning", covered: true });
+    expect(["lying in bed", "seated"]).toContain(safe!.payload.position);
+    expect(ofType(events, "task.interrupted").some((e) => e.payload.taskId === wash!.taskId)).toBe(true);
+    expect(ofType(events, "care.personal_care_done").some((e) => e.payload.residentId === wash!.residentId && e.payload.period === "morning")).toBe(true);
   });
 });
 

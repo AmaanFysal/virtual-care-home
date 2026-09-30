@@ -140,6 +140,7 @@ export function createSim(options: SimOptions): Sim {
     loungeSeenT: startT,
     session: null,
     onCallRn: { status: "off", arriveT: null, residentId: null },
+    mainCarer: { status: "off", arriveT: null, retryT: 0 },
     fallLog: [],
     metrics: { floatCallouts: 0, medInterruptions: 0 },
     shiftLog: new Map(data.residents.map((r) => [r.id, { falls: 0, lateOrMissedDoses: 0, helpRequests: 0, checksDone: 0 }])),
