@@ -5,11 +5,10 @@
 //
 //   node tools/characters/zimmer.mjs   ->  apps/web/public/sprites/overlays/zimmer.png
 //
-// No dependencies: pixels are set by hand and written as a PNG with node:zlib. Original art for this
-// project, released under CC0.
+// No dependencies: pixels are set by hand and written as a PNG with node:zlib (png.mjs). Original art
+// for this project, released under CC0.
 
-import { writeFileSync, mkdirSync } from "node:fs";
-import { deflateSync } from "node:zlib";
+import { outline, writePng } from "./png.mjs";
 
 const W = 64 * 4;
 const H = 64;
@@ -26,7 +25,6 @@ function set(fx, x, y, c) {
   if (x < 0 || x > 63 || y < 0 || y > 63) return;
   px.set(c, ((y * W) + fx * 64 + x) * 4);
 }
-const get = (fx, x, y) => px[((y * W) + fx * 64 + x) * 4 + 3];
 const vline = (fx, x, y0, y1, c) => { for (let y = y0; y <= y1; y++) set(fx, x, y, c); };
 const hline = (fx, x0, x1, y, c) => { for (let x = x0; x <= x1; x++) set(fx, x, y, c); };
 
@@ -80,44 +78,6 @@ for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
   px.set(px.subarray(i, i + 4), ((y * W) + 3 * 64 + (63 - x)) * 4);
 }
 
-// A dark outline around every drawn pixel, as LPC art has.
-for (let fx = 0; fx < 4; fx++) {
-  const drawn = [];
-  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (get(fx, x, y)) drawn.push([x, y]);
-  for (const [x, y] of drawn) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-    const nx = x + dx, ny = y + dy;
-    if (nx >= 0 && nx < 64 && ny >= 0 && ny < 64 && !get(fx, nx, ny)) set(fx, nx, ny, OUTLINE);
-  }
-}
-
-// PNG (8-bit RGBA, no filter).
-const crcTable = Array.from({ length: 256 }, (_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-const crc = (buf) => {
-  let c = 0xffffffff;
-  for (const b of buf) c = crcTable[(c ^ b) & 0xff] ^ (c >>> 8);
-  return (c ^ 0xffffffff) >>> 0;
-};
-const chunk = (type, data) => {
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length);
-  const body = Buffer.concat([Buffer.from(type), data]);
-  const sum = Buffer.alloc(4);
-  sum.writeUInt32BE(crc(body));
-  return Buffer.concat([len, body, sum]);
-};
-const ihdr = Buffer.alloc(13);
-ihdr.writeUInt32BE(W, 0);
-ihdr.writeUInt32BE(H, 4);
-ihdr.set([8, 6, 0, 0, 0], 8);
-const raw = Buffer.alloc((W * 4 + 1) * H);
-for (let y = 0; y < H; y++) Buffer.from(px.buffer, y * W * 4, W * 4).copy(raw, y * (W * 4 + 1) + 1);
-const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
-
-const out = new URL("../../apps/web/public/sprites/overlays/", import.meta.url);
-mkdirSync(out, { recursive: true });
-writeFileSync(new URL("zimmer.png", out), png);
+outline(px, W, 4, OUTLINE);
+writePng(new URL("../../apps/web/public/sprites/overlays/zimmer.png", import.meta.url), px, W, H);
 console.log("wrote apps/web/public/sprites/overlays/zimmer.png");

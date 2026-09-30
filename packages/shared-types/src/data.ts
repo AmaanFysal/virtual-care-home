@@ -300,6 +300,8 @@ export interface Rota {
   agency_pool: { carer: AgencyWorker[]; nurse: AgencyWorker[] };
   /** Female carer from the main building who visits at night on planned rounds (docs/05). */
   night_float: { id: string; name: string; gender: Gender; rounds: ClockTime[] };
+  /** The main building's cover carer: comes over to cover a night nobody else can, or to help when everyone here is with a fallen resident (docs/10). */
+  main_building_carer: { id: string; name: string; gender: Gender };
 }
 
 // ---------------------------------------------------------------- bundle

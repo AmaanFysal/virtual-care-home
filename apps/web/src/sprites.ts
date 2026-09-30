@@ -13,7 +13,8 @@ export interface SpriteEntry {
   poses: Pose[];
   /** "wheelchair": sit using the wheelchair block (Raj). */
   sit?: "wheelchair";
-  overlay?: "zimmer";
+  /** A walking aid drawn over the walk and stand frames (from the card: zimmer or walking stick). */
+  overlay?: "zimmer" | "stick";
   scale?: number;
 }
 

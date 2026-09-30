@@ -209,8 +209,8 @@ export class WingRenderer {
       const s = tileset.icons.size;
       this.icons.set(name as IconName, new Texture({ source: icons.source, frame: new Rectangle(i * s, 0, s, s) }));
     });
-    const zimmer = sprites.overlays.zimmer;
-    if (zimmer) this.sheets.set("overlay:zimmer", await Assets.load<Texture>(`/${zimmer.image}`));
+    // Walking aids the generator has no frames for: Peggy's zimmer, Win's and Kamala's sticks.
+    for (const [name, o] of Object.entries(sprites.overlays)) this.sheets.set(`overlay:${name}`, await Assets.load<Texture>(`/${o.image}`));
     return images;
   }
 
@@ -418,7 +418,8 @@ export class WingRenderer {
         const cycle = L.walk!.cycle!;
         const frame = moving ? cycle[Math.floor(fig.walked / STRIDE_PX) % cycle.length]! : L.stand!.frame!;
         fig.body.texture = this.frameTexture(sheet, frame * FRAME, (L.walk!.row! + dirRow) * FRAME);
-        // Peggy's zimmer frame, under her when she faces away.
+        // A walking aid on every walk and stand frame: Peggy's zimmer (under her when she faces
+        // away), or a stick for anyone whose card says they use one.
         const overlay = entry.overlay ? sprites.overlays[entry.overlay] : undefined;
         const tex = this.sheets.get(`overlay:${entry.overlay}`);
         if (overlay && tex) {

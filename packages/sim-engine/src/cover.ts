@@ -15,7 +15,8 @@ import {
   type Source,
 } from "@vch/shared-types";
 import { emit } from "./emit.js";
-import { addAgencyWorker, addPerson, holder, staffPerson } from "./rota.js";
+import { addAgencyWorker, holder } from "./rota.js";
+import { mainBuildingCarer } from "./falls.js";
 import type { Absence, Person, ShiftAssignment, World } from "./state.js";
 
 const REST_HOURS = 11;
@@ -119,7 +120,7 @@ function bookCover(world: World, a: ShiftAssignment, absence: Absence, choice: C
     return;
   }
   // 3. Nobody. At night the wing is never left to the floating carer alone: a carer comes over
-  //    from the main building (1 to 2 hours), and the late carer stays on only until she arrives.
+  //    from the main building (1 to 2 hours), and the late carer stays on only until he arrives.
   if (a.shift === "night") {
     const day = dayIndex(a.startT);
     const late = holder(world, day, "late.ca") ?? holder(world, day, "late.lead");
@@ -132,7 +133,8 @@ function bookCover(world: World, a: ShiftAssignment, absence: Absence, choice: C
     }
     // Otherwise (the night carer going home ill in the night) they stay until she's here: someone
     // whose shift has ended leaves only once the floor is covered.
-    const cover = addMainBuildingCarer(world);
+    // Nikos, the main building's cover carer (if he's here helping with falls, he stays on).
+    const cover = mainBuildingCarer(world);
     world.shifts.push({ personId: cover.id, shift: "night", slot: a.slot, arriveT: coverT, startT: coverT, endT: a.endT, spawned: false, started: false, ended: false });
     absence.cover = { kind: "main_building", staffId: cover.id, name: cover.name, arriveT: coverT };
     emit(world, "rota.cover_booked", [cover.id], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: "main_building", staffId: cover.id, arriveT: coverT });
@@ -142,16 +144,6 @@ function bookCover(world: World, a: ShiftAssignment, absence: Absence, choice: C
   emit(world, "rota.no_cover", [], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, reason });
 }
 
-/** A night carer sent over from the main building to cover a night (joins the world when booked). */
-function addMainBuildingCarer(world: World): Person {
-  let n = 1;
-  while (world.people.has(`ext_night_cover_${n}`)) n += 1;
-  const p = staffPerson({ id: `ext_night_cover_${n}`, name: "Main-building Night Carer", gender: "female", walk_speed_mps: 1.2, role: "care_assistant", competencies: ["moving_handling"] });
-  p.kind = "external";
-  p.staff!.role = "main_building_carer";
-  addPerson(world, p);
-  return p;
-}
 
 /** Free for the shift with 11 hours' rest either side, against what's planned and the rota for the days around it. */
 function restedFor(world: World, staffId: string, a: ShiftAssignment): boolean {

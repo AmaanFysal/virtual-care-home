@@ -71,10 +71,11 @@ Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on br
     - overlapping care changes ended in the wrong order;
     - the last days' turns were measured from a turn never needed;
     - a bed-bound dying resident could still be walked to the toilet.
-  - **Tests:** `health.test.ts` (16), web sprite clash tests. 255 tests in all.
+  - **On review, before merging:** Kamala, Hema, Kiran and Nikos imported from the characters folder; Nikos Georgiou (`rota.json` `main_building_carer`) is the main building's one cover carer, for nights and for falls, never both at once; a walking-stick overlay for everyone whose card says they use one (Win, Kamala). The director-off fixture was re-recorded on main with `sim.started`'s `dataVersion` blanked (adding Nikos to the data changes that string only; every other byte matched main).
+  - **Tests:** `health.test.ts` (16), web sprite tests (clashes, walking aids), Nikos not sent twice. 258 tests in all.
   - **Results:**
     - realised rates: admissions 3.99 against 4.20 a year (−5.1%, caps), deaths 1.57 against 1.57;
-    - 12 weeks × 8 seeds: 0 hard violations, 122 breaches (25 on days without a director event), 3 deaths and 3 admissions, 7 hospital stays within their ranges;
+    - 12 weeks × 8 seeds: 0 hard violations, 121 breaches (23 on days without a director event), 3 deaths and 3 admissions, 7 hospital stays within their ranges, nobody on screen sharing a sheet;
     - director-off golden test and audit (142 flags) unchanged (`reports/c-*.txt`).
 
 ## In progress
@@ -84,7 +85,6 @@ Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on br
 ## Next
 
 - The project owner reviews (c).
-- Kamala's own character (the project owner), then the stand-in clash goes; a main-building carer sheet of its own would clear the other clash.
 - (d) Visitors and celebrations, on branch `director-visitors`.
 
 ## Blockers
@@ -95,7 +95,7 @@ Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on br
 
 | Date | Session | Outcome |
 |---|---|---|
-| 2026-09-30 | Sub-milestone (c): illness, hospital, end of life, admissions; card reviewed; end-of-life checks 60 then 30 min | 0 hard over 12 weeks × 8 seeds; 3 deaths, 3 admissions |
+| 2026-09-30 | Sub-milestone (c): illness, hospital, end of life, admissions; card reviewed; end-of-life checks 60 then 30 min; Kamala's family and Nikos imported, walking sticks | 0 hard over 12 weeks × 8 seeds; 3 deaths, 3 admissions; no sprite clashes |
 | 2026-09-30 | Sub-milestone (b): infections, isolation, outbreaks, two outbreak scenarios | 0 hard in all runs; 2 outbreaks in 4 random weeks |
 | 2026-09-30 | Rebased on the falls fix; main-building night cover, on-call RN for missed rounds, hospital return, calmer post-fall icon, separate cover stream | 4-week report re-run: 0 hard, 27 breaches |
 | 2026-09-30 | Design agreed (ADR-0005); sub-milestone (a) built | Director core, cover rule, scenarios, admin panel, Notable feed, per-day report; 0 hard violations over 4 weeks × 8 seeds |

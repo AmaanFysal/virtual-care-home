@@ -23,7 +23,7 @@ interface Run {
   hash: string;
 }
 
-function run(seed: string, ticks: number, director?: DirectorSettings, inputs: { at: number; type: "staff_sick" | "shift_no_show"; params: object }[] = []): Run {
+function run(seed: string, ticks: number, director?: DirectorSettings, inputs: { at: number; type: "staff_sick" | "shift_no_show" | "inject_fall"; params: object }[] = []): Run {
   const sim = createSim({ seed, data, ...(director ? { director } : {}) });
   inputs.forEach((input, i) => sim.enqueue({ seq: i + 1, applyTick: input.at, type: input.type, payload: input.params as never, source: "user" }));
   const events: AnySimEvent[] = [];
@@ -91,6 +91,8 @@ describe("the short-staffed weekend scenario", () => {
     // The cover from the main building takes over the night; Shanice goes home once she's on the floor.
     const cover = ofType(a.events, "rota.cover_booked").find((e) => e.payload.cover === "main_building")!;
     expect(cover.payload.arriveT).toBe(untilT);
+    // Nikos, the main building's cover carer (rota.json).
+    expect(cover.payload.staffId).toBe(data.rota.main_building_carer.id);
     expect(ofType(a.events, "shift.started").some((e) => e.payload.staffId === cover.payload.staffId && e.t === untilT)).toBe(true);
     const home = a.events.find((e) => e.type === "person.departed" && e.actors[0] === "stf_shanice" && e.t > nightStart.t)!;
     expect(home.t).toBeGreaterThanOrEqual(untilT);
@@ -101,6 +103,18 @@ describe("the short-staffed weekend scenario", () => {
     const sunday = ofType(a.events, "handover.started").find((e) => on(e, "Sun") && e.payload.from.includes(cover.payload.staffId));
     expect(sunday).toBeDefined();
   });
+
+  it("can't also send Nikos to help with falls while he's covering the night: one of him, and nobody left on the floor", () => {
+    const falls = ["res_peggy", "res_stan", "res_win"].map((residentId, i) => ({ at: tickOf(4, `23:3${i}`), type: "inject_fall" as const, params: { residentId, severity: "minor" } }));
+    const b = run("1", tickOf(5, "04:00"), settings, falls);
+    const called = ofType(b.events, "main_carer.called").filter((e) => e.t >= falls[0]!.at * TICK_SECONDS + 108000);
+    expect(called.length).toBeGreaterThan(0);
+    for (const c of called) expect(c.payload).toMatchObject({ available: false });
+    expect(called[0]!.payload.reason).toMatch(/Nikos is already covering the night/);
+    expect(ofType(b.events, "main_carer.arrived")).toEqual([]);
+    expect(ofType(b.events, "fall.lifted").length + ofType(b.events, "resident.conveyed_to_hospital").length).toBe(3);
+    expect(b.hard).toEqual([]);
+  }, 60000);
 
   it("covers Aisha's Monday late with a bank carer", () => {
     const booked = ofType(a.events, "rota.cover_booked").find((e) => on(e, "Mon"))!;

@@ -61,7 +61,7 @@ A sick call hits the staff member's next shift that hasn't started. A no-show hi
    - **Lead's slot:** a meds-trained agency senior, always found. Someone meds-trained must be on the wing.
    - **Other slots:** found with an 85% chance.
 3. **Nobody.** A day shift runs short (`rota.no_cover`).
-   - **Nights:** the wing is never left to the floating carer alone. A carer comes over from the main building, arriving 1 to 2 hours after the gap is known (`cover: "main_building"`, a Main-building Night Carer, drawn in the main-building uniform). The late carer (or the late lead) stays on only until she arrives (`cover: "stay_on"` with `untilT`), then goes home; nobody stays on overnight, and everyone else keeps 11 hours' rest. There's no evening handover; the main-building carer hands over at 07:00. The shift isn't counted as short.
+   - **Nights:** the wing is never left to the floating carer alone. Nikos Georgiou, the main building's cover carer (`rota.json` `main_building_carer`), comes over, arriving 1 to 2 hours after the gap is known (`cover: "main_building"`). He's the same person who's sent for when everyone is with a fallen resident, so while he covers a night he can't be sent for again, and if he's here for falls he stays on for the night. The late carer (or the late lead) stays on only until he arrives (`cover: "stay_on"` with `untilT`), then goes home; nobody stays on overnight, and everyone else keeps 11 hours' rest. There's no evening handover; the main-building carer hands over at 07:00. The shift isn't counted as short.
 
 The run logs `rota.cover_booked {slot, shift, forStaffId, cover, staffId, arriveT, untilT?}`. The cover rule draws from its own `cover` stream, so the director's daily plans don't shift when how cover plays out changes.
 
@@ -195,7 +195,7 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
   - **Who can catch it:** residents, staff and agency workers. Visitors and people from the main building aren't modelled.
 - **Isolation.** A resident with symptoms is isolated in their room (`infection.isolated`): care and meals there, no Lounge (someone in it is walked back), and 3 extra minutes for every visit (care, help, drinks and medication) for PPE. It ends with `infection.isolation_ended`.
 - **Staff.** A member of staff with symptoms goes home, and misses every shift until they're clear:
-  - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, the main-building night carer comes, and they stay until she's here.
+  - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, Nikos comes from the main building, and they stay until he's here.
   - **Taken ill off duty:** each shift before they're clear is a sick call, with cover.
 - **Outbreaks**, declared and ended per disease as UK guidance has it (`infection.outbreak` in `data/director.json`, with the citations):
 
@@ -278,11 +278,11 @@ Code: `src/health.ts`, and the planner's steps 5 and 6 (`director/plan.ts`). Tun
 - 3 end-of-life declines and deaths (Raj on seed 3, Dennis on seed 4, Arthur on seed 7), then 3 admissions: Kamala moved into Room 3, Room 6 and Room 1 2 to 6 weeks later.
 - 1 flu outbreak (11.5 days), 187 sick calls.
 - **0 hard violations.**
-- **122 service breaches:** 97 on days with a director event and 25 on days without (0.26 a week).
-  - Short staffing is behind 77, some alongside end-of-life care, an outbreak or illness.
+- **121 service breaches:** 98 on days with a director event and 23 on days without (0.24 a week).
+  - Short staffing is behind 78, some alongside end-of-life care, an outbreak or illness.
   - 26 fall while someone is at the end of life. 12 of those are the dying resident's own checks, missed by a few minutes; before the change there were about 60 with 30-minute checks for the whole decline.
-  - 28 have no emergency behind them. 21 of those are Dennis's turns, mostly in January on seeds 3 and 7: after Kamala moves in, his 2-hourly turns drift to about 06:25 to 06:50, just before the morning handover. They're reported, not patched (docs/12).
-- **Sprites:** people on screen with the same sheet for 275 minutes on seed 7 (Kamala and Pat, her stand-in's owner) and 259 minutes on seeds 2 and 5 (a main-building carer and Lorna, who share the main-building uniform).
+  - 26 have no emergency behind them. 17 of those are Dennis's turns, mostly in January on seeds 3 and 7: after Kamala moves in, his 2-hourly turns drift to about 06:25 to 06:50, just before the morning handover. They're reported, not patched (docs/12).
+- **Sprites:** with the stand-in, people on screen with the same sheet for 275 minutes on seed 7 (Kamala and Pat) and 259 minutes on seeds 2 and 5 (the main-building carer in Lorna's sheet). With Kamala's and Nikos's own sheets (2026-09-30): none.
 
 **Found and fixed while running it:**
 - A resident leaving for hospital or dying deleted their tasks without freeing whoever was working on them. On seed 1 an agency nurse stood by Dennis's empty bed every weekend late shift from New Year, behind most of that seed's 48 calm-day breaches.

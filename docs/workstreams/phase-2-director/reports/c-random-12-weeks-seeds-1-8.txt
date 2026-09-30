@@ -786,16 +786,17 @@
   Thu 10 Dec  ordinary   1 sick, 0 breaches
     20:26  Aisha off sick for night.carer at 21:15 (director)
     20:26    cover: stay_on Lucy Brennan until 22:59
-    20:26    cover: main_building Main-building Night Carer, arriving 22:59
+    20:26    cover: main_building Nikos Georgiou, arriving 22:59
   Fri 11 Dec  ordinary   0 breaches
   Sat 12 Dec  ordinary   0 breaches
   Sun 13 Dec  ordinary   0 breaches
-  Mon 14 Dec  hard       1 no-show, 3 breaches
+  Mon 14 Dec  hard       1 no-show, 4 breaches
     06:45  Oluwaseun didn't turn up for rn_day.nurse at 07:00 (director)
     06:45    no cover: no bank or agency cover; rn_day.nurse runs short
-    13:01  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
-    13:05  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
-    15:55  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
+    08:18  breach resident_check: res_dennis unchecked for 60 min (interval 60) [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
+    08:44  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
+    13:21  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
+    13:25  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Oluwaseun didn't turn up (rn_day), no cover]
   Tue 15 Dec  ordinary   1 sick, 0 breaches
     13:16  Aisha off sick for late.ca at 14:00 (director)
     13:16    cover: bank Shanice Clarke, arriving 14:06
@@ -807,7 +808,7 @@
   Sat 19 Dec  ordinary   1 no-show, 0 breaches
     21:00  Precious didn't turn up for night.carer at 21:15 (director)
     21:00    cover: stay_on Shanice Clarke until 22:46
-    21:00    cover: main_building Main-building Night Carer, arriving 22:46
+    21:00    cover: main_building Nikos Georgiou, arriving 22:46
   Sun 20 Dec  ordinary   0 breaches
   Mon 21 Dec  ordinary   1 fall, 0 breaches
     22:25  minor fall: Arthur (director)
@@ -826,24 +827,23 @@
   Wed 30 Dec  ordinary   1 sick, 1 breach
     06:12  Maria off sick for rn_day.nurse at 07:00 (director)
     06:12    cover: agency Catherine Byrne, arriving 08:10
-    08:20  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Maria off sick (rn_day), agency from 08:10]
+    08:26  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Maria off sick (rn_day), agency from 08:10]
   Thu 31 Dec  hard       0 breaches
   Fri 01 Jan  ordinary   1 unwell, 0 breaches
     14:38  Peggy unwell: chest infection (severe)
     17:37  Peggy taken to hospital (chest infection)
-  Sat 02 Jan  ordinary   1 sick, 0 breaches
+  Sat 02 Jan  ordinary   1 sick, 1 breach
     06:00  Lucy off sick for early.ca at 07:00 (director)
     06:00    cover: agency Kwame Asante, arriving 07:39
-  Sun 03 Jan  ordinary   1 breach
-    08:04  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+    08:01  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Lucy off sick (early), agency from 07:39]
+  Sun 03 Jan  ordinary   0 breaches
   Mon 04 Jan  busy       1 sick, 0 breaches
     06:30  Tom off sick for early.ca at 07:00 (director)
     06:30    cover: agency Emma Walsh, arriving 07:38
-  Tue 05 Jan  ordinary   1 breach
-    08:02  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
-  Wed 06 Jan  busy       0 breaches
-  Thu 07 Jan  ordinary   1 breach
+  Tue 05 Jan  ordinary   0 breaches
+  Wed 06 Jan  busy       1 breach
     08:03  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+  Thu 07 Jan  ordinary   0 breaches
     14:21  Peggy back from hospital after 6 days
     14:21  Peggy's care changed (back from hospital (chest infection)): walks 10% slower (0.36 m/s)
   Fri 08 Jan  ordinary   0 breaches
@@ -857,10 +857,9 @@
     06:06    cover: bank Shanice Clarke, arriving 06:57
   Fri 15 Jan  busy       0 breaches
   Sat 16 Jan  busy       0 breaches
-  Sun 17 Jan  hard       2 sick, 1 breach
+  Sun 17 Jan  hard       2 sick, 0 breaches
     06:17  Kasia off sick for early.lead at 07:00 (director)
     06:17    cover: agency Ioana Radu, arriving 07:58
-    08:22  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Kasia off sick (early), agency from 07:58]
     13:06  Dave off sick for late.lead at 14:00 (director)
     13:06    cover: agency Precious Moyo, arriving 14:25
   Mon 18 Jan  ordinary   0 breaches
@@ -869,8 +868,8 @@
   Thu 21 Jan  busy       1 sick, 2 breaches
     06:23  Blessing off sick for early.lead at 07:00 (director)
     06:23    cover: agency Precious Moyo, arriving 08:22
-    08:08  breach request_wait: Toilet for Raj waiting 30 min [short-staffed: Blessing off sick (early), agency from 08:22]
-    08:25  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Blessing off sick (early), agency from 08:22]
+    08:07  breach request_wait: Toilet for Raj waiting 30 min [short-staffed: Blessing off sick (early), agency from 08:22]
+    08:24  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Blessing off sick (early), agency from 08:22]
     14:21  Peggy's care changed (back from hospital (chest infection): ended): walks at 0.4 m/s again
   Fri 22 Jan  ordinary   0 breaches
   Sat 23 Jan  ordinary   0 breaches
@@ -1349,14 +1348,14 @@
   cover: bank 45, agency 142, main building 2 (late carer bridging 2), none 13
   held back by pacing caps: staff_sick: absence cap: 2 a day x1; resident_illness: major-event cap: one a day x1; inject_fall: major-event cap: 48 h apart x1; infection_case: outbreak quiet period (14 days) x1
   skipped when due: staff_sick: no shift to miss x2
-  service breaches: 122 (25 on days with no director event, 97 on days with one)
-      26  reposition, short-staffed
-      21  reposition, no emergency
+  service breaches: 121 (23 on days with no director event, 98 on days with one)
+      27  reposition, short-staffed
+      19  reposition, no emergency
       12  request_wait, short-staffed
-      10  lounge_supervision, short-staffed
       10  resident_check, end-of-life care
+       9  lounge_supervision, short-staffed
+       6  resident_check, short-staffed
        6  resident_check, short-staffed + during flu outbreak
-       5  resident_check, short-staffed
        5  request_wait, no emergency
        4  reposition, short-staffed + end-of-life care
        4  reposition, end-of-life care
@@ -1377,4 +1376,4 @@
   illness: chest infection severe 4, dehydration severe 2, chest infection mild 7, uti mild 6; back from hospital: chest infection 4 (6 to 8 days), dehydration 2 (3 to 7 days), serious fall 1 (19 to 19 days); care changes logged: 16
   end of life begun: 3; deaths: 3; residents moved in: 3
   hard violations: 0
-  people on screen drawn with the same sheet: seed 2: Main-building Carer and Lorna Mitchell (ext_night_float) 4 min; seed 5: Main-building Night Carer and Lorna Mitchell (ext_night_float) 255 min; seed 7: Kamala Shah and Pat Doyle (vis_pat) 275 min
+  people on screen drawn with the same sheet: none

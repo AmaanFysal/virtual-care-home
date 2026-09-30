@@ -27,6 +27,7 @@ describe("character sprites", () => {
     }
     for (const s of data.staff) expect(sprites.people[s.id], s.id).toBeDefined();
     expect(sprites.people[data.rota.night_float.id]).toBeDefined();
+    expect(sprites.people[data.rota.main_building_carer.id]).toBeDefined();
     expect(sprites.people.ext_oncall_rn).toBeDefined();
     // Agency staff and paramedics are chosen by role and gender at runtime.
     for (const w of data.rota.agency_pool.carer) expect(sprites.people[sprites.roles.agency_carer![w.gender]!], w.name).toBeDefined();

@@ -1,6 +1,9 @@
 // The master switch (docs/10): with the director off, a run is exactly what it was before the
 // director existed. Each seed's week-long event log is fingerprinted and compared with the
-// fingerprints recorded on main before any director code was added (test/fixtures/).
+// fingerprints recorded on main (test/fixtures/). The one field left out is `sim.started`'s
+// `dataVersion`, a hash of the data files: adding data no rule reads without the director (Nikos,
+// the main-building carer, in rota.json) changes that string and nothing else. Re-recorded on main
+// (e44f98f) with it blanked, 2026-09-30.
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -16,7 +19,7 @@ const expected = JSON.parse(readFileSync(new URL("./fixtures/director-off-hashes
 function weekHash(seed: string): string {
   const sim = createSim({ seed, data });
   const hash = createHash("sha256");
-  for (let i = 0; i < WEEK; i++) for (const e of sim.step()) hash.update(JSON.stringify(e));
+  for (let i = 0; i < WEEK; i++) for (const e of sim.step()) hash.update(JSON.stringify(e.type === "sim.started" ? { ...e, payload: { ...e.payload, dataVersion: "(data)" } } : e));
   return hash.digest("hex");
 }
 

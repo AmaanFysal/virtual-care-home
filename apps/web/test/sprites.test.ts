@@ -22,23 +22,42 @@ describe("sprite choice", () => {
     expect(spriteIdFor({ id: "nobody", gender: "male" })).toBeNull();
   });
 
-  it("gives a resident who moved in mid-run a stand-in by gender", () => {
-    expect(spriteIdFor({ id: "res_kamala", gender: "female", kind: "resident" })).toBe("vis_pat");
+  it("gives a resident who moved in mid-run their own sheet, or a stand-in by gender until they have one", () => {
+    expect(spriteIdFor({ id: "res_kamala", gender: "female", kind: "resident" })).toBe("res_kamala");
+    expect(spriteIdFor({ id: "res_new", gender: "female", kind: "resident" })).toBe("vis_pat");
     expect(spriteIdFor({ id: "res_new", gender: "male", kind: "resident" })).toBe("vis_bernard");
+  });
+
+  it("draws the main-building carer as Nikos, not in the floating carer's sheet", () => {
+    expect(spriteIdFor({ id: "ext_main_carer", gender: "male", role: "main_building_carer" })).toBe("ext_main_carer");
+    expect(spriteIdFor({ id: "ext_other_cover", gender: "female", role: "main_building_carer" })).toBe("ext_main_carer");
+  });
+
+  it("draws a walking aid for everyone whose card has one: Peggy's zimmer, Win's and Kamala's sticks", () => {
+    expect(spriteFor({ id: "res_peggy", gender: "female" })!.overlay).toBe("zimmer");
+    expect(spriteFor({ id: "res_win", gender: "female" })!.overlay).toBe("stick");
+    expect(spriteFor({ id: "res_kamala", gender: "female" })!.overlay).toBe("stick");
+    for (const id of ["res_arthur", "res_stan", "vis_hema"]) expect(spriteFor({ id, gender: "female" })!.overlay).toBeUndefined();
+    const stick = sprites.overlays.stick!;
+    expect(stick.poses).toEqual(["walk", "stand"]);
+    expect(Object.keys(stick.frames).sort()).toEqual(["east", "north", "south", "west"]);
   });
 });
 
 describe("nobody on screen looks like someone else", () => {
   it("finds a stand-in sharing a sheet with the person it borrows from", () => {
-    const kamala = { id: "res_kamala", gender: "female" as const, kind: "resident" as const };
+    const newcomer = { id: "res_new", gender: "female" as const, kind: "resident" as const };
     const pat = { id: "vis_pat", gender: "female" as const, kind: "visitor" as const };
-    expect(spriteClashes(sprites, [kamala, { id: "res_peggy", gender: "female" }])).toEqual([]);
-    expect(spriteClashes(sprites, [kamala, pat, { id: "res_peggy", gender: "female" }])).toEqual([{ sheet: "vis_pat", ids: ["res_kamala", "vis_pat"] }]);
+    expect(spriteClashes(sprites, [newcomer, { id: "res_peggy", gender: "female" }])).toEqual([]);
+    expect(spriteClashes(sprites, [newcomer, pat, { id: "res_peggy", gender: "female" }])).toEqual([{ sheet: "vis_pat", ids: ["res_new", "vis_pat"] }]);
   });
 
-  it("finds a main-building carer on screen with the floating carer", () => {
-    const main = { id: "mbc_1", gender: "female" as const, role: "main_building_carer" };
-    expect(spriteClashes(sprites, [main, { id: "ext_night_float", gender: "female", role: "care_assistant" }])).toEqual([{ sheet: "ext_night_float", ids: ["ext_night_float", "mbc_1"] }]);
+  it("no longer finds Kamala with Pat, or the main-building carer with the floating carer", () => {
+    const kamala = { id: "res_kamala", gender: "female" as const, kind: "resident" as const };
+    const pat = { id: "vis_pat", gender: "female" as const, kind: "visitor" as const };
+    const nikos = { id: "ext_main_carer", gender: "male" as const, role: "main_building_carer" };
+    const lorna = { id: "ext_night_float", gender: "female" as const, role: "care_assistant" };
+    expect(spriteClashes(sprites, [kamala, pat, nikos, lorna])).toEqual([]);
   });
 
   it("lets people in a uniform share it", () => {

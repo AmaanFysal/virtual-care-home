@@ -47,6 +47,11 @@ function parseCsv(text) {
   return body.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
 }
 
+// Who walks with a stick, from their cards (residents and admission cards): drawn with the stick overlay.
+const persona = (file) => JSON.parse(readFileSync(join(repo, "data/personas", file), "utf8"));
+const cards = [...persona("residents.json"), ...persona("admissions.json").cards.map((c) => c.resident)];
+const withStick = new Set(cards.filter((r) => /walking stick/i.test(r.mobility.aid)).map((r) => r.id));
+
 // ---------------------------------------------------------------- copy
 const people = {};
 const credits = new Map(); // asset + authors -> credit row, with who uses it
@@ -62,6 +67,7 @@ for (const folder of folders) {
   people[id] = { name: info.name, group: info.group, sheet: `sprites/characters/${id}.png`, poses: posesFor(id, info.group) };
   if (id === "res_raj") people[id].sit = "wheelchair";
   if (id === "res_peggy") people[id].overlay = "zimmer";
+  if (withStick.has(id)) people[id].overlay = "stick";
   if (id === "vis_arjun" || id === "vis_priya") people[id].scale = 0.8;
   for (const r of parseCsv(readFileSync(join(dir, "credits.csv"), "utf8"))) {
     const asset = r.filename.replace(/ \(eye colour: \w+\)$/, "");
@@ -106,6 +112,12 @@ const sprites = {
       frames: { north: { index: 0, under: true }, west: { index: 1 }, south: { index: 2 }, east: { index: 3 } },
       note: "drawn by tools/characters/zimmer.mjs; the generator has no walking frames",
     },
+    stick: {
+      image: "sprites/overlays/stick.png",
+      poses: ["walk", "stand"],
+      frames: { north: { index: 0 }, west: { index: 1 }, south: { index: 2 }, east: { index: 3 } },
+      note: "drawn by tools/characters/stick.mjs for anyone whose card says they use a walking stick; the generator's cane has no walking frames",
+    },
   },
   roles: {
     $comment: "People without a sheet of their own, chosen at runtime by staff role and gender (agency ids are made up when they're booked)",
@@ -113,8 +125,8 @@ const sprites = {
     agency_nurse: { female: "ext_agency_nurse", male: "ext_agency_nurse" },
     // A resident who moves in mid-run, until their own character is generated: an older visitor's sheet by gender.
     resident: { female: "vis_pat", male: "vis_bernard" },
-    // A carer sent over from the main building for several falls: the main-building uniform (the floating carer's sheet).
-    main_building_carer: { female: "ext_night_float", male: "ext_night_float" },
+    // The main building's cover carer (Nikos, rota.json main_building_carer), for nights and for several falls.
+    main_building_carer: { female: "ext_main_carer", male: "ext_main_carer" },
     paramedic: { female: "ext_paramedic_f", male: "ext_paramedic_m" },
   },
   people,
@@ -135,7 +147,7 @@ const md = [
   "",
   "**The art is licensed separately from the code.** The simulation and app source code are not covered by these art licences. Each character's full credits also ship next to its sheet as `<personId>.credits.txt`.",
   "",
-  "Peggy's zimmer frame overlay (`apps/web/public/sprites/overlays/zimmer.png`) was drawn for this project by `tools/characters/zimmer.mjs` and is released under CC0.",
+  "Peggy's zimmer frame overlay (`apps/web/public/sprites/overlays/zimmer.png`) and the walking-stick overlay (`stick.png`) were drawn for this project by `tools/characters/zimmer.mjs` and `stick.mjs` and are released under CC0.",
   "",
   `**Artists (${authors.size}):** ${[...authors].sort((a, b) => a.localeCompare(b)).join(", ")}.`,
   "",
@@ -159,7 +171,7 @@ const txt = [
   "",
   "Character art: Liberated Pixel Cup (LPC) contributors, made with the Universal LPC Spritesheet Character Generator.",
   "Licence: CC-BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/). The art is licensed separately from the code.",
-  "Zimmer frame overlay: drawn for this project, CC0.",
+  "Zimmer frame and walking-stick overlays: drawn for this project, CC0.",
   "",
   `Artists: ${[...authors].sort((a, b) => a.localeCompare(b)).join(", ")}.`,
   "",

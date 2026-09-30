@@ -75,7 +75,8 @@ Decisions made while building (c):
 22. **Care changes after a stay** are fixed per cause and stored as overrides on the run's copy of the card; values are always the base with the changes still on applied, so overlapping changes end in any order.
 23. **End-of-life checks** (project owner, 2026-09-30): every 60 minutes during the decline and every 30 minutes in the last 3 days. In the last days the resident is bed-bound, with pads changed in bed and no call bell (as on Dennis's card).
 24. **Death:** the family told, CQC Regulation 16 flagged, the room left empty, visitors stop; anyone working with the resident is freed for other work (also when someone leaves for hospital).
-25. **Admissions:** the first card (Kamala Shah) reviewed and approved as drafted (project owner, 2026-09-30). The room is set up for the new resident's seating (a chair, a wheelchair spot or neither). Until her own character exists, a stand-in sprite by gender (Pat's sheet), with a check that nobody on screen shares a sheet (`spriteClashes`: audit flag and report totals).
+25. **Admissions:** the first card (Kamala Shah) reviewed and approved as drafted (project owner, 2026-09-30). The room is set up for the new resident's seating (a chair, a wheelchair spot or neither). Kamala, Hema and Kiran have their own characters; a later card without one gets a stand-in by gender, and a check finds anyone on screen sharing a sheet (`spriteClashes`: audit flag and report totals).
+26. **Nikos Georgiou** (project owner, 2026-09-30) is the main building's one cover carer (`rota.json`), for a night nobody else can cover and for help during falls, never both at once. Walking sticks are drawn as an overlay for everyone whose card says they use one.
 
 ## Acceptance for each sub-milestone
 

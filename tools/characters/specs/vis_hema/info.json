@@ -1,0 +1,20 @@
+{
+  "id": "vis_hema",
+  "name": "Hema Mistry",
+  "group": "visitor",
+  "note": "58, Kamala's daughter",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_taupe",
+    "head": "Human_Female_taupe",
+    "expression": "Neutral_taupe",
+    "eyes": "Eye_Color_brown",
+    "hair": "Lob_lpcr.charcoal",
+    "facial_eyes": "Glasses_black",
+    "clothes": "Cardigan_navy",
+    "neck": "Scarf_maroon",
+    "legs": "Pants_black",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_taupe&head=Human_Female_taupe&expression=Neutral_taupe&eyes=Eye_Color_brown&hair=Lob_lpcr.charcoal&facial_eyes=Glasses_black&clothes=Cardigan_navy&neck=Scarf_maroon&legs=Pants_black&shoes=Basic_Shoes_black"
+}

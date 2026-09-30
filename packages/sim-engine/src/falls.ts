@@ -32,7 +32,6 @@ import { formatSimTime } from "@vch/shared-types";
 
 export const PARAMEDICS_ID = "ext_paramedics";
 export const ON_CALL_RN_ID = "ext_oncall_rn";
-export const MAIN_CARER_ID = "ext_main_carer";
 /** Chance a carer can be spared from the main building when asked; if not, ask again after RETRY. */
 const MAIN_CARER_AVAILABLE = 0.8;
 const MAIN_CARER_RETRY_MINS = 30;
@@ -198,13 +197,12 @@ function allCommitted(world: World): boolean {
 function callMainBuilding(world: World): void {
   const m = world.mainCarer;
   if (m.status !== "off" || world.t < m.retryT || !allCommitted(world)) return;
-  // She joins the world the first time she's asked for (like agency workers), so runs without
-  // falls are unchanged (visitors' waiting-area seats depend on everyone's position in world.order).
-  if (!world.people.has(MAIN_CARER_ID)) {
-    const main = staffPerson({ id: MAIN_CARER_ID, name: "Main-building Carer", gender: "female", walk_speed_mps: 1.2, role: "care_assistant", competencies: ["moving_handling"] });
-    main.kind = "external";
-    main.staff!.role = "main_building_carer";
-    addPerson(world, main);
+  const main = mainBuildingCarer(world);
+  // Already covering a night here: there's nobody else to send.
+  if (mainCarerOnShift(world)) {
+    m.retryT = world.t + MAIN_CARER_RETRY_MINS * 60;
+    emit(world, "main_carer.called", [main.id], { reason: `${whyNobody(world)}; ${main.name.split(" ")[0]} is already covering the night`, available: false, arriveT: null });
+    return;
   }
   const available = world.rng.falls.chance(MAIN_CARER_AVAILABLE);
   const reason = whyNobody(world);
@@ -212,7 +210,30 @@ function callMainBuilding(world: World): void {
     m.status = "coming";
     m.arriveT = world.t + world.rng.falls.int(12, 18) * 60;
   } else m.retryT = world.t + MAIN_CARER_RETRY_MINS * 60;
-  emit(world, "main_carer.called", [MAIN_CARER_ID], { reason, available, arriveT: available ? m.arriveT : null });
+  emit(world, "main_carer.called", [main.id], { reason, available, arriveT: available ? m.arriveT : null });
+}
+
+/**
+ * The main building's cover carer (Nikos, rota.json `main_building_carer`), one person for both
+ * jobs: a night nobody else can cover (cover.ts), and help when everyone here is with a fallen
+ * resident. He joins the world the first time he's sent for (like agency workers), so runs without
+ * either are unchanged (visitors' waiting-area seats depend on everyone's position in world.order).
+ */
+export function mainBuildingCarer(world: World): Person {
+  const d = world.data.rota.main_building_carer;
+  const existing = world.people.get(d.id);
+  if (existing) return existing;
+  const p = staffPerson({ id: d.id, name: d.name, gender: d.gender, walk_speed_mps: 1.2, role: "care_assistant", competencies: ["moving_handling"] });
+  p.kind = "external";
+  p.staff!.role = "main_building_carer";
+  addPerson(world, p);
+  return p;
+}
+
+/** He's booked to cover a night (on the way, here, or later tonight). */
+export function mainCarerOnShift(world: World): boolean {
+  const id = world.data.rota.main_building_carer.id;
+  return world.shifts.some((a) => a.personId === id && !a.ended);
 }
 
 /**
@@ -602,14 +623,15 @@ export function fallsMinute(world: World): void {
     walkTo(world, rn, "ExitDoor");
   }
 
-  const main = world.people.get(MAIN_CARER_ID);
+  const main = world.people.get(world.data.rota.main_building_carer.id);
   const m = world.mainCarer;
-  if (main && m.status === "coming" && world.t >= m.arriveT! && !world.spawnQueue.includes(MAIN_CARER_ID)) {
+  if (main && m.status === "coming" && world.t >= m.arriveT! && !world.spawnQueue.includes(main.id)) {
     m.status = "on_site";
     main.staff!.duty = "arriving";
-    world.spawnQueue.push(MAIN_CARER_ID);
+    if (!main.onMap) world.spawnQueue.push(main.id);
   }
-  if (main && m.status === "on_site" && main.onMap && main.staff!.duty === "on_shift" && !main.staff!.taskId && !fallOngoing) {
+  // Done helping, unless he's staying to cover the night (he leaves at the end of that shift).
+  if (main && m.status === "on_site" && main.onMap && main.staff!.duty === "on_shift" && !main.staff!.taskId && !fallOngoing && !mainCarerOnShift(world)) {
     m.status = "leaving";
     main.staff!.duty = "leaving";
     main.badges = [];
