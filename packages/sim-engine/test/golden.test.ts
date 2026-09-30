@@ -98,7 +98,7 @@ describe("golden: day falls (RN on the wing)", () => {
     expect(carerWork).toEqual([]);
     expect(one(run, "cqc.notification_flagged").payload.regulation).toMatch(/Regulation 18/);
     const peggy = run.sim.people().find((p) => p.id === "res_peggy")!;
-    expect(peggy).toMatchObject({ onMap: false, away: "hospital", bedId: "Room1.BedA" });
+    expect(peggy).toMatchObject({ onMap: false, away: "hospital", bedId: "Room5.Bed" });
   });
 });
 

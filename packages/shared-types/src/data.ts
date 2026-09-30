@@ -18,7 +18,7 @@ export interface Rect {
 }
 
 /** "lounge" is the residents' day and dining room; "waiting" is for visitors only. */
-export type RoomKind = "bedroom" | "corridor" | "lounge" | "waiting" | "reception" | "staff";
+export type RoomKind = "bedroom" | "ensuite" | "corridor" | "lounge" | "waiting" | "reception" | "staff";
 
 export interface Room {
   id: string;
@@ -46,6 +46,11 @@ export interface Door {
   y1: number;
   x2: number;
   y2: number;
+  /**
+   * The real clear width of the doorway, where it's narrower than the gap on the 0.5 m walking
+   * grid (an en-suite door: 0.9 m clear in a 1.0 m grid opening). Documentation and validation only.
+   */
+  clear_width_m?: number;
   rooms: [string, string];
 }
 

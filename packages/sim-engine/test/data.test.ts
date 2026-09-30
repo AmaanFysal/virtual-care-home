@@ -37,23 +37,23 @@ describe("validateData catches", () => {
 
   it("bedside seating that doesn't match how each resident sits out", () => {
     // Only residents who sit out in their room have a bedside chair: not Raj (wheelchair) or Dennis (bed-bound).
-    const expectChairs = (d: ReturnType<typeof fresh>) => d.floorplan.furniture.filter((f) => f.kind === "chair" && /^Room\d\.Bed[A-D]\.chair$/.test(f.id)).map((f) => f.id).sort();
-    expect(expectChairs(fresh())).toEqual(["Room1.BedA.chair", "Room1.BedB.chair", "Room2.BedA.chair", "Room2.BedC.chair"]);
+    const expectChairs = (d: ReturnType<typeof fresh>) => d.floorplan.furniture.filter((f) => f.kind === "chair" && /^Room\d\.Bed\.chair$/.test(f.id)).map((f) => f.id).sort();
+    expect(expectChairs(fresh())).toEqual(["Room1.Bed.chair", "Room2.Bed.chair", "Room4.Bed.chair", "Room5.Bed.chair"]);
 
     const noPeggyChair = fresh();
-    noPeggyChair.floorplan.furniture = noPeggyChair.floorplan.furniture.filter((f) => f.id !== "Room1.BedA.chair");
-    expect(validateData(noPeggyChair)).toContain("resident res_peggy: needs bedside chair furniture Room1.BedA.chair");
+    noPeggyChair.floorplan.furniture = noPeggyChair.floorplan.furniture.filter((f) => f.id !== "Room5.Bed.chair");
+    expect(validateData(noPeggyChair)).toContain("resident res_peggy: needs bedside chair furniture Room5.Bed.chair");
 
     const rajChair = fresh();
-    rajChair.floorplan.points.push({ id: "Room2.BedB.Chair", kind: "chair", room: "Room2", x: 12.25, y: 3.25 });
+    rajChair.floorplan.points.push({ id: "Room3.Bed.Chair", kind: "chair", room: "Room3", x: 10.75, y: 3.25 });
     expect(validateData(rajChair)).toContain("resident res_raj: uses a wheelchair, so no bedside chair");
 
     const crowded = fresh();
-    crowded.floorplan.furniture.push({ id: "Room2.clutter", kind: "chair", room: "Room2", rect: { x: 12.5, y: 3.0, w: 0.5, h: 0.5 }, blocks: false });
-    expect(validateData(crowded)).toContain("resident res_raj: Room2.clutter is within 1 m of the wheelchair spot (hoist and wheelchair space)");
+    crowded.floorplan.furniture.push({ id: "Room3.clutter", kind: "chair", room: "Room3", rect: { x: 11.5, y: 3.0, w: 0.5, h: 0.5 }, blocks: false });
+    expect(validateData(crowded)).toContain("resident res_raj: Room3.clutter is within 1 m of the wheelchair spot (hoist and wheelchair space)");
 
     const dennisChair = fresh();
-    dennisChair.floorplan.points.push({ id: "Room2.BedD.Chair", kind: "chair", room: "Room2", x: 17.25, y: 2.75 });
+    dennisChair.floorplan.points.push({ id: "Room6.Bed.Chair", kind: "chair", room: "Room6", x: 22.75, y: 2.75 });
     expect(validateData(dennisChair)).toContain("resident res_dennis: bed-bound, so no bedside chair or wheelchair spot");
   });
 
@@ -93,10 +93,31 @@ describe("validateData catches", () => {
     expect(validateData(data).join("\n")).toMatch(/Tue: the late shift has no female carer/);
   });
 
-  it("a man in the female room", () => {
+  it("a shared room, or a bedroom without its own en-suite", () => {
+    const shared = fresh();
+    shared.floorplan.points.push({ id: "Room5.Bed2", kind: "bed", room: "Room5", x: 19.25, y: 1.0 });
+    expect(validateData(shared)).toContain("resident res_peggy: Room5 should be a single room, but has 2 beds");
+
+    const noEnsuite = fresh();
+    noEnsuite.floorplan.rooms = noEnsuite.floorplan.rooms.filter((r) => r.id !== "Ensuite3");
+    expect(validateData(noEnsuite)).toContain("floorplan: bedroom Room3 needs exactly one en-suite, found 0");
+  });
+
+  it("a bed without room for a carer either side, or an en-suite door too narrow", () => {
+    const tight = fresh();
+    tight.floorplan.furniture.find((f) => f.id === "Room2.Bed.bed")!.rect.x = 4.5; // 0.5 m from the wall
+    expect(validateData(tight)).toContain("floorplan: Room2.Bed.bed has 0.5 m and 2.5 m clear either side; two carers need at least 1.2 m on both sides");
+    const narrow = fresh();
+    narrow.floorplan.doors.find((d) => d.id === "D_Ensuite2")!.clear_width_m = 0.7;
+    expect(validateData(narrow).join("\n")).toMatch(/door D_Ensuite2 clear width 0.7 m must be at least 0.8 m/);
+    expect(fresh().floorplan.doors.filter((d) => d.id.startsWith("D_Ensuite")).map((d) => d.clear_width_m)).toEqual([0.9, 0.9, 0.9, 0.9, 0.9, 0.9]);
+  });
+
+  it("doorways that touch, which could lock two people in place", () => {
+    // Room 1's corridor door moved next to its en-suite door: their doorway cells become neighbours.
     const data = fresh();
-    data.residents.find((r) => r.id === "res_stan")!.room = "Room1.BedB";
-    data.residents.find((r) => r.id === "res_win")!.room = "Room2.BedC";
-    expect(validateData(data).join("\n")).toMatch(/Room1 is a female room/);
+    const door = data.floorplan.doors.find((d) => d.id === "D_Room1")!;
+    Object.assign(door, { x1: 1.5, x2: 2.5 });
+    expect(validateData(data).join("\n")).toMatch(/doors D_Room1 and D_Ensuite1 are too close|doors D_Ensuite1 and D_Room1 are too close/);
   });
 });

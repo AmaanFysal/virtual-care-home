@@ -8,37 +8,52 @@
 
 ## Coordinates
 
-Metres, origin at the top-left of the wing, x to the right, y down (matches the canvas). The wing is 20 m × 13 m.
+Metres, origin at the top-left of the wing, x to the right, y down (matches the canvas). The wing is 33.5 m × 13 m.
 
 ## Layout
 
 ```
-x: 0        7.5                            20            26.5
-y:0 +--------+------------------------------+-------------+
-    | Room 1 |           Room 2             |   Lounge    |   bedrooms and Lounge 5.5 m deep
-    | 2 beds |           4 beds             | TV, dining  |
-5.5 +--[D]---+--------------[D]-------------+----[D]------+
-    |                         Corridor                    |   2 m wide
-7.5 +--[D]------+----[D]-----+----[D]-------+-------------+
-    | Waiting   | Reception  | Staff Room   |  (outside)
-    | Area      |   Desk     |              |
+x: 0     4      8      12     16     20     24                33.5
+y:0 +------+------+------+------+------+------+------------------+
+    |Rm 1  |Rm 2  |Rm 3  |Rm 4  |Rm 5  |Rm 6  |                  |   single bedrooms and Lounge 5.5 m deep
+    |Arthur| Win  | Raj  | Stan |Peggy |Dennis|      Lounge      |
+3.5 |+--+  |+--+  |+--+  |+--+  |+--+  |+--+  |  TV and sofa,    |   en-suite: 1.5 x 2 m, door into the bedroom
+    ||WC]  ||WC]  ||WC]  ||WC]  ||WC]  ||WC]  |  dining, reading |
+5.5 +--+--[D]--+--[D]-+--[D]-+--[D]-+--[D]-+-[D]-----[ D ]-------+
+    |                      Corridor                        |   2 m wide
+7.5 +--[D]------+----[D]-----+----[D]-------+--------------+
+    | Waiting   ]  Reception | Staff Room   |   (garden)
+    | Area      ]<-door Desk |              |
  13 +-----------+---[Exit]---+--------------+
 x:  0           8            14             20
 ```
 
-The wing is 26.5 × 13 m. The Lounge (added after the Phase 1 behaviour audit) sits east of Room 2, off an extended corridor; the block south of it (x 20 to 26.5, y 7.5 to 13) is outside the wing.
+Six **single en-suite bedrooms** (Room 1 to Room 6) sit along the north side, with the Lounge at the east end. Each bedroom is 4 × 5.5 m: one bed centred against the outer wall under its window, with **1.5 m of clear floor on both sides** for two carers (turns, hoisting), and a walled en-suite (1.5 × 2 m) in the corner by the corridor door. The en-suite door opens into the bedroom (1.0 m on the walking grid, 0.9 m clear width). That leaves 19 m² of bedroom, well above the 12 m² UK minimum for a single room. Raj's wheelchair spot is at the foot of his bed, with at least 1 m of clear floor around it. The waiting area has two doors, one to the corridor and one straight into reception. The block south of the Lounge (x 20 to 33.5, y 7.5 to 13) is outside the wing (the garden).
+
+**Room allocation** (by need, nearest the staff-room door at x 17 for those who need staff most):
+
+| Room | From the staff-room door | Resident | Why |
+|---|---|---|---|
+| 5 | 2 m | Peggy | Highest falls risk, zimmer, 2-hourly toilet prompts, female-only care: the room staff pass most, and nearer the Lounge for her escorted trips |
+| 4 | 2 m | Stan | High falls risk, wanders at night, escorted to the Lounge |
+| 3 | 6 m | Raj | Frequent two-person hoist work, mid-wing |
+| 6 | 6 m | Dennis | Bed-bound, 2-hourly turns; by the Lounge end and the nurse's corridor post |
+| 2 | 10 m | Win | Mild dementia, walks with a stick, independent toileting |
+| 1 | 14 m | Arthur | Full capacity, independent, walks to the Lounge alone |
 
 | Room id | Name | Kind | Rect (x, y, w, h) | Floor area | Ceiling | Notes |
 |---|---|---|---|---|---|---|
-| `Room1` | Room 1 | bedroom | 0, 0, 7.5, 5.5 | 41.25 m² | 2.4 m | Female room: Peggy (BedA), Win (BedB) |
-| `Room2` | Room 2 | bedroom | 7.5, 0, 12.5, 5.5 | 68.75 m² | 2.4 m | Male room: Arthur (A), Raj (B), Stan (C), Dennis (D) |
-| `Lounge` | Lounge | lounge | 20, 0, 6.5, 5.5 | 35.75 m² | 2.4 m | Residents' day room and dining room: TV and armchairs, dining table for six, reading corner, activity table. About 6 m² per resident (the old National Minimum Standards asked for at least 4.1) |
-| `Corridor` | Corridor | corridor | 0, 5.5, 26.5, 2 | 53 m² | 2.4 m | Night lights |
-| `WaitingArea` | Waiting area | waiting | 0, 7.5, 8, 5.5 | 44 m² | 2.4 m | Visitors only (waiting, protected lunch) |
+| `Room1` … `Room6` | Room 1 … Room 6 | bedroom | 4·(n−1), 0, 4, 5.5 | 19 m² (excluding the en-suite) | 2.4 m | Single rooms: Arthur, Win, Raj, Stan, Peggy, Dennis |
+| `Ensuite1` … `Ensuite6` | Room n en-suite | ensuite | 4·(n−1), 3.5, 1.5, 2 | 3 m² | 2.4 m | Toilet and basin; a room inside its bedroom |
+| `Lounge` | Lounge | lounge | 24, 0, 9.5, 5.5 | 52.25 m² | 2.4 m | Residents' day room and dining room: a TV corner with armchairs and a sofa, a dining table for six, a reading corner, an activity table. About 8.7 m² per resident (the old National Minimum Standards asked for at least 4.1) |
+| `Corridor` | Corridor | corridor | 0, 5.5, 33.5, 2 | 67 m² | 2.4 m | Night lights |
+| `WaitingArea` | Waiting area | waiting | 0, 7.5, 8, 5.5 | 44 m² | 2.4 m | Visitors only (waiting, protected lunch); doors to the corridor and to reception |
 | `Reception` | Reception | reception | 8, 7.5, 6, 5.5 | 33 m² | 2.4 m | Desk, exit door to outside |
 | `StaffRoom` | Staff room | staff | 14, 7.5, 6, 5.5 | 33 m² | 2.4 m | Handovers and day breaks; no visitors |
 
-**Toilets:** each bedroom has an en-suite WC, modelled as a named point (`Room1.WC`, `Room2.WC`) drawn as a small labelled square inside the room, not as a separate room. The Lounge has no WC: residents there use their own en-suite. Beside each WC is a standing work point (`Room1.WC.Stand`, `Room2.WC.Stand`): only residents use the WC seat; anyone else sent to a WC (a carer helping, restocking) stands there, and the validator requires one per WC.
+**Rooms inside rooms:** an en-suite is a room whose rect lies inside its bedroom's. Grid cells belong to the innermost room, so walking into the en-suite logs `person.entered_room`. The bedroom's floor area excludes it. The validator allows only an en-suite inside a room, only inside a bedroom, and requires exactly one en-suite, with a WC point, per bedroom.
+
+**Toilets:** each en-suite has a WC point (`Room1.WC` … `Room6.WC`) and, beside it, a standing work point (`Room1.WC.Stand` …). Only residents use the WC seat; anyone else sent to a WC (a carer helping, restocking) stands there, and the validator requires one per WC. The Lounge has no WC: residents there use their own en-suite.
 
 ## Walls and doors
 
@@ -53,7 +68,10 @@ Furniture is a labelled rectangle of kind `bed`, `desk`, `table`, `chair`, `armc
 - `bed`, `desk`, `table`, `sofa`, `tv` and `bookshelf` **block** movement.
 - `chair`, `armchair` and `wc` do **not** block. Residents and visitors sit on seat and chair points; only residents sit on a WC. Staff sit in the staff room and at reception (breaks, handovers, reception and office work), and in a free seat beside a resident they're sitting with; anywhere else they stand. Staff never use a WC seat.
 - **Bedside seating (checked by the validator):** a resident who sits out in their room has a bedside chair (point `<bed>.Chair` and furniture `<bed>.chair`); a hoisted wheelchair user has a `<bed>.Wheelchair` point instead, with no chair and no furniture other than their bed within 1 m of it; a bed-bound resident has neither.
-- Furniture ids use a lowercase suffix (`Room1.BedA.bed`, `WaitingArea.chair3`, `Lounge.tv`) so they never clash with named point ids.
+- Furniture ids use a lowercase suffix (`Room1.Bed.bed`, `WaitingArea.chair3`, `Lounge.tv`) so they never clash with named point ids.
+- **Clear widths:** the walking grid is 0.5 m, so openings are whole cells. Where a real doorway is narrower, the door records it as `clear_width_m` (the en-suite doors: 0.9 m). The validator requires it to be at least 0.8 m (wheelchair and hoist) and to fit the opening.
+- **Bed clearance:** the validator requires at least 1.2 m of clear floor either side of every bed, along its length, for two carers.
+- **Doorways never touch:** the validator rejects two doors whose doorway cells are neighbours (even diagonally). Doorway cells are single-occupancy, so touching doorways could leave two people each holding one and waiting for the other for ever. That happened when the en-suite doors were first placed next to the bedroom doors, which is why each bedroom door sits at the far corner.
 - The Lounge has a TV on the east wall with four armchairs facing it, a 2.5 m dining table with six chairs, a bookshelf with a reading chair, and an activity table with four chairs.
 
 ## Named points
@@ -62,13 +80,13 @@ Named points are where people go and where interactions happen. Each point has a
 
 | Pattern | Meaning |
 |---|---|
-| `Room1.BedA` | Where the resident lies (bed centre; reached only via "get into bed") |
-| `Room1.BedA.Side` | Main bedside standing spot (care, meds, checks, visitors) |
-| `Room1.BedA.Side2` | Opposite side of the bed (second carer for two-person tasks) |
-| `Room1.BedA.Chair` | Bedside chair: only for residents who sit out in their room (Peggy, Win, Arthur, Stan), for sitting up and meals. There are no visitor chairs; visitors stand at the bedside |
-| `Room2.BedB.Wheelchair` | Raj's wheelchair spot by his bed (kind `wheelchair`): where he's hoisted to and sits in his own wheelchair. No chair there, clear floor around it for the hoist and wheelchair, and nobody else uses it. Dennis (bed-bound) has no bedside seat |
-| `Room1.WC`, `Room2.WC` | En-suite toilet (residents only) |
-| `Room1.WC.Stand`, `Room2.WC.Stand` | Standing work point beside each toilet (staff) |
+| `Room1.Bed` | Where the resident lies (bed centre; reached only via "get into bed") |
+| `Room1.Bed.Side` | Main bedside standing spot (care, meds, checks, visitors) |
+| `Room1.Bed.Side2` | Opposite side of the bed (second carer for two-person tasks) |
+| `Room1.Bed.Chair` | Bedside chair: only for residents who sit out in their room (Peggy, Win, Arthur, Stan), for sitting up and meals. There are no visitor chairs; visitors stand at the bedside |
+| `Room3.Bed.Wheelchair` | Raj's wheelchair spot by his bed (kind `wheelchair`): where he's hoisted to and sits in his own wheelchair. No chair there, clear floor around it for the hoist and wheelchair, and nobody else uses it. Dennis (bed-bound) has no bedside seat |
+| `Room1.WC` … `Room6.WC` | En-suite toilet (residents only) |
+| `Room1.WC.Stand` … `Room6.WC.Stand` | Standing work point beside each toilet (staff) |
 | `Corridor.West`, `Corridor.Mid`, `Corridor.East` | Corridor waypoints |
 | `WaitingArea.Seat1`–`Seat8` | Waiting-area seats (visitors only) |
 | `Lounge.Armchair1`–`4` | Armchairs facing the TV (and for dozing at nap time) |

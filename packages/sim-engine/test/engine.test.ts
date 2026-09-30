@@ -71,7 +71,7 @@ describe("determinism", () => {
     const fell = first.find((e) => e.type === "resident.fell")!;
     expect(fell.source).toBe("user");
     expect(fell.t).toBe(DEFAULT_START_T + 40 * 60);
-    expect(fell.payload).toMatchObject({ residentId: "res_peggy", roomId: "Room1" });
+    expect(fell.payload).toMatchObject({ residentId: "res_peggy", roomId: "Room5" });
   });
 
   it("numbers events gap-free with ids derived from seq", () => {
@@ -98,11 +98,11 @@ describe("navigation grid", () => {
   it("goes through doors, never walls", () => {
     // Bed A in Room 1 to Bed A in Room 2: adjacent through a wall, so the route must use the corridor.
     const w = sim.world;
-    const peggySide = w.points.get("Room1.BedA.Side")!;
-    const arthurSide = w.points.get("Room2.BedA.Side")!;
+    const peggySide = w.points.get("Room5.Bed.Side")!;
+    const arthurSide = w.points.get("Room1.Bed.Side")!;
     const path = findPath(grid, cellAt(grid, peggySide.x, peggySide.y), cellAt(grid, arthurSide.x, arthurSide.y))!;
     const rooms = path.map((c) => grid.roomOf[c]).filter((r, i, all) => r !== all[i - 1]);
-    expect(rooms).toEqual(["Room1", "Corridor", "Room2"]);
+    expect(rooms).toEqual(["Room5", "Corridor", "Room1"]);
   });
 });
 
@@ -113,10 +113,10 @@ describe("movement", () => {
     // Joanne and Bev are off duty at 06:00, so nothing else directs them. Send them through
     // the Room 1 door in opposite directions at the same moment.
     const [a, b] = ["stf_joanne", "stf_bev"].map((id) => w.people.get(id)!);
-    placeAt(w, a!, "Room1.BedA.Side");
+    placeAt(w, a!, "Room1.Bed.Side");
     placeAt(w, b!, "Corridor.West");
     walkTo(w, a!, "Corridor.West");
-    walkTo(w, b!, "Room1.BedA.Side");
+    walkTo(w, b!, "Room1.Bed.Side");
     const zone = w.grid.doorZones.get("D_Room1")!;
     const waits: AnySimEvent[] = [];
     for (let i = 0; i < 20; i++) {
@@ -126,7 +126,7 @@ describe("movement", () => {
     }
     expect(waits.length).toBeGreaterThan(0);
     expect(a!.atPoint).toBe("Corridor.West");
-    expect(b!.atPoint).toBe("Room1.BedA.Side");
+    expect(b!.atPoint).toBe("Room1.Bed.Side");
   });
 
   it("keeps everyone on walkable ground, within walking speed, and doorways single-occupancy (5 sim days)", () => {

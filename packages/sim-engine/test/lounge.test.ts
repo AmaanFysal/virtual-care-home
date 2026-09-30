@@ -17,15 +17,16 @@ function ofType<K extends keyof EventPayloads>(events: AnySimEvent[], type: K): 
 }
 
 describe("the Lounge room", () => {
-  it("is one lounge off the corridor, 30 to 40 m², with the waiting area kept for visitors", () => {
+  it("is one lounge off the corridor, 45 to 55 m², with the waiting area kept for visitors", () => {
     const lounges = data.floorplan.rooms.filter((r) => r.kind === "lounge");
     expect(lounges.map((r) => r.id)).toEqual(["Lounge"]);
-    expect(lounges[0]!.floor_area_m2).toBeGreaterThanOrEqual(30);
-    expect(lounges[0]!.floor_area_m2).toBeLessThanOrEqual(40);
+    expect(lounges[0]!.floor_area_m2).toBeGreaterThanOrEqual(45);
+    expect(lounges[0]!.floor_area_m2).toBeLessThanOrEqual(55);
     expect(lounges[0]!.floor_area_m2 / 6).toBeGreaterThanOrEqual(4.1); // old NMS minimum per resident
     expect(data.floorplan.doors.some((d) => d.rooms.includes("Lounge") && d.rooms.includes("Corridor"))).toBe(true);
     expect(data.floorplan.rooms.find((r) => r.id === "WaitingArea")!.kind).toBe("waiting");
-    expect(data.floorplan.rooms).toHaveLength(7);
+    // Six single bedrooms, each with an en-suite, plus the Lounge, corridor, waiting area, reception and staff room.
+    expect(data.floorplan.rooms).toHaveLength(17);
   });
 
   it("is required by the validator", () => {
@@ -77,7 +78,7 @@ describe("a day with the Lounge (seed 1, Tuesday: Bev is on)", () => {
 
   it("serves lunch in the Lounge to those who choose it, and Arthur in his room", () => {
     for (const id of ["res_peggy", "res_win", "res_stan"]) expect(lunchRoom.get(id), id).toBe("Lounge");
-    expect(lunchRoom.get("res_arthur")).toBe("Room2");
+    expect(lunchRoom.get("res_arthur")).toBe("Room1");
   });
 
   it("runs Bev's session from 10:45 to 11:45 with the residents in the Lounge", () => {

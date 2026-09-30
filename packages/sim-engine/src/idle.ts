@@ -30,8 +30,8 @@ const SOCIAL_RELIEF_PER_MIN = 1 / 25;
 const NOTES_POINTS = ["Reception.Desk", "Reception.Office"];
 /** A carer sitting with a resident takes a free seat within this distance of them. */
 const SIT_BESIDE_M = 2;
-/** Restocking an en-suite is done standing beside the toilet, never on it. */
-const WC_POINTS = ["Room1.WC.Stand", "Room2.WC.Stand"];
+/** Restocking an en-suite is done standing beside the toilet, never on it (every WC's `.Stand` point). */
+const wcStands = (world: World) => [...world.points.values()].filter((p) => p.kind === "wc").map((p) => `${p.id}.Stand`).sort();
 
 /**
  * A free seat next to a resident for a carer sitting with them: a bedside chair, a Lounge seat, a
@@ -112,7 +112,8 @@ export function startIdleActivity(world: World, p: Person, floorCover = false): 
       const r = rooms[world.rng.decisions.int(0, rooms.length - 1)]!;
       options.push({ value: { activity: "tidy", residentId: r.id, point: `${r.resident!.data.room}.Side2` }, weight: WEIGHT.tidy });
     }
-    options.push({ value: { activity: "restock", residentId: null, point: WC_POINTS[world.rng.decisions.int(0, 1)]! }, weight: WEIGHT.restock });
+    const stands = wcStands(world);
+    options.push({ value: { activity: "restock", residentId: null, point: stands[world.rng.decisions.int(0, stands.length - 1)]! }, weight: WEIGHT.restock });
     const r = lonely[0];
     if (r) {
       // In a free seat next to them if there is one; otherwise standing at their bedside or beside them.
