@@ -7,7 +7,7 @@
 > - Sub-milestone (b) is built: infection state, spread through pluggable routes, isolation, outbreaks and the two outbreak scenarios.
 > - Sub-milestone (c) is built: illness, hospital stays by cause with care changes after, end of life, death and new admissions.
 > - Sub-milestone (d) is built: visitors' missed weeks with causes and seasons, birthdays and festivals.
-> - Sub-milestone (e) is done: the tuning review (docs/12), keeping 11 rules (one new) and removing 13.
+> - Sub-milestone (e) is done: the tuning review (docs/12), keeping 15 rules (one new) and removing 9.
 >
 > Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`, `src/health.ts`, `src/celebrations.ts`, `src/director/calendar.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
 
@@ -357,7 +357,7 @@ Code: `src/visitors.ts`, `src/celebrations.ts`, `src/lounge.ts`, `src/director/c
 - **(b) Outbreaks and isolation** (built): infection state, pluggable routes, isolation, outbreaks, staff off sick, the `norovirus-outbreak` and `flu-outbreak` scenarios, the unwell badge and Health filter.
 - **(c) Illness, hospital, end of life and admissions** (built): sourced admission rate and stays by cause, illness at home, care changes after a stay, end of life, death, admissions from reviewed cards, the deaths switch.
 - **(d) Visitors' missed weeks and celebrations** (built): missed weeks with causes and seasons for regular visitors, birthdays and festivals from the cards with family visits and tea and cake, no gathering in an outbreak, the `birthday-party` scenario.
-- **(e) Tuning-debt review** (done): each rule switched off on its own against the calm-week baseline, then combined and checked on held-out seeds, with a new resident's weeks, short-staffed days and the audit; 11 kept (one new), 13 removed; Dennis's turns before the morning handover fixed with a general rule; floor cover for breaks counts only staff on a shift (docs/12, `reports/e-tuning-review.txt`).
+- **(e) Tuning-debt review** (done): each rule switched off on its own against the calm-week baseline, then combined and checked on held-out seeds, with a new resident's weeks, short-staffed days and the audit; 15 kept (one new), 9 removed; Dennis's turns before the morning handover fixed with a general rule; floor cover for breaks counts only staff on a shift (docs/12, `reports/e-tuning-review.txt`).
 
 ## Notes carried from Phase 1
 

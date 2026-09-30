@@ -91,12 +91,12 @@ Sub-milestones (a) to (d) merged (PRs #7 to #10). Sub-milestone (e), the tuning 
 - (e) Tuning review, on branch `director-tuning-review` (2026-09-30):
   - **Constitution and roadmap:** ADR-0006 amends rule 4 for v1.0-testbed (equipment in use and weather described in the world; air, heat, surfaces and energy only in external plug-ins); LLM minds placed after the test bed.
   - **Method:** each tuning rule switchable (`src/tuning.ts`, `createSim({ tuning })`, `sim --tuning-off`), measured by `scripts/tuning-review.ts` on the calm-week baseline (seeds 1 to 8), then combined and checked on held-out seeds 9 to 16, the Kamala weeks, short-staffed days (4 weeks of the random director against main) and the audit.
-  - **Outcome:** 11 kept (one new), 13 removed (docs/12 has the table; `reports/e-tuning-review.txt` every round).
+  - **Outcome:** 15 kept (one new), 9 removed (docs/12 has the table; `reports/e-tuning-review.txt` every round). On review the breakfast-first hold and the three female-only rules were put back: the audit counts too, and female-only care is a real requirement.
   - **Dennis's turns before the morning handover:** two mechanisms, both a 20-minute wash started just before a two-person turn; fixed by a general rule (nobody starts long care a turn they're needed for would fall due during; the only people free for a pressing turn keep to short work). Over a year: 2 missed at 06:xx against 158.
   - **Also fixed:** floor cover for a day break or going home counts only staff on a shift (a hard `floor_cover` violation during falls); an ill agency worker stays known until recovered; logged `outbreak.declared` and tea-session events no longer change after they're emitted.
-  - **Results:** calm weeks 1 and 2 breaches (seeds 1 to 8, 9 to 16); short-staffed days 33 against 38 on main; a year of the random director 403 breaches against 469 in (d); 0 hard violations everywhere. The audit is 165 flags against 142 (late first food and toileting worse, first drinks better): reported for the project owner's decision.
-  - **For the project owner to confirm:** the decision rule beyond the calm-week criterion (held-out seeds, the Kamala weeks, short-staffed days, the audit's food and drink), and whether to put back the breakfast-first hold or the female-only rules for the audit's late food and toileting.
-  - **Tests:** `tuning.test.ts` (2); 271 in all. The director-off golden fixture re-recorded on purpose.
+  - **Results:** calm weeks 0 and 1 breaches (seeds 1 to 8, 9 to 16); short-staffed days 30 against 38 on main; a year of the random director 388 breaches against 469 in (d); 0 hard violations everywhere. The audit is 153 flags against 142 on main (late first food and Arthur's hunger still worse; toileting and first drinks near or better than main).
+  - **Approved by the project owner:** the decision rule (calm weeks, held-out seeds, the Kamala weeks, short-staffed days and the audit) and the re-recorded fingerprints.
+  - **Tests:** `tuning.test.ts` (2), the breakfast-first test back; 272 in all. The director-off golden fixture re-recorded on purpose.
 
 ## In progress
 
@@ -115,7 +115,7 @@ Sub-milestones (a) to (d) merged (PRs #7 to #10). Sub-milestone (e), the tuning 
 
 | Date | Session | Outcome |
 |---|---|---|
-| 2026-09-30 | Sub-milestone (e): tuning review; ADR-0006; roadmap | 11 rules kept, 13 removed; Dennis's 06:xx turns fixed (2 against 158 a year); 0 hard |
+| 2026-09-30 | Sub-milestone (e): tuning review; ADR-0006; roadmap; on review the breakfast-first hold and female-only rules put back | 15 rules kept, 9 removed; Dennis's 06:xx turns fixed (2 against 158 a year); 0 hard |
 | 2026-09-30 | Sub-milestone (d): visitors' missed weeks, birthdays and festivals, birthday-party scenario; roadmap with v1.0-testbed | 0 hard over a year × 8 seeds; celebration days 8.6 visitors against 4.9 |
 | 2026-09-30 | Sub-milestone (c): illness, hospital, end of life, admissions; card reviewed; end-of-life checks 60 then 30 min; Kamala's family and Nikos imported, walking sticks | 0 hard over 12 weeks × 8 seeds; 3 deaths, 3 admissions; no sprite clashes |
 | 2026-09-30 | Sub-milestone (b): infections, isolation, outbreaks, two outbreak scenarios | 0 hard in all runs; 2 outbreaks in 4 random weeks |

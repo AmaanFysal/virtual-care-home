@@ -133,7 +133,7 @@ const CARE_LABEL: Record<CareKind, string> = {
 };
 
 /** Scheduled care at the resident's bed or chair (docs/05 "Procedures"). */
-export function createCare(world: World, resident: Person, care: CareKind, extra: { meal?: MealName; dueT?: number; to?: string; toast?: boolean; label?: string; fullLabel?: string } = {}): Task {
+export function createCare(world: World, resident: Person, care: CareKind, extra: { meal?: MealName; dueT?: number; to?: string; toast?: boolean; label?: string; fullLabel?: string; first?: boolean } = {}): Task {
   const c = resident.resident!.data.care;
   const twoPerson = care === "reposition" || ((care === "morning" || care === "bedtime") && c.personal_care_staff === 2);
   const personal = care === "morning" || care === "bedtime" || care === "pad_change";
@@ -145,7 +145,7 @@ export function createCare(world: World, resident: Person, care: CareKind, extra
     // Post-fall observations come before routine care.
     priority: care === "check" && resident.resident!.postFallUntil > world.t ? 95 : PRIORITY[care],
     deadlineT: extra.dueT ?? null,
-    data: { care, meal: extra.meal ?? null, to: extra.to ?? null, toast: extra.toast ? 1 : 0 },
+    data: { care, meal: extra.meal ?? null, to: extra.to ?? null, toast: extra.toast ? 1 : 0, first: extra.first ? 1 : 0 },
   });
   emit(world, "task.created", [resident.id], { taskId: task.id, kind: `care.${care}`, residentId: resident.id, dueT: extra.dueT ?? world.t });
   return task;
@@ -517,6 +517,40 @@ function floatCovers(due: number): boolean {
   return tod >= FLOAT_TURNS.from || tod < FLOAT_TURNS.until;
 }
 
+/** Breakfast offered before morning care (they'd been waiting over 30 minutes): care waits until they've eaten. */
+function breakfastFirst(world: World, residentId: string): boolean {
+  if (!tuned(world, "breakfast_first")) return false;
+  for (const t of world.tasks.values()) if (t.residentId === residentId && t.kind === "care" && t.data.meal === "breakfast" && t.data.first === 1) return true;
+  return false;
+}
+
+/** An open female-only task is waiting and `p` is the only woman on duty who could do it. */
+function onlyOneFor(world: World, p: Person, open: Task[]): boolean {
+  if (p.gender !== "female" || !open.some((t) => t.femaleOnly)) return false;
+  return !world.order.some((id) => {
+    const q = world.people.get(id)!;
+    return q.id !== p.id && q.gender === "female" && isCareStaff(q) && q.staff!.duty === "on_shift" && q.onMap;
+  });
+}
+
+/** Female-only personal care is waiting or still to come this morning (Peggy's and Kamala's washes and toilet). */
+function femaleOnlyPending(world: World): boolean {
+  for (const t of world.tasks.values()) if (t.femaleOnly && t.status === "open") return true;
+  const tod = timeOfDay(world.t);
+  if (tod < clockToSeconds("06:00") || tod >= clockToSeconds("10:00")) return false;
+  return world.order.some((id) => {
+    const r = world.people.get(id)!.resident;
+    return !!r && r.data.care.female_carers_only && !r.morningDone && world.people.get(id)!.onMap;
+  });
+}
+
+function onlyWomanOnShift(world: World, p: Person): boolean {
+  return !world.order.some((id) => {
+    const q = world.people.get(id)!;
+    return q.id !== p.id && q.gender === "female" && isCareStaff(q) && q.onMap && q.staff!.duty === "on_shift";
+  });
+}
+
 /** A turn (repositioning). */
 export function isTurn(task: Task): boolean {
   return task.kind === "care" && task.data.care === "reposition";
@@ -551,6 +585,10 @@ export function taskScore(world: World, p: Person, task: Task): number {
   const woke = resident?.resident?.wokeT;
   const morningWork = task.kind === "care" && (task.data.care === "morning" || (tuned(world, "breakfast_boost") && task.data.meal === "breakfast"));
   if (morningWork && woke !== null && woke !== undefined) score += Math.min(90, 1.5 * ((world.t - woke) / 60));
+  // Women are the scarce staff for female-only care (Peggy, Kamala): it comes first for them, and
+  // the only woman on shift is kept off two-person work others could pair for while such care is pending.
+  if (task.femaleOnly && tuned(world, "female_only_bonus")) score += 25;
+  else if (tuned(world, "only_woman_two_person") && task.staffNeeded === 2 && p.gender === "female" && femaleOnlyPending(world) && onlyWomanOnShift(world, p)) score -= 30;
   if (isNurse(p)) score -= 25; // nurses help, but carers go first
   if (p.staff!.taskId) score -= 10; // on an interruptible break or a medication round
   return score;
@@ -654,6 +692,8 @@ export function decideStaff(world: World): void {
     if (sole && isCareStaff(p) && !nightBreakCovered(world, p)) continue;
     // Day staff wait for a two-person turn that's nearly due.
     if (isCareStaff(p) && !sole && twoPersonTurnSoon(world, p)) continue;
+    // Not while there's waiting work only they can do (female-only care, and they're the only woman on).
+    if (tuned(world, "break_waits_only_woman") && isCareStaff(p) && onlyOneFor(world, p, open)) continue;
     if (!isCareStaff(p) || sole || coveredWithout(world, p, true, undefined, true)) assign(world, createBreak(world, sole && isCareStaff(p)), [p]);
   }
 
@@ -691,10 +731,11 @@ export function decideStaff(world: World): void {
   /**
    * `p` shouldn't start long care that would still be going when a two-person turn falls due, if
    * they're needed for it: fewer than two others could do it (the floating carer counts for turns
-   * in her hours). Short work is fine.
+   * in her hours). Short work, and anyone's request for help, is fine.
    */
   const neededForTurn = (p: Person, task: Task): boolean => {
-    if (turnDues.length === 0 || isShort(task) || isTurn(task)) return false;
+    // Scheduled care only: a resident asking for help (the toilet) isn't kept waiting for a turn.
+    if (turnDues.length === 0 || isShort(task) || isTurn(task) || task.request) return false;
     const r = task.residentId ? world.people.get(task.residentId)?.resident : undefined;
     // The care, and a few minutes to get to the turn afterwards.
     const until = world.t + ((r?.data.care.personal_care_mins ?? 15) + 5) * 60;
@@ -730,6 +771,7 @@ export function decideStaff(world: World): void {
       const busyWith = resident?.busyTaskId && resident.busyTaskId !== task.id ? world.tasks.get(resident.busyTaskId) : undefined;
       if (busyWith) continue;
       if (task.request && deferToCare(world, task)) continue; // met on the same visit as care that's due
+      if (task.data.care === "morning" && breakfastFirst(world, task.residentId!)) continue; // they eat first
       const needed = task.staffNeeded;
       // Requests, checks, turns and Lounge look-ins about to go over may interrupt a medication round.
       const targetTask = task.request || task.kind === "lounge_check" || isTurn(task) || (task.kind === "care" && task.data.care === "check");

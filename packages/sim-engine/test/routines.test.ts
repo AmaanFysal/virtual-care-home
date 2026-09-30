@@ -94,6 +94,24 @@ describe("a week of mornings and drinks (seed 1)", () => {
   });
 });
 
+describe("breakfast first", () => {
+  it("holds a resident's morning care while breakfast offered first is waiting", () => {
+    const sim = createSim({ seed: "1", data });
+    const w = sim.world;
+    while (timeOfDay(w.t) !== at(7, 50)) sim.step();
+    const stan = w.people.get("res_stan")!;
+    const care = createCare(w, stan, "morning");
+    const breakfast = createCare(w, stan, "meal", { meal: "breakfast", first: true });
+    for (let i = 0; i < 12; i++) sim.step(); // one decision minute
+    expect(care.assigned).toEqual([]);
+    while (w.tasks.has(breakfast.id) && timeOfDay(w.t) < at(10)) {
+      expect(care.assigned, "care waits until they've eaten").toEqual([]);
+      sim.step();
+    }
+    expect(w.tasks.has(breakfast.id)).toBe(false);
+  });
+});
+
 describe("left drinks", () => {
   it("go stale after 2 hours, are never drunk, and are replaced at the next contact", () => {
     const sim = createSim({ seed: "1", data });

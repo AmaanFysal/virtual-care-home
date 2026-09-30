@@ -56,9 +56,9 @@
 
 In the Lounge and audit-fixes round (M8), narrow rules were added, beyond what the user asked for, to keep service breaches at zero on every no-fall week. The user's decision since: occasional breaches on normal days are acceptable and realistic, so no more rules like these. The tuning review switched each off on its own (`createSim({ tuning })`, `scripts/tuning-review.ts`) against the calm-week baseline (seeds 1 to 8, a week each, director off), with a rule kept only if removing it pushed a week over 2 breaches. The removals were then combined and checked on held-out seeds 9 to 16, and three more measures showed things the calm week can't: the same weeks with Kamala in Raj's room (a resident mix the director produces), short-staffed days (4 weeks of the random director against main), and the audit's food and drink flags. Full tables and the rounds: `docs/workstreams/phase-2-director/reports/e-tuning-review.txt`.
 
-**The final decision rule:** a rule stays if removing it pushes a calm week over 2 breaches on seeds 1 to 8 or 9 to 16, or in the Kamala weeks, or clearly harms short-staffed days (the random director over 4 weeks × 8 seeds) or residents' food and drink in the audit. All 13 removed rules pass every one of these; the 11 kept each fail at least one. Removing the sole-partner rule and the floating carer's planning together passes calm weeks (at most 2 in a week) but nearly doubles breaches on short-staffed days (64 against 33).
+**The final decision rule** (approved by the project owner, 2026-09-30): a rule stays if removing it pushes a calm week over 2 breaches on seeds 1 to 8 or 9 to 16, or in the Kamala weeks, or clearly harms short-staffed days (the random director over 4 weeks × 8 seeds), or leaves residents' hunger, thirst or toileting needs unmet in the audit, service target or not. Rules that protect a real care requirement (female-only personal care) stay. All 9 removed rules pass every one of these; the 15 kept each fail at least one. Removing the sole-partner rule and the floating carer's planning together passes calm weeks (at most 2 in a week) but nearly doubles breaches on short-staffed days (64 against 33).
 
-**Kept (11), each switchable in `src/tuning.ts`** (removed on its own, final code: calm breaches in 8 weeks on seeds 1 to 8 and the most in one week; then the measure that decided it):
+**Kept (15), each switchable in `src/tuning.ts`** (removed on its own, final code: calm breaches in 8 weeks on seeds 1 to 8 and the most in one week; then the measure that decided it):
 
 | Rule | Calm | Why kept |
 |---|---|---|
@@ -73,19 +73,36 @@ In the Lounge and audit-fixes round (M8), narrow rules were added, beyond what t
 | Breakfast gets the same time-awake boost as morning care | 1, 1 | Audit: without it Arthur is hungry (need over 0.8) 33 times in 8 weeks, against 3 |
 | Tea on waking has a hard deadline | 2, 1 | Audit: first drinks |
 | A drink with the 08:00 tablets for anyone who hasn't had tea | 1, 1 | Audit: without the two tea rules, Stan's first drink comes 23 to 33 minutes after he wakes at 08:00 on most days (42 flags) |
+| Breakfast offered first holds morning care until they've eaten | – | Audit (project owner, 2026-09-30): residents' food |
+| Female-only care +25; the only woman on shift −30 for two-person work while female-only care is pending; a break waits for the only woman | – | A real care requirement (Peggy, Kamala) and the audit: Peggy's toileting need over 0.8 8 times in 8 weeks without them, 3 with them (project owner, 2026-09-30) |
 
-**Removed (13):** breakfast offered first holding morning care; female-only care +25; the only woman on shift −30 for two-person work; a break waiting for the only woman; a reserved task waiting for its reserver; a turn reserved while its resident is briefly busy; someone on a break holding a reservation; Dennis's morning care taking on a turn; the toilet prompt skipped before morning care; turns not interrupting a medication round (a turn within 10 minutes of its limit now may); anyone on a day break called back during a fall; the Lounge two-person wait; the Lounge break stagger.
+**Removed (9):** a reserved task waiting for its reserver; a turn reserved while its resident is briefly busy; someone on a break holding a reservation; Dennis's morning care taking on a turn; the toilet prompt skipped before morning care; turns not interrupting a medication round (a turn within 10 minutes of its limit now may); anyone on a day break called back during a fall; the Lounge two-person wait; the Lounge break stagger. (The breakfast-first hold and the three female-only rules were removed in the first version of the review and put back on the project owner's decision.)
 
 **Also changed by the review (general rules and fixes, not tuning):**
-- **Dennis's turns before the morning handover** (the (d) finding). Two mechanisms, both a 20-minute wash started just before a two-person turn: with a male night carer, Kamala's female-only morning care waited for the floating carer, who arrived at 06:35 for Dennis's 06:50 turn and took Kamala's care instead (nobody had reserved the turn, so the sole-partner rule didn't apply); with a female night carer, she started Kamala's care at 06:04 with his turn due at 06:24, before the floating carer (and the turn's task) arrived. The new rule above covers both: over a year of the random director, 2 of Dennis's turns missed between 06:00 and 07:00 with no emergency behind them, against 158. A lone night carer with an early-waking resident can't do everything before the handover, so a few checks at 06:45 to 06:50 are missed instead (reported).
+- **Dennis's turns before the morning handover** (the (d) finding). Two mechanisms, both a 20-minute wash started just before a two-person turn: with a male night carer, Kamala's female-only morning care waited for the floating carer, who arrived at 06:35 for Dennis's 06:50 turn and took Kamala's care instead (nobody had reserved the turn, so the sole-partner rule didn't apply); with a female night carer, she started Kamala's care at 06:04 with his turn due at 06:24, before the floating carer (and the turn's task) arrived. The new rule above covers both (a resident's own request for help is never held back for it): over a year of the random director, 2 of Dennis's turns missed between 06:00 and 07:00 with no emergency behind them, against 158. A lone night carer with an early-waking resident can't do everything before the handover, so a few checks at 06:45 to 06:50 are missed instead (reported).
 - **Floor cover for a day break or going home counts only staff on a shift**, not helpers who leave when their job is done: two carers had started breaks relying on the floating and main-building carers, who then left (a hard `floor_cover` violation during falls).
 - **An ill agency worker is kept in the world until they've recovered**, so their recovery is logged.
 - **Logged events no longer change after they're emitted:** `outbreak.declared` shared its case list with the live outbreak (later cases showed up in it), and Bev's tea session shared its resident list with `activity.started`.
 
-**Results (final rule set):**
-- Calm weeks, director off: 1 breach on seeds 1 to 8 and 2 on 9 to 16 (at most 1 in a week); 0 hard violations; with Kamala in, 1 and 1; three-falls sets 35 and 43 breaches, 0 hard.
-- Short-staffed days (random director, 4 weeks × 8 seeds): 33 breaches against 38 on main; 0 hard.
-- A year of the random director, seeds 1 to 8: 403 breaches against 469 in (d), 124 on days without a director event against 181; Dennis's missed turns with no emergency behind them 31 against 170; 0 hard violations (`reports/e-random-52-weeks-seeds-1-8.txt`).
-- The director-off golden fixture was re-recorded: the review changes director-off runs on purpose.
-- **The audit** (director off, seeds 1 to 8): 165 flags against 142 on main. Better: no late first drinks. Worse: late first food 121 against 100 (Arthur, Peggy, Win), and toileting need over 0.8 30 against 15 (Raj 20, Peggy 8). These are likely the removed breakfast-first hold and the female-only rules. They aren't service targets, so the breach criterion can't see them; each can be put back if wanted.
+**Results (final rule set), before and after putting back the breakfast-first hold and the female-only rules** (project owner, 2026-09-30; also: a resident's own request for help is never held back by the new turn rule):
+
+| | Main (before the review) | Review, first version (11 kept) | Final (15 kept) |
+|---|---|---|---|
+| Calm weeks, director off: breaches, seeds 1 to 8 / 9 to 16 | 2 / – | 1 / 2 | 0 / 1 |
+| With Kamala in: seeds 1 to 8 / 9 to 16 | 15 / – | 1 / 1 | 1 / 3 |
+| Three-falls sets: seeds 1 to 4 / 9 to 12 | – | 35 / 43 | 37 / 39 |
+| Short-staffed days: random director, 4 weeks × 8 seeds | 38 | 33 | 30 |
+| A year of the random director, seeds 1 to 8 | 469 ((d)) | 403 | 388 |
+| … on days without a director event | 181 | 124 | 131 |
+| … Dennis's turns missed with no emergency (06:00 to 06:59) | 170 (158) | 31 (3) | 41 (2) |
+| Hard violations, every run | 0 | 0 | 0 |
+| Audit flags (director off, seeds 1 to 8) | 142 | 165 | 153 |
+| … late first food | 100 | 121 | 120 |
+| … toileting need over 0.8 | 15 | 30 | 18 |
+| … hunger need over 0.8 | 0 | 2 | 6 |
+| … late first drink | 3 | 0 | 0 |
+| … morning care out of wake order | 9 | 8 | 4 |
+
+- The director-off golden fixture was re-recorded: the review changes director-off runs on purpose (approved).
+- **Still worse than main in the audit:** late first food (120 against 100: Arthur, Peggy, Win) and Arthur's hunger (6 episodes in 8 weeks). Putting back the breakfast-first hold didn't move late first food; the remaining difference comes from the other changes together (the removed rules, the new turn rule and floor-cover rule), which shift morning timings. Raj's toileting episodes are mostly while he's being helped with lunch, supper or his morning care (one thing at a time).
 - Test tolerances changed: an end-of-life decline may miss one 30-minute check every two days (misses in the morning rush are reported, not failures), and its last days may begin up to 30 minutes late (after care in progress); the outbreak scenario tests allow one outbreak still running when the run ends (on seed 1 the flu now spreads further and a second outbreak starts on day 19); the turn-rule test expects at least 2 misses without the rule.

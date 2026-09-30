@@ -211,3 +211,27 @@ count  type
       1  request.over_wait_limit                peggy 1
       1  service.request_wait                   peggy 1
       1  staff.idle_while_resident_needs        006 1
+
+=== After review: the breakfast-first hold and the female-only rules put back (project owner, 2026-09-30) ===
+The audit counts as a criterion: hunger, thirst and toileting needs matter even when they're not service breaches, and
+the female-only rules protect a real care requirement. Also: the new turn rule's look-ahead no longer holds back a
+resident's own request for help (Raj's toilet), only scheduled care.
+Calm weeks, seeds 1-8:  baseline                   calm   0 (max 0/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  37 (hard 0)
+Calm weeks, seeds 9-16: baseline                   calm   1 (max 1/week, hard 0)  with Kamala   3 (max 1, hard 0)  falls  39 (hard 0)
+Hard days (random director, 4 weeks x seeds 1-8): service breaches: 30 (2 on days with no director event, 28 on days with one)
+A year of the random director, seeds 1-8: service breaches: 388 (131 on days with no director event, 257 on days with one); hard violations 0
+Kept (15): pressing_first, pressing_turns, lounge_break_recall, sole_partner, float_planning, evening_crunch,
+briefing_hold, turn_team, breakfast_boost, breakfast_first, tea_deadline, tea_with_tablets, female_only_bonus,
+only_woman_two_person, break_waits_only_woman.
+Removed (9): reserver_wait, reserve_while_busy, reserve_from_break, morning_care_turn, skip_prompt_before_care,
+turns_spare_meds, fall_break_recall, lounge_pair_wait, lounge_break_stagger.
+Director-off audit, final:
+count  type
+    120  morning.late_first_food                arthur 54, peggy 45, win 20, stan 1
+     18  need.toileting_over_0.8                raj 13, peggy 3, dennis 2
+      6  need.hunger_over_0.8                   arthur 5, stan 1
+      4  morning.care_out_of_wake_order         wing 4
+      2  staff.idle_while_resident_needs        dave 1, aisha 1
+      1  drinks.round_started_late              wing 1
+      1  meds.missed_dose                       stan 1
+      1  need.thirst_over_0.8                   raj 1

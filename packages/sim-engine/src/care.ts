@@ -110,7 +110,7 @@ function scheduleResident(world: World, p: Person): void {
     if (noAppetite(r)) break;
     const ready = res.morningDone || (m.meal === "breakfast" && careAway);
     if (ready && inRange(tod, m.from, m.until) && !res.mealsServed.includes(m.meal) && !hasCare(world, p.id, "meal")) {
-      createCare(world, p, "meal", { meal: m.meal });
+      createCare(world, p, "meal", { meal: m.meal, first: !res.morningDone });
     }
   }
 
