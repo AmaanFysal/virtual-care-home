@@ -141,6 +141,10 @@
       "female": "ext_agency_nurse",
       "male": "ext_agency_nurse"
     },
+    "resident": {
+      "female": "vis_pat",
+      "male": "vis_bernard"
+    },
     "main_building_carer": {
       "female": "ext_night_float",
       "male": "ext_night_float"

@@ -8,6 +8,7 @@ import { idleTree } from "./idle.js";
 import { letInTree } from "./visitors.js";
 import type { TaskKind } from "./state.js";
 import { assistTree, breakTree, briefingTree, careTree, handoverTree, loungeCheckTree, roundTree, selfMoveTree, selfToiletTree, type Ctx } from "./trees.js";
+import { transferTree } from "./health.js";
 
 export const TREES: Record<TaskKind, BtNode<Ctx>> = {
   assist: assistTree,
@@ -23,4 +24,5 @@ export const TREES: Record<TaskKind, BtNode<Ctx>> = {
   let_in: letInTree,
   idle: idleTree,
   lounge_check: loungeCheckTree,
+  hospital_transfer: transferTree,
 };

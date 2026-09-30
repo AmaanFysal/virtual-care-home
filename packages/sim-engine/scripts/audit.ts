@@ -3,13 +3,14 @@
 // per resident, per staff shift and per day, with flags where behaviour looks wrong.
 // Read-only: it never changes the world. Thresholds live in audit.config.ts.
 
-import { clockToSeconds, formatSimTime, timeOfDay, type AnySimEvent, type DirectorSettings, type NeedName, type WorldData } from "@vch/shared-types";
-import { createSim, type Person, type World } from "../src/index.js";
+import { clockToSeconds, formatSimTime, spriteClashes, timeOfDay, type AnySimEvent, type DirectorSettings, type NeedName, type WorldData } from "@vch/shared-types";
+import { createSim, toView, type Person, type World } from "../src/index.js";
 import { ACT_THRESHOLD } from "../src/needs.js";
 import { isNight } from "../src/nightcover.js";
 import { isCareStaff, type ShiftAssignment } from "../src/state.js";
 import { cellAt } from "../src/world/grid.js";
 import { AUDIT, type AuditConfig } from "./audit.config.js";
+import { loadAdmissions, loadSprites } from "../tools/load-data.js";
 import { dayLines, dayReport } from "./day-report.js";
 
 export interface Flag {
@@ -88,7 +89,7 @@ interface RoundRec {
 }
 
 export function runAudit(seed: string, hours: number, data: WorldData, cfg: AuditConfig = AUDIT, director?: DirectorSettings): AuditResult {
-  const sim = createSim({ seed, data, ...(director ? { director } : {}) });
+  const sim = createSim({ seed, data, admissions: loadAdmissions(), ...(director ? { director } : {}) });
   const all: AnySimEvent[] = [];
   const w = sim.world;
   const flags: Flag[] = [];
@@ -105,6 +106,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
   // ------------------------------------------------------------ state kept while running
   const resDays = new Map<string, Map<number, ResDay>>(residents.map((r) => [r.id, new Map()]));
   const resDay = (id: string, t: number): ResDay => {
+    if (!resDays.has(id)) resDays.set(id, new Map()); // someone who moved in mid-run (docs/10)
     const days = resDays.get(id)!;
     const k = dayKey(t);
     let d = days.get(k);
@@ -401,6 +403,15 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
       case "visit.started":
         visits.set(e.payload.residentId, (visits.get(e.payload.residentId) ?? 0) + 1);
         break;
+      case "resident.admitted": {
+        // Someone moved in (docs/10): audited from now on like everyone else.
+        const p = w.people.get(e.payload.residentId)!;
+        if (!residents.includes(p)) residents.push(p);
+        lastRelief.set(p.id, { hunger: w.t, thirst: w.t, toileting: w.t, social: w.t, fatigue: w.t });
+        visits.set(p.id, 0);
+        names.set(p.id, p.name);
+        break;
+      }
       case "break.started": {
         const p = w.people.get(e.payload.staffId)!;
         const rec = shiftRec(p);
@@ -539,9 +550,30 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
   }
 
   // ------------------------------------------------------------ every minute
+  // Nobody on screen drawn with someone else's sheet (a new resident's stand-in while its owner visits).
+  const spriteManifest = loadSprites();
+  const clashEp = new Map<string, { from: number; last: number; sheet: string; ids: string[] }>();
+  function closeClash(key: string, t: number): void {
+    const ep = clashEp.get(key)!;
+    clashEp.delete(key);
+    flag("sprites.shared_on_screen", "wing", ep.from, `${ep.ids.map(name).join(" and ")} on screen together, both drawn as ${ep.sheet}, ${m(t - ep.from)}m from ${hm(ep.from)}`);
+  }
+  function spriteMinute(t: number): void {
+    const onScreen = w.order.map((id) => w.people.get(id)!).filter((p) => p.onMap).map(toView);
+    const now = new Set<string>();
+    for (const c of spriteClashes(spriteManifest, onScreen)) {
+      const key = `${c.sheet}:${c.ids.join(",")}`;
+      now.add(key);
+      if (!clashEp.has(key)) clashEp.set(key, { from: t, last: t, sheet: c.sheet, ids: c.ids });
+      clashEp.get(key)!.last = t;
+    }
+    for (const key of [...clashEp.keys()]) if (!now.has(key)) closeClash(key, t);
+  }
+
   function onMinute(): void {
     const t = w.t;
     const s = timeOfDay(t);
+    spriteMinute(t);
     for (const r of residents) {
       const res = r.resident!;
       const d = resDay(r.id, t);
@@ -738,6 +770,7 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
   const endT = w.t;
 
   // Close anything still open at the end.
+  for (const key of [...clashEp.keys()]) closeClash(key, endT);
   for (const r of residents) {
     for (const n of NEEDS) {
       const ep = highEpisodes.get(`${r.id}:${n}`);

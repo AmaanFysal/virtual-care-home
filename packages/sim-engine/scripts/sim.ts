@@ -7,9 +7,9 @@
 //   --report then adds a per-day report, and --report --seeds 1-8 prints it for several seeds with totals.
 
 import { parseArgs } from "node:util";
-import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, type AnySimEvent, type DirectorSettings } from "@vch/shared-types";
-import { createSim, validateScenario, type World } from "../src/index.js";
-import { loadDirectorConfig, loadScenario, loadWorldData } from "../tools/load-data.js";
+import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, spriteClashes, type AnySimEvent, type DirectorSettings } from "@vch/shared-types";
+import { createSim, toView, validateScenario, type World } from "../src/index.js";
+import { loadAdmissions, loadDirectorConfig, loadScenario, loadSprites, loadWorldData } from "../tools/load-data.js";
 import { runAudit, summarise, type Flag } from "./audit.js";
 import { dayLines, dayReport, emptyTotals, totalsLines } from "./day-report.js";
 
@@ -45,6 +45,16 @@ const director = directorSettings();
 function noteNames(world: World, e: AnySimEvent, names: Map<string, string>): void {
   for (const id of [...e.actors, ...(e.type === "rota.cover_booked" ? [e.payload.staffId] : [])]) if (!names.has(id)) names.set(id, world.people.get(id)?.name ?? id);
 }
+/** Minutes two people on screen were drawn with the same sheet, by seed and who (docs/08). */
+const spriteClashMins = new Map<string, number>();
+const spriteManifest = loadSprites();
+function noteSpriteClashes(world: World, seed: string): void {
+  const onScreen = world.order.map((id) => world.people.get(id)!).filter((p) => p.onMap).map(toView);
+  for (const c of spriteClashes(spriteManifest, onScreen)) {
+    const key = `seed ${seed}: ${c.ids.map((id) => world.people.get(id)!.name).join(" and ")} (${c.sheet})`;
+    spriteClashMins.set(key, (spriteClashMins.get(key) ?? 0) + 1);
+  }
+}
 const seedRange = (spec: string) => {
   const [from, to] = spec.split("-").map(Number);
   return Array.from({ length: (to ?? from)! - from! + 1 }, (_, i) => String(from! + i));
@@ -55,16 +65,21 @@ if (values.report && values.seeds) {
   const totals = emptyTotals();
   const ticks = Math.round((Number(values.hours) * 3600) / 5);
   for (const seed of seedRange(values.seeds)) {
-    const sim = createSim({ seed, data: loadWorldData(), ...(director ? { director } : {}) });
+    const sim = createSim({ seed, data: loadWorldData(), admissions: loadAdmissions(), ...(director ? { director } : {}) });
     const events: AnySimEvent[] = [];
     const names = new Map<string, string>();
-    for (let i = 0; i < ticks; i++) for (const e of sim.step()) events.push(e), noteNames(sim.world, e, names);
+    for (let i = 0; i < ticks; i++) {
+      for (const e of sim.step()) events.push(e), noteNames(sim.world, e, names);
+      if (sim.world.t % 60 === 0) noteSpriteClashes(sim.world, seed);
+    }
     console.log(`\n=== seed ${seed} ===`);
     for (const line of dayLines(dayReport(events, names, totals).rows)) console.log(line);
     console.error(`seed ${seed} done`);
   }
   console.log(`\n=== totals, seeds ${values.seeds}, ${values.hours} h each ===`);
   for (const line of totalsLines(totals, (seedRange(values.seeds).length * Number(values.hours)) / 168)) console.log(line);
+  const clashes = [...spriteClashMins].map(([k, v]) => `${k} ${v} min`);
+  console.log(`  people on screen drawn with the same sheet: ${clashes.length ? clashes.join("; ") : "none"}`);
   process.exit(0);
 }
 
@@ -93,7 +108,7 @@ if (values.audit) {
   process.exit(0);
 }
 
-const sim = createSim({ seed: values.seed!, data: loadWorldData(), ...(director ? { director } : {}) });
+const sim = createSim({ seed: values.seed!, data: loadWorldData(), admissions: loadAdmissions(), ...(director ? { director } : {}) });
 if (values.fall) {
   // --fall res_peggy@06:40 or res_stan@02:00:serious (the first such time after the start)
   const [residentId, when] = values.fall.split("@");

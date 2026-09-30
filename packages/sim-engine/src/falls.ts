@@ -27,6 +27,7 @@ import { pullOff, resetTask } from "./tasks.js";
 import { chairFor, goTo, markChecked, setBadges, waitMins, type Ctx } from "./trees.js";
 import { cellAt, cellCentre } from "./world/grid.js";
 import { getIntoBed, placeAt, releaseStand, walkTo } from "./world/movement.js";
+import { leaveForHospital } from "./health.js";
 import { formatSimTime } from "@vch/shared-types";
 
 export const PARAMEDICS_ID = "ext_paramedics";
@@ -565,21 +566,12 @@ export const fallTree: BtNode<Ctx> = seq(
       act("conveyed to hospital", (c) => {
         const { world } = c;
         const r = c.resident!;
-        emit(world, "resident.conveyed_to_hospital", [r.id, PARAMEDICS_ID], { residentId: r.id });
+        emit(world, "resident.conveyed_to_hospital", [r.id, PARAMEDICS_ID], { residentId: r.id, cause: "serious_fall" });
         emit(world, "cqc.notification_flagged", [r.id], { residentId: r.id, regulation: "Registration Regulations 2009, Regulation 18", reason: "serious injury after a fall" });
         informFamily(c, "fall, taken to hospital");
         cleanUp(c);
-        releaseStand(world, r);
-        // Leaves with the crew: logged as a departure so room occupancy stays right (docs/07).
-        emit(world, "person.departed", [r.id], { pointId: r.resident!.data.room });
-        Object.assign(r, { onMap: false, move: null, atPoint: null, roomId: null, posture: "in_bed", task: null });
-        r.resident!.away = "hospital";
-        r.resident!.busyTaskId = null;
-        // Back to their own bed after 3 to 10 days, some time between 11:00 and 16:00.
-        const days = world.rng.falls.int(3, 10);
-        const day = Math.floor(world.t / 86400) + days;
-        r.resident!.returnT = day * 86400 + world.rng.falls.int(11 * 60, 16 * 60) * 60;
-        for (const t of [...world.tasks.values()]) if (t.residentId === r.id && t.kind !== "fall") world.tasks.delete(t.id);
+        // Leaves with the crew; back after a stay set by cause (health.ts, docs/10).
+        leaveForHospital(world, r, "serious_fall");
         const paramedics = world.people.get(PARAMEDICS_ID)!;
         paramedics.staff!.duty = "leaving";
         walkTo(world, paramedics, "ExitDoor");
@@ -625,7 +617,7 @@ export function fallsMinute(world: World): void {
     walkTo(world, main, "ExitDoor");
   }
 
-  // Post-fall observations end; residents come back from hospital.
+  // Post-fall observations end.
   for (const id of world.order) {
     const p = world.people.get(id)!;
     const res = p.resident;
@@ -634,7 +626,6 @@ export function fallsMinute(world: World): void {
       p.badges = p.badges.filter((b) => b !== "obs");
       emit(world, "fall.observations_ended", [p.id], { residentId: p.id });
     }
-    if (res.away === "hospital" && res.returnT !== null && world.t >= res.returnT) returnFromHospital(world, p);
   }
 
   // One crew answers the calls in turn, the one due soonest first.
@@ -650,23 +641,6 @@ export function onCallRnArrived(world: World, rn: Person): void {
   rn.staff!.duty = "on_shift";
   emit(world, "on_call_rn.arrived", [rn.id], { personId: rn.id, residentId: world.onCallRn.residentId ?? "" });
   walkTo(world, rn, "Corridor.East");
-}
-
-/**
- * Back from hospital (brought to their room by the transport crew, off the map): into their own
- * bed, with their care profile as it was. The crew's handover counts as a check.
- */
-function returnFromHospital(world: World, p: Person): void {
-  const res = p.resident!;
-  const days = Math.round((world.t - (world.fallLog.findLast((f) => f.residentId === p.id)?.t ?? world.t)) / 86400);
-  Object.assign(res, { away: null, returnT: null, asleep: false, busyTaskId: null, requestId: null, fall: null, drinkLeftT: null });
-  Object.assign(res, { lastCheckedT: world.t, lastTurnedT: world.t, lastToiletT: world.t, lastMouthCareT: world.t, morningDone: true });
-  p.onMap = true;
-  p.badges = [];
-  p.task = null;
-  emit(world, "person.arrived", [p.id], { pointId: res.data.room });
-  getIntoBed(world, p);
-  emit(world, "resident.returned_from_hospital", [p.id], { residentId: p.id, daysAway: days });
 }
 
 export function mainCarerArrived(world: World, p: Person): void {

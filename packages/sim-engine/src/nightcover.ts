@@ -22,7 +22,9 @@ export function isNight(t: number): boolean {
 /** Minutes allowed between checks: the day or night interval in force at the last check. */
 export function checkInterval(res: ResidentState): number {
   if (res.lastCheckedT < res.postFallUntil) return 30; // post-fall observations
-  return isNight(res.lastCheckedT) ? res.data.care.check_interval_mins.night : res.data.care.check_interval_mins.day;
+  const usual = isNight(res.lastCheckedT) ? res.data.care.check_interval_mins.night : res.data.care.check_interval_mins.day;
+  // Ill, or at the end of their life (docs/10): checked more often.
+  return Math.min(usual, res.illness?.checkMins ?? usual, res.endOfLife?.checkMins ?? usual);
 }
 
 /**

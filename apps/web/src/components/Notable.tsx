@@ -16,7 +16,17 @@ export function notableText(e: AnySimEvent, people: Record<string, PersonView>):
     case "ambulance.called":
       return `999 called for ${first(e.payload.residentId)}`;
     case "resident.conveyed_to_hospital":
-      return `${first(e.payload.residentId)} taken to hospital`;
+      return `${first(e.payload.residentId)} taken to hospital${e.payload.cause ? ` (${e.payload.cause.replace(/_/g, " ")})` : ""}`;
+    case "illness.started":
+      return `${first(e.payload.residentId)} unwell: ${e.payload.kind.replace(/_/g, " ")} (${e.payload.severity === "mild" ? "resting in their room" : "GP called"})`;
+    case "resident.care_changed":
+      return `${first(e.payload.residentId)}'s care changed (${e.payload.reason}): ${e.payload.changes.join("; ")}`;
+    case "end_of_life.started":
+      return `${first(e.payload.residentId)}'s end-of-life care began`;
+    case "resident.died":
+      return `${first(e.payload.residentId)} died peacefully. Their family have been told.`;
+    case "resident.admitted":
+      return `${first(e.payload.residentId)} moved in (${e.payload.roomId})`;
     case "resident.returned_from_hospital":
       return `${first(e.payload.residentId)} back from hospital after ${e.payload.daysAway} days`;
     case "staff.absent":

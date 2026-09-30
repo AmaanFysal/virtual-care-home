@@ -4,7 +4,7 @@
 
 ## Status
 
-Sub-milestone (a) merged (PR #7). Sub-milestone (b) built on branch `director-outbreaks` (2026-09-30), PR open.
+Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on branch `director-health` (2026-09-30), PR open.
 
 ## Done
 
@@ -52,15 +52,40 @@ Sub-milestone (a) merged (PR #7). Sub-milestone (b) built on branch `director-ou
     - Fixed: an outbreak could end while an agency worker who had caught it was still ill, because they had left the world.
   - **Results:** 4 weeks random, seeds 1 to 8: 0 hard violations, 20 breaches, 1 outbreak (5.3 days). Both scenarios on seeds 1 to 8 over 3 weeks: 0 hard violations; norovirus outbreaks 3 to 14.4 days, flu 5 to 12.6 (reports in `reports/b-*.txt`).
 
+- (c) Illness, hospital, end of life and admissions, on branch `director-health` (2026-09-30):
+  - **Sources:** hospital admissions 0.70 per resident a year (Health Foundation 2019); stays by cause (serious fall 11 to 25 days, chest infection 5 to 12, UTI 3 to 10, dehydration 3 to 7), each with its source in `data/director.json` and docs/10.
+  - **Engine** (`src/health.ts`, planner steps 5 and 6):
+    - illness at home (rest, hourly checks, drinks, falls ×1.5) or severe (GP, ambulance, a stay by cause);
+    - care changes after a stay as overrides on the run's copy of the card, logged and ended in any order;
+    - end-of-life decline (hourly checks, family daily, later and longer), then the last days (in bed, pads in bed, checks every 30 minutes);
+    - death with dignity (family told, Regulation 16 flagged, room left empty, visitors stop);
+    - admissions from reviewed cards 2 to 6 weeks after a death, with the room set up for them;
+    - a `health` random stream; the deaths switch in force.
+  - **Data:** `data/director.json` `health`; `data/personas/admissions.json` with Kamala Shah, reviewed by the project owner.
+  - **Everywhere a resident joins or leaves:** inspector ("Died"), a stand-in sprite by gender, handovers, visitor links, Notable, Director tab triggers (illness, end of life, admission), the audit and the reports. `spriteClashes` (shared-types) checks that nobody on screen shares a sheet: an audit flag and a line in the multi-seed report.
+  - **On review:** card approved as drafted; end-of-life checks hourly during the decline and every 30 minutes in the last 3 days.
+  - **Fixed along the way:**
+    - a handover's floor cover could go on a break;
+    - a walking resident couldn't move into Raj's room;
+    - a resident leaving for hospital or dying left anyone working with them stuck on a task that no longer existed;
+    - overlapping care changes ended in the wrong order;
+    - the last days' turns were measured from a turn never needed;
+    - a bed-bound dying resident could still be walked to the toilet.
+  - **Tests:** `health.test.ts` (16), web sprite clash tests. 255 tests in all.
+  - **Results:**
+    - realised rates: admissions 3.99 against 4.20 a year (−5.1%, caps), deaths 1.57 against 1.57;
+    - 12 weeks × 8 seeds: 0 hard violations, 122 breaches (25 on days without a director event), 3 deaths and 3 admissions, 7 hospital stays within their ranges;
+    - director-off golden test and audit (142 flags) unchanged (`reports/c-*.txt`).
+
 ## In progress
 
 - None.
 
 ## Next
 
-- The project owner reviews (a).
-- The project owner reviews (b).
-- Before (c): cite a hospital admission rate and draft `data/personas/admissions.json` for review.
+- The project owner reviews (c).
+- Kamala's own character (the project owner), then the stand-in clash goes; a main-building carer sheet of its own would clear the other clash.
+- (d) Visitors and celebrations, on branch `director-visitors`.
 
 ## Blockers
 
@@ -70,6 +95,7 @@ Sub-milestone (a) merged (PR #7). Sub-milestone (b) built on branch `director-ou
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-09-30 | Sub-milestone (c): illness, hospital, end of life, admissions; card reviewed; end-of-life checks 60 then 30 min | 0 hard over 12 weeks × 8 seeds; 3 deaths, 3 admissions |
 | 2026-09-30 | Sub-milestone (b): infections, isolation, outbreaks, two outbreak scenarios | 0 hard in all runs; 2 outbreaks in 4 random weeks |
 | 2026-09-30 | Rebased on the falls fix; main-building night cover, on-call RN for missed rounds, hospital return, calmer post-fall icon, separate cover stream | 4-week report re-run: 0 hard, 27 breaches |
 | 2026-09-30 | Design agreed (ADR-0005); sub-milestone (a) built | Director core, cover rule, scenarios, admin panel, Notable feed, per-day report; 0 hard violations over 4 weeks × 8 seeds |

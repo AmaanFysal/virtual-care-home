@@ -117,7 +117,8 @@ export function markChecked(world: World, resident: Person, staff: Person[], exp
  */
 function topUpDrink(world: World, resident: Person, staff: Person[]): void {
   const res = resident.resident!;
-  if (!res.drinkOwed && !res.drinkStale) return;
+  // Ill (docs/10): fluids pushed, a drink at every contact while they're awake.
+  if (!res.drinkOwed && !res.drinkStale && !(res.illness && !res.asleep)) return;
   let outcome: DrinkOutcome | null = null;
   if (!res.asleep) {
     lower(resident, "thirst", 0.5);
@@ -556,7 +557,8 @@ function handoverMembersPresent(c: Ctx): boolean {
 }
 
 function handoverSummary(world: World) {
-  return world.data.residents.map((r) => {
+  // Everyone living here now, including anyone who has moved in (docs/10).
+  return world.data.residents.filter((r) => world.people.get(r.id)?.resident?.away !== "died").map((r) => {
     const log = world.shiftLog.get(r.id)!;
     const res = world.people.get(r.id)!.resident!;
     const hoursSince7 = Math.max(0, Math.min(14, ((world.t % 86400) / 3600 - 7 + 24) % 24));

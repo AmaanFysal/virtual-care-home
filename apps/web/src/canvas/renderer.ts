@@ -288,7 +288,8 @@ export class WingRenderer {
     if (!this.plan || !this.banding) return;
     for (const child of [...this.labels.children]) if (child.label === "away") child.destroy();
     for (const p of Object.values(people)) {
-      if (p.onMap || !p.away || !p.bedId) continue;
+      // Only a stay in hospital is labelled; after a death the room is simply empty.
+      if (p.onMap || p.away !== "hospital" || !p.bedId) continue;
       const bed = this.plan.points.find((pt) => pt.id === p.bedId);
       if (!bed) continue;
       const label = new Text({ text: `${p.initials}\nIN HOSPITAL`, style: { fontFamily: "ui-monospace, Menlo, monospace", fontSize: 8, fontWeight: "700", fill: 0xffffff, align: "center", stroke: { color: 0xb23b3b, width: 3 } }, resolution: 4 });

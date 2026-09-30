@@ -3,7 +3,7 @@
 **Goal:** a director that makes unplanned events happen at realistic, context-adjusted rates without an LLM, and runs scripted scenarios exactly, so hard days can be watched, replayed and compared.
 
 Source: [docs/10](../../10-director-and-scenarios.md) (the design), [ADR-0005](../../adr/0005-scenario-director-before-llm-minds.md) (why it comes before LLM minds, and the design decisions). Constraints: [00-constitution](../../00-constitution.md).
-Status: **agreed 2026-09-30.** Sub-milestone (a) built; (b) to (e) to come. Tasks are in [plan.md](plan.md).
+Status: **agreed 2026-09-30.** Sub-milestones (a), (b) and (c) built; (d) and (e) to come. Tasks are in [plan.md](plan.md).
 
 ## In scope
 
@@ -68,6 +68,14 @@ Decisions made while building (b):
     - **Flu:** 2 linked resident cases within 5 days, with staff cases managed and logged but not counted; over 5 days after the last resident onset (UKHSA, updated 24 July 2024).
     - **Both:** never over while a counted case is still ill.
 20. **Breach causes** include "during norovirus outbreak (…isolated)" and "isolation care (…)".
+
+Decisions made while building (c):
+
+21. **Hospital admission rate:** 0.70 per resident a year (Health Foundation, 2019), shared between serious falls and severe illness; stays by cause from sourced ranges (docs/10). Illness kinds, the severe share (40%) and mild durations are assumptions.
+22. **Care changes after a stay** are fixed per cause and stored as overrides on the run's copy of the card; values are always the base with the changes still on applied, so overlapping changes end in any order.
+23. **End-of-life checks** (project owner, 2026-09-30): every 60 minutes during the decline and every 30 minutes in the last 3 days. In the last days the resident is bed-bound, with pads changed in bed and no call bell (as on Dennis's card).
+24. **Death:** the family told, CQC Regulation 16 flagged, the room left empty, visitors stop; anyone working with the resident is freed for other work (also when someone leaves for hospital).
+25. **Admissions:** the first card (Kamala Shah) reviewed and approved as drafted (project owner, 2026-09-30). The room is set up for the new resident's seating (a chair, a wheelchair spot or neither). Until her own character exists, a stand-in sprite by gender (Pat's sheet), with a check that nobody on screen shares a sheet (`spriteClashes`: audit flag and report totals).
 
 ## Acceptance for each sub-milestone
 

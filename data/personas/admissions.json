@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "$comment": "New residents who can move in after a death (docs/10). A card is used only once its status is 'reviewed' (the project owner reviews every card for stereotypes and dignity first, docs/06). 'room' is filled in when they move in. Sprite: chosen by gender until their own character is generated.",
+  "cards": [
+    {
+      "id": "adm_kamala",
+      "status": "reviewed",
+      "resident": {
+        "id": "res_kamala",
+        "name": { "first": "Kamala", "known_as": "Kamala", "last": "Shah" },
+        "gender": "female",
+        "dob": "1941-08-15",
+        "room": "",
+        "admitted": "",
+        "origin": "Born in Mombasa, Kenya; came to Leicester in 1972 with her husband and two small children",
+        "faith": "Hindu",
+        "languages": ["Gujarati", "English", "Swahili"],
+        "conditions": ["type 2 diabetes (tablets)", "osteoarthritis of both hips", "mild vascular dementia", "macular degeneration (poor central vision)"],
+        "life_story": [
+          "Trained as a primary school teacher in Mombasa",
+          "Came to Leicester in 1972 and worked for 25 years in a hosiery factory, then as a classroom assistant",
+          "Married Ramesh in 1962; widowed in 2021; lived with her daughter's family until her falls became frequent",
+          "Led the women's bhajan group at the temple on Belgrave Road for 20 years",
+          "Taught all six grandchildren to cook dhokla"
+        ],
+        "personality": { "openness": 0.6, "conscientiousness": 0.7, "extraversion": 0.7, "agreeableness": 0.8, "neuroticism": 0.4 },
+        "speech_style": "Warm and chatty, mixes Gujarati and English, calls younger staff 'beta', likes to ask about people's families",
+        "cognition": {
+          "diagnosis": "vascular dementia",
+          "stage": "mild",
+          "capacity": { "daily_choices": true, "finances": false, "treatment": "can make most decisions with time and explanation" },
+          "memory_profile": { "recent_retention_hours": 12, "time_anchor_at_dusk": null, "misidentification_rate": 0.02 },
+          "sundowning": null
+        },
+        "mobility": { "aid": "walking stick", "transfer": "independent", "falls_risk": "medium", "walk_speed_mps": 0.5 },
+        "continence": "continent",
+        "nutrition": {
+          "diet": "lacto-vegetarian (no meat, fish or eggs); diabetic",
+          "fluids_target_ml": 1500,
+          "likes": ["masala chai with less sugar", "khichdi", "fruit"],
+          "dislikes": ["eggs", "cold food"]
+        },
+        "medication_rounds": ["08:00", "17:00"],
+        "routine": { "wake": "06:00", "bed": "21:30", "nap": "14:00" },
+        "preferences": [
+          "prays at her small shrine by the window each morning",
+          "prefers female carers for personal care",
+          "large-print or audio: she can't read small print",
+          "Gujarati radio in the afternoon"
+        ],
+        "legal": { "dnacpr": false, "dnacpr_note": "Not discussed yet; to be raised with Kamala and her daughter", "lpa_health": "vis_hema", "dols": null },
+        "staff_relationships": [],
+        "goals": ["settle in and make a friend", "go to the temple for Diwali"],
+        "triggers": ["being rushed", "people talking about her rather than to her"],
+        "care": {
+          "personal_care_staff": 1,
+          "personal_care_mins": 20,
+          "transfer_staff": 0,
+          "transfer_method": "independent",
+          "bed_bound": false,
+          "female_carers_only": true,
+          "check_interval_mins": { "day": 60, "night": 120 },
+          "reposition_interval_mins": { "day": null, "night": null },
+          "can_request_help": true,
+          "toileting": "independent",
+          "eating_support": "independent",
+          "shower_day": "Wed",
+          "time_critical_meds": false,
+          "lounge": { "lunch": true, "tea": true, "escort": false, "likes": ["chatting", "tv"] },
+          "next_of_kin": "vis_hema"
+        }
+      },
+      "visitors": [
+        {
+          "id": "vis_hema",
+          "name": "Hema Mistry",
+          "gender": "female",
+          "age": 58,
+          "relation_to_resident": [{ "resident": "res_kamala", "type": "daughter" }],
+          "personality": { "agreeableness": 0.7, "neuroticism": 0.6 },
+          "visit_pattern": { "days": ["Tue", "Thu", "Sat"], "time_window": "15:00-17:00", "duration_mins": 90, "reliability": 0.85 },
+          "visit_behaviours": ["brings home-cooked food in a tiffin", "checks her mother's hearing aid and glasses", "worries whether she's eating enough"],
+          "conflicts": [],
+          "walk_speed_mps": 1.1
+        },
+        {
+          "id": "vis_kiran",
+          "name": "Kiran Mistry",
+          "gender": "male",
+          "age": 24,
+          "relation_to_resident": [{ "resident": "res_kamala", "type": "grandson" }],
+          "personality": { "agreeableness": 0.8, "neuroticism": 0.3 },
+          "visit_pattern": { "days": ["Sat"], "time_window": "15:00-17:00", "duration_mins": 90, "reliability": 0.5 },
+          "accompanies": "vis_hema",
+          "visit_behaviours": ["sets up Gujarati radio on her tablet", "plays cards with her"],
+          "conflicts": [],
+          "walk_speed_mps": 1.3
+        }
+      ]
+    }
+  ]
+}

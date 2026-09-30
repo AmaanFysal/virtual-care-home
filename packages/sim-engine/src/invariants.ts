@@ -148,7 +148,7 @@ export function checkServiceTargets(world: World): Breach[] {
  * observations; and a shift short of someone (a sick call or no-show, until cover arrives).
  */
 export function breachCause(world: World): string {
-  const causes = [fallCause(world), shortStaffedCause(world), infectionCause(world)].filter((c): c is string => c !== null);
+  const causes = [fallCause(world), shortStaffedCause(world), infectionCause(world), healthCause(world)].filter((c): c is string => c !== null);
   return causes.length > 0 ? causes.join("; ") : "no emergency";
 }
 
@@ -161,6 +161,20 @@ function fallCause(world: World): string | null {
   const observing = world.order.find((id) => (world.people.get(id)!.resident?.postFallUntil ?? 0) > world.t);
   if (observing) return `during post-fall observations (${name(observing)})`;
   return null;
+}
+
+/** "end-of-life care (Dennis): checks every 30 min", "illness (Arthur): checks every 60 min". */
+function healthCause(world: World): string | null {
+  const parts: string[] = [];
+  for (const id of world.order) {
+    const p = world.people.get(id)!;
+    const res = p.resident;
+    if (!res || !p.onMap) continue;
+    const first = p.name.split(" ")[0];
+    if (res.endOfLife) parts.push(`end-of-life care (${first}): checks every ${res.endOfLife.checkMins} min`);
+    else if (res.illness) parts.push(`illness (${first}): checks every ${res.illness.checkMins} min`);
+  }
+  return parts.length ? parts.join(" / ") : null;
 }
 
 /** "during norovirus outbreak (Stan, Peggy isolated)", or "isolation care (Stan)" before one is declared. */

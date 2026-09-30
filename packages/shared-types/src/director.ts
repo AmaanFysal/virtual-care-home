@@ -1,7 +1,7 @@
 // The scenario director (docs/10): its tuning file (data/director.json), scripted scenario files
 // (data/scenarios/*.json) and the settings a run is started with.
 
-import type { ClockTime, Weekday } from "./data.js";
+import type { ClockTime, Resident, Visitor, Weekday } from "./data.js";
 import type { InputPayloads, InputType } from "./events.js";
 
 export type DayType = "ordinary" | "busy" | "hard";
@@ -11,6 +11,61 @@ export type CoverChoice = "auto" | "bank" | "agency" | "none";
 export type AbsenceReason = "sick" | "no_show" | "went_home_sick";
 export type Disease = "norovirus" | "flu";
 export const DISEASES: readonly Disease[] = ["norovirus", "flu"];
+
+export type IllnessKind = "chest_infection" | "uti" | "dehydration";
+export const ILLNESS_KINDS: readonly IllnessKind[] = ["chest_infection", "uti", "dehydration"];
+/** Why someone went to hospital (sets how long they stay and what changes when they're back). */
+export type HospitalCause = IllnessKind | "serious_fall";
+
+/** Illness, hospital, end of life and admissions (sub-milestone c). Every number has its source in the `note` fields. */
+export interface HealthConfig {
+  /** Unplanned (emergency) hospital admissions per resident per year, all causes; falls give their own share. */
+  admissions_per_resident_year: number;
+  illness: {
+    /** Share of illness-driven admissions by kind, and each kind's winter factor (the year's average stays 1). */
+    kinds: Record<IllnessKind, { share: number; winter_factor: number }>;
+    /** Share of illness episodes that are severe (GP, then hospital); the rest are looked after at home. */
+    severe_share: number;
+    /** A mild illness lasts this many days: rest in their room, checks at least every `check_interval_mins`, drinks at every check, falls risk × `falls_factor`. */
+    mild_days: [number, number];
+    check_interval_mins: number;
+    falls_factor: number;
+    /** A severe one: the GP within these hours, then 999 for an ambulance. */
+    gp_hours: [number, number];
+  };
+  /** Days in hospital by cause, from sources (`note`). */
+  stay_days: Record<HospitalCause, [number, number]>;
+  /** Back from hospital: falls risk × `falls_factor` for `weeks`, and care-profile changes by cause. */
+  after_return: {
+    falls_factor: number;
+    weeks: number;
+    changes: Record<HospitalCause, { walk_speed_factor?: number; falls_risk_up?: boolean; personal_care_staff?: number; weeks: number | null }>;
+  };
+  end_of_life: {
+    /** Deaths per resident per year (through a planned end-of-life decline). */
+    deaths_per_resident_year: number;
+    /** How much likelier a resident already on an end-of-life care plan is to be the one. */
+    end_of_life_weight: number;
+    expected_days: [number, number];
+    /** The last days: in bed, comfort care (mouth care and sips) at this interval. */
+    final_days: number;
+    comfort_interval_mins: number;
+    /** Checks during the decline (usual end-of-life practice: hourly), then in the last days. */
+    check_interval_mins: number;
+    final_check_interval_mins: number;
+  };
+  /** A new resident moves in this many weeks after a death, if a reviewed card is waiting. */
+  admission_weeks_after_death: [number, number];
+}
+
+/** A new resident's card (data/personas/admissions.json), with their family. Used only once reviewed. */
+export interface AdmissionCard {
+  id: string;
+  status: "draft" | "reviewed";
+  /** `room` is left empty: they get the first empty room when they move in. */
+  resident: Resident;
+  visitors: Visitor[];
+}
 
 /** One disease's natural history and how it spreads (docs/10 "Infection routes"). Hours are ranges drawn per case. */
 export interface DiseaseConfig {
@@ -109,6 +164,7 @@ export interface DirectorConfig {
     /** Share of introductions that start with a member of staff (the rest with a resident). */
     index_staff_share: number;
   };
+  health: HealthConfig;
   /** Rates and parameters for later sub-milestones, kept here so they can be tuned without code. */
   later: Record<string, unknown>;
 }

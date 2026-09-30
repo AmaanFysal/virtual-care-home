@@ -65,7 +65,8 @@ describe("hospital return", () => {
       const arthur = sim.world.people.get("res_arthur")!;
       expect(arthur.onMap).toBe(true);
       expect(arthur.resident!.away).toBeNull();
-      expect(arthur.resident!.data).toBe(data.residents.find((r) => r.id === "res_arthur"));
+      // Without the tuning file there are no care changes: his card is as it was (the run keeps its own copy).
+      expect(arthur.resident!.data).toEqual(data.residents.find((r) => r.id === "res_arthur"));
       // Checked and cared for again, and no hard rule broken while away or after.
       expect(ofType(events, "resident.checked").some((e) => e.payload.residentId === "res_arthur" && e.t > back.t)).toBe(true);
       expect(ofType(events, "meal.served").some((e) => e.payload.residentId === "res_arthur" && e.t > back.t)).toBe(true);

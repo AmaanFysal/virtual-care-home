@@ -3,7 +3,7 @@
 // then applies the pacing caps. The engine calls it at 00:00 (and at the start); the rates
 // script calls it on its own to measure realised rates over many years.
 
-import { DISEASES, SECONDS_PER_DAY, clockToSeconds, simDate, type DayType, type DirectorConfig, type Resident, type ShiftName } from "@vch/shared-types";
+import { DISEASES, ILLNESS_KINDS, SECONDS_PER_DAY, clockToSeconds, simDate, type DayType, type DirectorConfig, type Resident, type ShiftName } from "@vch/shared-types";
 import type { Rng } from "../rng.js";
 import type { DirectorEvent } from "../state.js";
 
@@ -25,6 +25,12 @@ export interface ResidentRisk {
   bedBound: boolean;
   /** Seconds since midnight their sundowning starts, if they sundown. */
   sundownOnset: number | null;
+  /** On an end-of-life care plan already (likelier to be the one whose decline begins). */
+  endOfLifePlan: boolean;
+  /** A multiplier on their falls today (ill, or just back from hospital). */
+  extra?: number;
+  /** Already ill or at the end of life: no new illness or decline for them today. */
+  busy?: boolean;
 }
 
 /** What the planner remembers between days (pacing). */
@@ -47,12 +53,18 @@ const DAY_TYPES: DayType[] = ["ordinary", "busy", "hard"];
 
 export function residentRisk(r: Resident): ResidentRisk {
   const onset = r.cognition.sundowning?.onset;
-  return { id: r.id, risk: r.mobility.falls_risk, bedBound: r.care.bed_bound, sundownOnset: onset ? clockToSeconds(onset) : null };
+  return { id: r.id, risk: r.mobility.falls_risk, bedBound: r.care.bed_bound, sundownOnset: onset ? clockToSeconds(onset) : null, endOfLifePlan: r.conditions.some((c) => /end of life/i.test(c)) };
 }
 
 /** Is this a major event (docs/10 pacing)? In sub-milestone (a) only a serious fall is. */
 export function isMajor(e: Pick<DirectorEvent, "type" | "params">): boolean {
-  return (e.type === "inject_fall" && (e.params as { severity: string }).severity === "serious") || e.type === "infection_case";
+  return (
+    (e.type === "inject_fall" && (e.params as { severity: string }).severity === "serious") ||
+    e.type === "infection_case" ||
+    (e.type === "resident_illness" && (e.params as { severity: string }).severity === "severe") ||
+    e.type === "end_of_life_start" ||
+    e.type === "admission"
+  );
 }
 
 /** Whether a major event at `t` keeps to the caps, given the majors already planned or applied. */
@@ -64,7 +76,16 @@ export function majorAllowed(config: DirectorConfig, majorTs: number[], t: numbe
   return null;
 }
 
-export function planRandomDay(config: DirectorConfig, rng: Rng, memory: PlanMemory, day: number, fromT: number, roster: RosterEntry[], residents: ResidentRisk[]): DayPlan {
+export function planRandomDay(
+  config: DirectorConfig,
+  rng: Rng,
+  memory: PlanMemory,
+  day: number,
+  fromT: number,
+  roster: RosterEntry[],
+  residents: ResidentRisk[],
+  opts: { deaths?: boolean; endOfLifeOn?: boolean } = {},
+): DayPlan {
   const planned: DirectorEvent[] = [];
   const suppressed: DayPlan["suppressed"] = [];
   const dayStart = day * SECONDS_PER_DAY;
@@ -122,7 +143,7 @@ export function planRandomDay(config: DirectorConfig, rng: Rng, memory: PlanMemo
   for (const r of residents) {
     const profile = falls.hour_weights.map((w, h) => w * (sundowning(r, h, falls.sundowning.hours) ? falls.sundowning.factor : 1));
     const total = profile.reduce((s, w) => s + w, 0);
-    const perDay = (falls.per_resident_year / 365) * (factor(r) / meanFactor) * rate;
+    const perDay = (falls.per_resident_year / 365) * (factor(r) / meanFactor) * rate * (r.extra ?? 1);
     for (let h = 0; h < 24; h++) {
       const hourT = dayStart + h * 3600;
       const short = shortShifts.some(([s, e]) => hourT + 1800 >= s && hourT + 1800 < e) ? falls.short_staffed : 1;
@@ -169,6 +190,54 @@ export function planRandomDay(config: DirectorConfig, rng: Rng, memory: PlanMemo
     }
     memory.majorTs.push(applyT);
     planned.push(event);
+  }
+
+  // 5. Illness (docs/10): the illness-driven share of emergency admissions (all admissions less
+  //    serious falls), over the severe share, split by kind; chest infections in winter.
+  const h = config.health;
+  const illnessPerYear = (h.admissions_per_resident_year - falls.per_resident_year * falls.serious_share) / h.illness.severe_share;
+  for (const r of residents) {
+    for (const kind of ILLNESS_KINDS) {
+      const k = h.illness.kinds[kind];
+      const season = isWinter ? k.winter_factor : (12 - 5 * k.winter_factor) / 7;
+      if (!rng.chance((illnessPerYear / 365) * k.share * season * rate)) continue;
+      const severity = rng.chance(h.illness.severe_share) ? "severe" : "mild";
+      const applyT = dayStart + rng.int(7 * 60, 21 * 60) * 60;
+      const event: DirectorEvent = { applyT, type: "resident_illness", params: { residentId: r.id, kind, severity }, origin };
+      if (applyT <= fromT || r.busy) continue;
+      if (severity === "severe") {
+        const capped = majorAllowed(config, memory.majorTs, applyT);
+        if (capped) {
+          suppressed.push({ event, reason: capped });
+          continue;
+        }
+        memory.majorTs.push(applyT);
+      }
+      planned.push(event);
+      r.busy = true;
+    }
+  }
+
+  // 6. End of life: deaths at the base rate, through a planned decline; someone already on an
+  //    end-of-life care plan is much likelier. One at a time; none when deaths are off.
+  if (opts.deaths !== false && residents.length > 0) {
+    const weight = (r: ResidentRisk) => (r.endOfLifePlan ? h.end_of_life.end_of_life_weight : 1);
+    const mean = residents.reduce((s, r) => s + weight(r), 0) / residents.length;
+    for (const r of residents) {
+      if (!rng.chance((h.end_of_life.deaths_per_resident_year / 365) * (weight(r) / mean) * rate)) continue;
+      const expectedDays = rng.int(h.end_of_life.expected_days[0], h.end_of_life.expected_days[1]);
+      const applyT = dayStart + rng.int(9 * 60, 17 * 60) * 60;
+      const event: DirectorEvent = { applyT, type: "end_of_life_start", params: { residentId: r.id, expectedDays }, origin };
+      if (applyT <= fromT || r.busy || opts.endOfLifeOn) continue;
+      const capped = majorAllowed(config, memory.majorTs, applyT);
+      if (capped) {
+        suppressed.push({ event, reason: capped });
+        continue;
+      }
+      memory.majorTs.push(applyT);
+      planned.push(event);
+      opts.endOfLifeOn = true;
+    }
   }
 
   planned.sort((a, b) => a.applyT - b.applyT);
