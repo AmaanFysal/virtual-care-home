@@ -172,3 +172,50 @@ Full node-level trees are in [04](04-agents-and-behaviour.md). The care content 
        - Time from a fall to someone reaching them is a service target: 5 minutes, `fall_attendance`, with the cause (e.g. "lone night carer with another fall").
        - So is a look-in at least every 5 minutes for a resident left waiting: `fall_waiting_check`.
        - A fallen resident with nobody attending or on the way and no help asked for, for more than 2 minutes, breaks a hard rule: `fall_unattended`.
+5. **Night checks.** The night carer visits each resident when their interval is due, with a short check (1 minute) or repositioning. The night carer does all of Peggy's checks.
+
+### Floating night carer
+
+Lorna Mitchell (`ext_night_float`, female) covers the night from the main building and is off the map except when visiting.
+
+- **Planned rounds**, aligned with Dennis's 2-hourly turns (the rota's 22:00, 00:00, 02:00, 04:00 and 06:00 are only the fallback if nobody needs turning). She arrives about 10 minutes before (see "Turning") and does checks while she waits. Each round batches whatever is due: Dennis's turn (always), Raj's 4-hourly repositioning (22:00, 02:00, 06:00), and Peggy's personal care (pad change) if it is due, since Peggy has female carers only.
+- **Out-of-round call-outs** only for urgent two-person tasks (a hoist lift after a fall) or urgent same-sex tasks (Peggy's personal care that can't wait for the next round). She arrives within about 10 minutes.
+- Her arrivals and departures are logged (`second_carer.arrived` with `planned`, `second_carer.departed`); every call-out is logged (`second_carer.called` with `outOfRound`) and counted (`world.metrics.floatCallouts`).
+- While on site she works like any carer, and stays until nothing needs her and nothing is due within 20 minutes (this covers the busy 22:00 round, with bedtimes and checks). On the round that covers the night carer's break she also stays until his break is over.
+- On seeds 1 to 8 over a week, the planned rounds cover all night work: 35 visits a week and no call-outs. A call-out is tested directly (a forced 23:00 request from Raj).
+- **Time on site:** 24 to 33% of the 570-minute night across seeds 1 to 8 on full nights (19 to 28% before she covered the night break); no night over 50%. `--report` prints it per night and flags any night over 50%.
+
+## The Lounge (after the behaviour audit, `src/lounge.ts`)
+
+The residents' day room and dining room (docs/02). The waiting area is for visitors only.
+
+- **Who and how:** Peggy, Win, Arthur and Stan (each card's `care.lounge`); Raj and Dennis stay in their room for now. Peggy and Stan are walked there and back by a carer (`care.escort` task); Win and Arthur go on their own (`self_move`). Nobody moves while asleep, busy with care, or on the floor.
+- **When:** on Bev's days, her music and reminiscence session from 10:45 to 11:45 (`activity.started` / `activity.ended`), everyone going at 10:40; lunch-goers from 11:50 at the dining table; everyone for the afternoon from 13:30, back to their room at 14:45, or at 16:00 for those who stay for afternoon tea (served in the Lounge by the 15:00 round).
+- **What they do:** after lunch each chooses an activity from their likes (seeded): TV (an armchair), reading (the reading chair), puzzles (the activity table), or chatting (a seat near another resident). At nap time they move to an armchair and doze there (posture `dozing`, `resident.fell_asleep` with `where: "lounge"`). Sitting near another awake resident meets some social need (docs/04).
+- **Supervision (service target `lounge_supervision`):** while Peggy or Stan is in the Lounge (and not with a carer), a care worker is in the Lounge or has looked in within the last 15 minutes. A carer in the Lounge counts as on the floor. Idle carers keep an eye on it from `Lounge.Post`; after 5 minutes without one, a `lounge_check` task (priority 80, hard deadline) sends someone to look in; one about to go over can call someone back from a break. Two-person work that would leave nobody able to look in waits up to 10 minutes (not during a fall), and breaks are staggered so two care staff stay on the floor. A miss is logged as `sla.breached` with what each carer was doing. Result: zero misses over 8 no-fall weeks.
+- **Visitors** sit with their resident wherever they are (the Lounge or the bedside) and follow if the resident moves.
+- **Room changes** are all logged (`person.entered_room`, `person.departed`), so occupancy can be rebuilt from the event log for the air module.
+
+## Care rules (hard constraints)
+
+- Raj: two staff for every transfer and for personal care. Dennis: two staff for repositioning and personal care.
+- A fallen resident is not moved before assessment (invariant `fall_moved_before_assessment`).
+- Only meds-trained staff administer medication (the RN, senior carers Blessing and Dave, Kasia, and the agency nurse; invariant `meds_trained`).
+- Peggy has female carers only for personal care. At night, when the night carer is male, the floating night carer does it (on a planned round, or an out-of-round call-out if urgent).
+- Visitors never enter the staff room.
+
+## Visiting (Regulation 9A, open visiting; M6, `src/visitors.ts`)
+
+- **Weekly quota** (user decision after M7): every Monday (and at the start of a run, over the days left in that week) each lead visitor gets a quota of `floor(reliability × pattern days)` visits, plus one more with the leftover fraction as its probability: Linda (0.85 × 5 days) comes 4 of her 5 days, sometimes 5; rare visitors keep rare visits (Gary 0.04: about 1 week in 25). Which days is a seeded shuffle of their pattern days (`visitors` stream). This replaced independent daily rolls, which could give a regular visitor a very bad week (Linda missing 4 of 5 days on seed 8). In Phase 3 the director can cancel a week with a cause (docs/10).
+- **Planning each day:** at 00:00 a lead on one of their quota days arrives at a random minute in their window and stays their `duration_mins` ± 20% (`visit.planned`). Companions (`accompanies`: Mick with Linda, Simran and the grandchildren with Harpreet) come with their lead with probability `reliability`, arriving and leaving together.
+- **Arriving:** when Sanjay is at the reception desk (weekdays 08:30 to 16:30, not on his break), visitors come in, sign in with him at the desk (`visitor.signed_in`). Otherwise they ring the bell (`visitor.rang_bell`): a care worker takes an "answer the door" task (priority 80), goes to reception, lets them in and signs them in (`visitor.let_in`, `visitor.signed_in`).
+- **Visiting:** visitors go to the resident (beside their chair, the far side of the bed, or next to them in the Lounge) and the visit starts (`visit.started`); company settles the resident's social need over about half an hour. If the resident moves (to or from the Lounge), the visitor follows once they've settled.
+- **Soft friction:** during protected lunch (12:15 to 13:30), while personal care is going on with the resident (morning or bedtime care, a pad change, a turn, help to the toilet), or while the resident is on the floor after a fall, visitors wait in the waiting area and go back afterwards. A visitor who helps at meals (`may_help_at_meals`: Kuldip with Raj) stays; when she's there, staff only bring Raj's tray (2 minutes instead of 15).
+- **Leaving:** when the visit time is up (`visit.ended`), visitors sign out at the desk (`visitor.signed_out`; with the visitors' book out of hours) and leave by the exit.
+- **Hospital:** nobody comes to see a resident who is in hospital, and anyone visiting leaves.
+- **Numbers (seeds 1 to 8, a week each):** 32 to 40 visits a week, 10 to 21 bells out of hours. Mid-afternoon (14:30 to 16:30) peaks are usually 2 or 3 on weekdays and 4 to 7 on Sundays. **Acceptance target (user decision, M6 review):** across seeds 1 to 8, the weekday mid-afternoon peak averages 2 to 4, the Sunday peak averages 4 to 8, and every resident except Arthur gets at least 2 visits a week; the visitor data stays as written. **With the weekly quota:** weekday peak average 2.73 (range 1 to 6), Sunday peak average 4.00 (range 1 to 6, at the lower edge of the target), and every resident except Arthur gets 3 or more visits a week on every seed (Arthur 0 or 1).
+- No moods, conflicts or off-screen family life yet (Phase 4).
+
+## Notifications and safeguarding
+
+Phase 1 only flags them: `cqc.notification_flagged` on a serious-injury fall or a conveyance to hospital. The manager's "notify CQC" task, Regulation 16 (death), safeguarding (Section 42) and DoLS come with the director in Phase 3.
