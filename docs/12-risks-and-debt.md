@@ -106,3 +106,14 @@ In the Lounge and audit-fixes round (M8), narrow rules were added, beyond what t
 - The director-off golden fixture was re-recorded: the review changes director-off runs on purpose (approved).
 - **Still worse than main in the audit:** late first food (120 against 100: Arthur, Peggy, Win) and Arthur's hunger (6 episodes in 8 weeks). Putting back the breakfast-first hold didn't move late first food; the remaining difference comes from the other changes together (the removed rules, the new turn rule and floor-cover rule), which shift morning timings. Raj's toileting episodes are mostly while he's being helped with lunch, supper or his morning care (one thing at a time).
 - Test tolerances changed: an end-of-life decline may miss one 30-minute check every two days (misses in the morning rush are reported, not failures), and its last days may begin up to 30 minutes late (after care in progress); the outbreak scenario tests allow one outbreak still running when the run ends (on seed 1 the flu now spreads further and a second outbreak starts on day 19); the turn-rule test expects at least 2 misses without the rule.
+
+## Known audit regressions from the tuning review (open, 2026-09-30)
+
+The tuning review (sub-milestone e) kept every service target and hard rule at or better than before, but three things in the behaviour audit (director off, seeds 1 to 8, a week each) are still worse than on main before the review:
+
+- **Late first food: 120 flags against 100**, for Arthur, Peggy and Win: breakfast comes more than an hour after they wake more often. Putting back the breakfast-first hold didn't move it; the difference comes from the combined changes (the removed rules, the new turn rule and the floor-cover rule), which shift morning timings.
+- **Arthur's hunger: 6 episodes over 0.8 in 8 weeks, against none**, the same mornings.
+- **Raj's toileting: 18 episodes over 0.8 against 15**, mostly while he's being helped with lunch, supper or his morning care, when a toilet request waits because a resident has one thing done at a time.
+
+None of these is a service target, so they don't show as breaches. **Planned fix, a later milestone after v1.0-testbed (docs/roadmap.md):** either a shared daily planner (one plan for each resident's morning, meals and care instead of competing task scores), or pre-meal toileting rounds (a toilet offered before lunch and supper) with a review of the morning routine (wake order, breakfast and washes). Measured with the audit as well as the service targets, as the tuning review was.
+

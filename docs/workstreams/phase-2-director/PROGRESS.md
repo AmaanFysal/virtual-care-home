@@ -4,7 +4,7 @@
 
 ## Status
 
-Sub-milestones (a) to (d) merged (PRs #7 to #10). Sub-milestone (e), the tuning review, done on branch `director-tuning-review` (2026-09-30), PR open. With it, Phase 2 is complete.
+**Phase 2 is complete** (2026-09-30): sub-milestones (a) to (e) merged (PRs #7 to #11).
 
 ## Done
 
@@ -104,8 +104,9 @@ Sub-milestones (a) to (d) merged (PRs #7 to #10). Sub-milestone (e), the tuning 
 
 ## Next
 
-- The project owner reviews (e).
-- Then the **v1.0-testbed** milestone (project owner, 2026-09-30; `docs/roadmap.md`): a world description published every step (activity type and intensity per person, touches on objects, doors and windows with states and rules, equipment in use, outdoor weather) and a plug-in API for external models (air, heat, surfaces, energy), with lockstep and recording. ADR-0006 amends constitution rule 4 for it (equipment and weather described; physics in plug-ins). Environmental models come after it; LLM minds (Phase 3) after the test bed.
+- **The full scenario audit** (`docs/roadmap.md`): a feature interaction review, new every-tick invariants, random stress testing and a realism review, reporting gaps before fixing them.
+- Then **the v1.0-testbed design discussion** with the project owner, then its spec and plan in a new workstream.
+- The **v1.0-testbed** milestone (project owner, 2026-09-30; `docs/roadmap.md`): a world description published every step (activity type and intensity per person, touches on objects, doors and windows with states and rules, equipment in use, outdoor weather) and a plug-in API for external models (air, heat, surfaces, energy), with lockstep and recording. ADR-0006 amends constitution rule 4 for it (equipment and weather described; physics in plug-ins). Environmental models come after it; the care routine review for the tuning review's audit regressions (docs/12) after the test bed; LLM minds (Phase 3) after the test bed.
 
 ## Blockers
 
@@ -115,6 +116,7 @@ Sub-milestones (a) to (d) merged (PRs #7 to #10). Sub-milestone (e), the tuning 
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-09-30 | Phase 2 wrap-up: PR #11 merged; audit regressions and the planned care routine review recorded (docs/12, roadmap); full scenario audit added before the test bed | Next: full scenario audit, then the v1.0-testbed design discussion |
 | 2026-09-30 | Sub-milestone (e): tuning review; ADR-0006; roadmap; on review the breakfast-first hold and female-only rules put back | 15 rules kept, 9 removed; Dennis's 06:xx turns fixed (2 against 158 a year); 0 hard |
 | 2026-09-30 | Sub-milestone (d): visitors' missed weeks, birthdays and festivals, birthday-party scenario; roadmap with v1.0-testbed | 0 hard over a year × 8 seeds; celebration days 8.6 visitors against 4.9 |
 | 2026-09-30 | Sub-milestone (c): illness, hospital, end of life, admissions; card reviewed; end-of-life checks 60 then 30 min; Kamala's family and Nikos imported, walking sticks | 0 hard over 12 weeks × 8 seeds; 3 deaths, 3 admissions; no sprite clashes |
