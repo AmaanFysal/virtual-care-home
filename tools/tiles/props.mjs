@@ -271,6 +271,19 @@ const ICONS = {
     "rrrrrrrrrr",
     "..........",
   ],
+  // Post-fall observations: a calm blue eye (being kept an eye on), not the red alert.
+  observe: [
+    "..........",
+    "..........",
+    "...bbbb...",
+    ".bbwwwwbb.",
+    "bwwwbbwwwb",
+    "bwwbnnbwwb",
+    "bwwwbbwwwb",
+    ".bbwwwwbb.",
+    "...bbbb...",
+    "..........",
+  ],
 };
 const names = Object.keys(ICONS);
 const icons = image(12 * names.length, 12);

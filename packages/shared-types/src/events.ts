@@ -1,6 +1,7 @@
 // Event and input schema. See docs/07-events-and-persistence.md for the catalogue and rules.
 
 import type { ShiftName } from "./data.js";
+import type { AbsenceReason, CoverChoice, DayType } from "./director.js";
 
 /** Who caused a change. Constitution rule 5. */
 export type Source = "engine" | "director" | "user" | "llm" | "external";
@@ -68,6 +69,8 @@ export interface EventPayloads {
   "intake.recorded": { residentId: string; mealPct?: number; fluidsMl?: number };
 
   "med_round.started": { round: string; staffId: string };
+  /** Nobody meds-trained is on the wing at a round's time (only with a shift lead's slot left uncovered). */
+  "med_round.no_giver": { round: string };
   "med_round.completed": { round: string; staffId: string; interruptions: number };
   "med.administered": { residentId: string; round: string; staffId: string; lateMins: number };
   "med.late": { residentId: string; round: string; lateMins: number };
@@ -88,6 +91,10 @@ export interface EventPayloads {
   "ambulance.called": { residentId: string; staffId: string };
   "paramedics.arrived": { residentId: string };
   "resident.conveyed_to_hospital": { residentId: string };
+  /** Back from hospital to their own bed after 3 to 10 days, with their care profile as before. */
+  "resident.returned_from_hospital": { residentId: string; daysAway: number };
+  /** Post-fall observations are over (the resident's "obs" badge clears). */
+  "fall.observations_ended": { residentId: string };
   "family.informed": { residentId: string; visitorId: string; staffId: string; reason: string };
   "incident.recorded": { residentId: string; kind: "fall"; severity: FallSeverity };
   "cqc.notification_flagged": { residentId: string; regulation: string; reason: string };
@@ -112,9 +119,26 @@ export interface EventPayloads {
   "main_carer.called": { reason: string; available: boolean; arriveT: number | null };
   "main_carer.arrived": { personId: string };
   "main_carer.departed": { personId: string };
-  "on_call_rn.called": { residentId: string; reason: string };
+  /** `residentId` is null when she comes for something other than a fall (a medication round nobody on the wing can give). */
+  "on_call_rn.called": { residentId: string | null; reason: string };
   "on_call_rn.arrived": { personId: string; residentId: string };
   "on_call_rn.departed": { personId: string };
+
+  /** The director's plan for a day (docs/10): its type, and how many events it planned and held back. */
+  "director.day_planned": { day: number; dayType: DayType | "scripted"; planned: number; suppressed: number; downgradedFrom?: DayType };
+  /** An event the director will apply at `applyT`, and why ("random" base rates or "scenario:<id>"). */
+  "director.planned": { inputType: InputType; applyT: number; origin: string; reason: string; params: InputPayloads[InputType] };
+  /** An event drawn from the base rates but held back by a pacing cap. */
+  "director.suppressed": { inputType: InputType; applyT: number; reason: string; params: InputPayloads[InputType] };
+  /** An input (planned or manual) that didn't apply when its time came, e.g. the resident is in hospital. */
+  "input.skipped": { inputType: InputType; reason: string; params: InputPayloads[InputType] };
+
+  /** A rostered worker won't be in: a sick call, or an agency worker who didn't turn up. */
+  "staff.absent": { staffId: string; name: string; slot: string; shift: ShiftName; reason: AbsenceReason; shiftStartT: number };
+  /** Cover for an absence: a bank carer, an agency worker, or at night a carer from the main building, with the late carer staying on until she arrives (`untilT`). */
+  "rota.cover_booked": { slot: string; shift: ShiftName; forStaffId: string; cover: "bank" | "agency" | "stay_on" | "main_building"; staffId: string; arriveT: number; untilT?: number };
+  /** Nobody could cover: the shift runs short. */
+  "rota.no_cover": { slot: string; shift: ShiftName; forStaffId: string; reason: string };
 
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
@@ -149,6 +173,10 @@ export type AnySimEvent = { [K in EventType]: SimEvent<K> }[EventType];
 
 export interface InputPayloads {
   inject_fall: { residentId: string; severity: FallSeverity };
+  /** The staff member's next shift that hasn't started yet is lost; cover is sought (docs/10). */
+  staff_sick: { staffId: string; cover?: CoverChoice };
+  /** Whoever holds the slot's next shift doesn't turn up; cover is sought from the shift start. */
+  shift_no_show: { slot: string; cover?: CoverChoice };
 }
 
 export type InputType = keyof InputPayloads;

@@ -1,8 +1,8 @@
 // Reads the JSON files in data/. Node-only: used by tests, the CLI and the server (src/ does no I/O).
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { WorldData } from "@vch/shared-types";
+import type { DirectorConfig, Scenario, WorldData } from "@vch/shared-types";
 
 const dataDir = fileURLToPath(new URL("../../../data/", import.meta.url));
 
@@ -19,4 +19,19 @@ export function loadWorldData(): WorldData {
     relationships: read("personas/relationships.json"),
     rota: read("rota.json"),
   };
+}
+
+/** data/director.json: the director's base rates and pacing (docs/10). */
+export function loadDirectorConfig(): DirectorConfig {
+  return read("director.json");
+}
+
+/** A scenario by id (data/scenarios/<id>.json) or by path. */
+export function loadScenario(idOrPath: string): Scenario {
+  const file = idOrPath.endsWith(".json") ? idOrPath : `${dataDir}scenarios/${idOrPath}.json`;
+  return JSON.parse(readFileSync(file, "utf8")) as Scenario;
+}
+
+export function scenarioIds(): string[] {
+  return readdirSync(`${dataDir}scenarios`).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)).sort();
 }

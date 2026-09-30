@@ -1,6 +1,7 @@
 // Engine-internal world state. Plain serialisable data (no callbacks), iterated in id order.
 
 import type {
+  AbsenceReason,
   AnySimEvent,
   Badge,
   Competency,
@@ -13,6 +14,10 @@ import type {
   Posture,
   Resident,
   ShiftName,
+  DayType,
+  DirectorSettings,
+  InputPayloads,
+  InputType,
   SimInput,
   StaffRole,
   WorldData,
@@ -44,6 +49,41 @@ export interface ShiftAssignment {
   spawned: boolean;
   started: boolean;
   ended: boolean;
+  /** The late carer staying on to cover a night nobody else could (docs/10): already on the map. */
+  stayOn?: boolean;
+}
+
+/** A shift someone won't work (docs/10), kept to explain missed service targets. */
+export interface Absence {
+  staffId: string;
+  name: string;
+  slot: string;
+  shift: ShiftName;
+  reason: AbsenceReason;
+  startT: number;
+  endT: number;
+  cover: { kind: "bank" | "agency" | "main_building"; staffId: string; name: string; arriveT: number } | null;
+  /** The late carer who stayed on until the cover arrived, so the shift was never short. */
+  bridgedBy?: string;
+}
+
+/** An event the director has planned, applied at `applyT` like any input (source "director"). */
+export interface DirectorEvent<K extends InputType = InputType> {
+  applyT: number;
+  type: K;
+  params: InputPayloads[K];
+  origin: string;
+}
+
+export interface DirectorState {
+  settings: DirectorSettings;
+  /** Planned events, by apply time. */
+  queue: DirectorEvent[];
+  /** Scripted events not yet planned (each is planned on its day). */
+  script: DirectorEvent[];
+  dayTypes: Map<number, DayType | "scripted">;
+  /** Times of major events, planned or applied (pacing). */
+  majorTs: number[];
 }
 
 export interface StaffState {
@@ -100,6 +140,8 @@ export interface ResidentState {
   postFallUntil: number;
   /** Off the wing (conveyed to hospital); the bed is kept. */
   away: "hospital" | null;
+  /** When they come back from hospital (3 to 10 days after conveyance). */
+  returnT: number | null;
   /** Last time a member of staff saw them (a check or any care with them). */
   lastCheckedT: number;
   lastToiletT: number;
@@ -236,6 +278,8 @@ export interface World {
   float: FloatState;
   /** The on-call RN coming over from the main building for a serious fall. */
   onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
+  /** Medication rounds nobody on the wing could give at their time: given when the on-call RN comes over. */
+  pendingRounds: { round: string; roundT: number }[];
   /** A carer from the main building, asked for when every care staff member here is with a fallen resident. */
   mainCarer: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; retryT: number };
   /** Recent falls, for explaining missed service targets. */
@@ -250,6 +294,10 @@ export interface World {
   /** Invariant rules currently failing, so violations are logged once when they start. */
   failing: Set<string>;
   inputs: SimInput[];
+  /** The scenario director (docs/10); null when it's off. */
+  director: DirectorState | null;
+  /** Sick calls and no-shows (docs/10). */
+  absences: Absence[];
   pending: AnySimEvent[];
   seq: number;
 }

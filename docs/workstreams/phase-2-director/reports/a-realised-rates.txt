@@ -1,0 +1,12 @@
+Director planner only, seeds 1-8, 200 years each (584400 days); mean day-type rate 1.006
+  day types: ordinary 70.1%, busy 22.5%, hard 7.5% (target 70/22/8); hard days capped to busy: 3029 (0.5%)
+  falls (all)                     7.67 a year   base   7.49      2.4%
+  falls (serious)                 0.92 a year   base   0.90      2.6%
+  sick calls                     61.75 a year   base  62.18     -0.7%
+  agency no-shows                 5.22 a year   base   5.22      0.1%
+  (base = the rate before day types, short staffing and caps)
+Held back by the pacing caps:
+    0.381 a year  staff_sick: absence cap: 2 a day
+    0.016 a year  shift_no_show: absence cap: 2 a day
+    0.006 a year  inject_fall (serious): major-event cap: 48 h apart
+    0.002 a year  inject_fall (serious): major-event cap: one a day

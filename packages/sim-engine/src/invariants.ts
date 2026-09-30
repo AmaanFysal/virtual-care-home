@@ -5,7 +5,7 @@
 //   `sla.breached` with the likely cause (e.g. during a serious fall).
 // Tests call both functions every tick.
 
-import type { ServiceTarget } from "@vch/shared-types";
+import { formatSimTime, type ServiceTarget } from "@vch/shared-types";
 import { SUPERVISION_MINS, supervisedResidents } from "./lounge.js";
 import { cellAt } from "./world/grid.js";
 import { floorCovered } from "./floor.js";
@@ -143,8 +143,16 @@ export function checkServiceTargets(world: World): Breach[] {
   return out;
 }
 
-/** Why a target was probably missed: a fall in progress, one in the last two hours, or post-fall observations. */
+/**
+ * Why a target was probably missed: a fall in progress, one in the last two hours, or post-fall
+ * observations; and a shift short of someone (a sick call or no-show, until cover arrives).
+ */
 export function breachCause(world: World): string {
+  const causes = [fallCause(world), shortStaffedCause(world)].filter((c): c is string => c !== null);
+  return causes.length > 0 ? causes.join("; ") : "no emergency";
+}
+
+function fallCause(world: World): string | null {
   const name = (id: string) => world.people.get(id)!.name.split(" ")[0];
   const ongoing = world.fallLog.find((f) => f.endT === null);
   if (ongoing) return `during ${ongoing.severity} fall (${name(ongoing.residentId)})`;
@@ -152,7 +160,19 @@ export function breachCause(world: World): string {
   if (recent) return `after ${recent.severity} fall (${name(recent.residentId)})`;
   const observing = world.order.find((id) => (world.people.get(id)!.resident?.postFallUntil ?? 0) > world.t);
   if (observing) return `during post-fall observations (${name(observing)})`;
-  return "no emergency";
+  return null;
+}
+
+/** "short-staffed: Tom off sick (early), agency from 08:30": from the shift start until an hour after cover arrives. */
+function shortStaffedCause(world: World): string | null {
+  const short = world.absences.filter((a) => world.t >= a.startT && world.t < (a.cover ? Math.min(a.endT, a.cover.arriveT + 3600) : a.endT) && !a.bridgedBy);
+  if (short.length === 0) return null;
+  const hhmm = (t: number) => formatSimTime(t).slice(-5);
+  const parts = short.map((a) => {
+    const who = `${a.name.split(" ")[0]} ${a.reason === "sick" ? "off sick" : "didn't turn up"} (${a.shift})`;
+    return `${who}, ${a.cover ? `${a.cover.kind} from ${hhmm(a.cover.arriveT)}` : "no cover"}`;
+  });
+  return `short-staffed: ${parts.join(" / ")}`;
 }
 
 /** What the care staff were doing, for a missed target with no emergency behind it. */

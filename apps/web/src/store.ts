@@ -1,7 +1,7 @@
 // Dashboard state: a pure mirror of what the server sends (docs/08). No simulation logic.
 
 import { create } from "zustand";
-import type { AnySimEvent, ClockView, FloorPlan, PersonDetail, PersonView, ServerMessage } from "@vch/shared-types";
+import type { AnySimEvent, ClockView, DirectorView, FloorPlan, PersonDetail, PersonView, ServerMessage } from "@vch/shared-types";
 
 const MAX_EVENTS = 500;
 
@@ -17,6 +17,10 @@ export interface ViewState {
   following: boolean;
   /** Name tags over everyone (otherwise only the selected and hovered person). */
   showTags: boolean;
+  /** How the run uses the scenario director (from the snapshot). */
+  director: DirectorView | null;
+  /** Which panel shows above the event log. */
+  sideTab: "inspector" | "director";
   error: string | null;
 }
 
@@ -30,6 +34,8 @@ export const initialState: ViewState = {
   detail: null,
   following: false,
   showTags: true,
+  director: null,
+  sideTab: "inspector",
   error: null,
 };
 
@@ -42,6 +48,7 @@ export function reduce(state: ViewState, message: ServerMessage): Partial<ViewSt
         floorplan: message.floorplan,
         people: Object.fromEntries(message.people.map((p) => [p.id, p])),
         events: message.events.slice(-MAX_EVENTS),
+        director: message.director,
         error: null,
       };
     case "delta": {

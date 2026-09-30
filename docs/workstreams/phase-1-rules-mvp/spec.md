@@ -114,4 +114,4 @@ Acceptance for this follow-up:
 
 ## Out of scope
 
-LLM minds (Phase 2); the base-rate director, scenario cards and a spontaneous fall rate (Phase 3); return from hospital (Phase 3); visitor moods, conflicts and off-screen family life (Phase 4); snapshots, replay UI and branching (Phase 4); sensors, equipment and air quality (not v1).
+the base-rate director, scenario files and a spontaneous fall rate (now Phase 2, reordered 2026-09-30); return from hospital (Phase 2); LLM minds (now Phase 3); visitor moods, conflicts and off-screen family life (Phase 4); snapshots, replay UI and branching (Phase 4); sensors, equipment and air quality (not v1).

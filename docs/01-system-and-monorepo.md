@@ -16,6 +16,6 @@ Current packages: `shared-types` ← `sim-engine` ← `server`; `web` depends on
 
 ## To be decided
 
-- When to add the `persona-gen` package listed in the plan's stack (Phase 2 at the earliest; Phase 1 personas are hand-written).
-- LLM job queue: in-process for Phase 2 vs BullMQ + Redis.
+- When to add the `persona-gen` package listed in the plan's stack (Phase 3 at the earliest, with the LLM minds; personas are hand-written until then).
+- LLM job queue: in-process for Phase 3 (minds) vs BullMQ + Redis.
 - Deploy target and timing (Docker, then ECS Fargate + RDS + S3).

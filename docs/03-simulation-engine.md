@@ -28,9 +28,9 @@ The engine has no clock of its own. It exposes `step()`, which advances exactly 
 
 ## System order per tick
 
-1. **Inputs:** apply every queued input whose `applyTick` is this tick, in `seq` order.
+1. **Inputs:** apply every queued input whose `applyTick` is this tick, in `seq` order, then any director events that are due (docs/10).
 2. On a minute boundary only:
-   1. **Rota:** shift starts and ends, arrivals and departures, agency spawns, breaks due.
+   1. **Rota:** shift starts and ends, arrivals and departures, agency spawns, breaks due. At 00:00, with the director on, the director then plans the day.
    2. **Visitors:** at 00:00 sample the day's visits; spawn arrivals that are due.
    3. **Needs:** decay needs and staff workload by one minute.
    4. **Decisions:** raise help requests; create scheduled tasks (rounds, checks, meals); assign tasks to staff by utility; residents pick self-care actions.
@@ -45,28 +45,30 @@ Within each system, people are processed in ascending id order.
 ## Randomness
 
 - **Algorithm:** sfc32, seeded from a 32-bit hash of the run seed.
-- **Streams:** each system gets its own stream derived from the seed and a fixed name (`rota`, `visitors`, `needs`, `decisions`, `meds`, `falls`, `movement`). A new random draw in one system never shifts another system's sequence.
+- **Streams:** each system gets its own stream derived from the seed and a fixed name (`rota`, `visitors`, `needs`, `decisions`, `meds`, `falls`, `movement`, `director`, `cover`). A new random draw in one system never shifts another system's sequence. The `director` stream is drawn only by the scenario director's daily plans and `cover` only by the cover rule for absences, so with the director off and no absences neither is used.
 - **Rule:** `Math.random()` is never used in `packages/sim-engine` (constitution rule 2).
 
 ## Inputs
 
-An input is anything from outside the engine that changes the world. In Phase 1 that means only `inject_fall`.
+An input is anything from outside the engine that changes the world: `inject_fall`, `staff_sick` and `shift_no_show` (docs/10).
 
-- The server stamps each input with a monotonically increasing `seq`, the `source` (`user` in Phase 1), and `applyTick = currentTick + 1`, then logs it before handing it to the engine.
+- The server stamps each manual input with a monotonically increasing `seq`, the `source` (`user`), and `applyTick = currentTick + 1`, then logs it before handing it to the engine.
+- The scenario director plans its own inputs inside the engine (`source: "director"`), from the seed, the director settings and the scenario file. It logs each one as `director.planned` and applies it through the same dispatch (`applyInput`).
+- An input that can't apply when its time comes is logged as `input.skipped` with the reason.
 - Clock commands (pause, step, speed) are not engine inputs. They change pacing only and cannot change the run.
-- **Replay:** seed + data version + the ordered input list reproduces the run exactly.
+- **Replay:** seed + data version + director settings and scenario (if on) + the ordered input list reproduces the run exactly.
 
 ## Engine API (Phase 1)
 
 ```ts
-createSim({ seed, data, startTime? }): Sim
+createSim({ seed, data, startTime?, director? }): Sim   // director: { config, random, scenario?, deaths? }; off when absent
 sim.step(): SimEvent[]            // advance one tick, return events emitted
 sim.enqueue(input: SimInput): void
 sim.state(): WorldState           // full state for snapshot-on-connect and inspection
 sim.tick / sim.time               // current tick and sim seconds
 ```
 
-The engine is pure TypeScript with no I/O. Data comes in as parsed JSON (validated with `validateData`; `createSim` throws on invalid data); events come out as return values. `sim.started` carries a `dataVersion`, an FNV-1a hash of the data, so a log records exactly which data produced it.
+The engine is pure TypeScript with no I/O. Data comes in as parsed JSON (validated with `validateData`; `createSim` throws on invalid data); events come out as return values. `sim.started` carries a `dataVersion`, an FNV-1a hash of the data, so a log records exactly which data produced it. Sim dates for any year come from `simDate(t)` (`shared-types/time.ts`), used for seasons.
 
 Node-only helpers live outside `src/`: `tools/load-data.ts` (exported as `@vch/sim-engine/load-data`) and the headless CLI `scripts/sim.ts`.
 

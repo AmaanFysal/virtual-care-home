@@ -1,0 +1,362 @@
+
+=== seed 1 ===
+  Tue 03 Nov  hard       1 sick, 0 breaches
+    06:20  Blessing off sick for early.lead at 07:00 (director)
+    06:20    cover: agency Precious Moyo, arriving 07:32
+  Wed 04 Nov  busy       0 breaches
+  Thu 05 Nov  ordinary   1 sick, 0 breaches
+    13:03  Kasia off sick for late.lead at 14:00 (director)
+    13:03    cover: agency Ioana Radu, arriving 14:55
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  ordinary   0 breaches
+  Sun 08 Nov  busy       0 breaches
+  Mon 09 Nov  ordinary   0 breaches
+  Tue 10 Nov  ordinary   0 breaches
+  Wed 11 Nov  ordinary   0 breaches
+  Thu 12 Nov  ordinary   0 breaches
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  ordinary   0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  ordinary   0 breaches
+  Tue 17 Nov  busy       0 breaches
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  ordinary   0 breaches
+  Fri 20 Nov  busy       1 sick, 0 breaches
+    06:11  Tom off sick for early.ca at 07:00 (director)
+    06:11    cover: agency Rohan Pillai, arriving 08:01
+  Sat 21 Nov  ordinary   0 breaches
+  Sun 22 Nov  ordinary   0 breaches
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  ordinary   0 breaches
+  Wed 25 Nov  ordinary   0 breaches
+  Thu 26 Nov  ordinary   0 breaches
+  Fri 27 Nov  ordinary   0 breaches
+  Sat 28 Nov  ordinary   0 breaches
+  Sun 29 Nov  busy       1 sick, 0 breaches
+    06:09  Lucy off sick for early.ca at 07:00 (director)
+    06:09    cover: agency Rohan Pillai, arriving 07:43
+  Mon 30 Nov  hard       0 breaches
+  Tue 01 Dec  hard       0 breaches
+
+=== seed 2 ===
+  Tue 03 Nov  ordinary   0 breaches
+  Wed 04 Nov  hard       0 breaches
+  Thu 05 Nov  hard       1 sick, 0 breaches
+    13:25  Lucy off sick for late.ca at 14:00 (director)
+    13:25    cover: agency Precious Moyo, arriving 14:37
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  ordinary   0 breaches
+  Sun 08 Nov  busy       0 breaches
+  Mon 09 Nov  busy (drawn hard, capped) 0 breaches
+  Tue 10 Nov  ordinary   0 breaches
+  Wed 11 Nov  ordinary   0 breaches
+  Thu 12 Nov  busy       0 breaches
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  ordinary   0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  ordinary   0 breaches
+  Tue 17 Nov  ordinary   0 breaches
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  ordinary   0 breaches
+  Fri 20 Nov  busy       0 breaches
+  Sat 21 Nov  ordinary   0 breaches
+  Sun 22 Nov  busy       0 breaches
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  ordinary   0 breaches
+  Wed 25 Nov  busy       0 breaches
+  Thu 26 Nov  busy       0 breaches
+  Fri 27 Nov  ordinary   0 breaches
+  Sat 28 Nov  hard       0 breaches
+  Sun 29 Nov  ordinary   0 breaches
+  Mon 30 Nov  busy       1 sick, 0 breaches
+    06:20  Tom off sick for early.ca at 07:00 (director)
+    06:20    cover: bank Lucy Brennan, arriving 07:02
+  Tue 01 Dec  ordinary   0 breaches
+
+=== seed 3 ===
+  Tue 03 Nov  ordinary   0 breaches
+  Wed 04 Nov  busy       1 sick, 0 breaches
+    06:03  Blessing off sick for early.lead at 07:00 (director)
+    06:03    cover: agency Emma Walsh, arriving 07:13
+  Thu 05 Nov  hard       0 breaches
+  Fri 06 Nov  busy       0 breaches
+  Sat 07 Nov  ordinary   1 fall, 1 sick, 0 breaches
+    07:59  minor fall: Peggy (director)
+    13:24  Shanice off sick for late.ca at 14:00 (director)
+    13:24    cover: agency Emma Walsh, arriving 15:04
+  Sun 08 Nov  hard       1 sick, 0 breaches
+    20:31  Florin off sick for night.carer at 21:15 (director)
+    20:31    cover: stay_on Shanice Clarke
+  Mon 09 Nov  ordinary   0 breaches
+  Tue 10 Nov  ordinary   1 sick, 0 breaches
+    06:13  Tom off sick for early.ca at 07:00 (director)
+    06:13    cover: bank Shanice Clarke, arriving 07:04
+  Wed 11 Nov  ordinary   1 sick, 1 breach
+    06:09  Kasia off sick for early.ca at 07:00 (director)
+    06:09    cover: agency Rohan Pillai, arriving 08:09
+    07:59  breach resident_check: res_dennis unchecked for 60 min (interval 60) [short-staffed: Kasia off sick (early), agency from 08:09]
+  Thu 12 Nov  busy       1 sick, 0 breaches
+    13:17  Lucy off sick for late.ca at 14:00 (director)
+    13:17    cover: bank Shanice Clarke, arriving 13:57
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  ordinary   0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  ordinary   0 breaches
+  Tue 17 Nov  ordinary   0 breaches
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  ordinary   0 breaches
+  Fri 20 Nov  busy       0 breaches
+  Sat 21 Nov  hard       0 breaches
+  Sun 22 Nov  ordinary   0 breaches
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  ordinary   0 breaches
+  Wed 25 Nov  busy       0 breaches
+  Thu 26 Nov  busy       0 breaches
+  Fri 27 Nov  ordinary   0 breaches
+  Sat 28 Nov  busy       0 breaches
+  Sun 29 Nov  ordinary   0 breaches
+  Mon 30 Nov  ordinary   0 breaches
+  Tue 01 Dec  ordinary   0 breaches
+
+=== seed 4 ===
+  Tue 03 Nov  busy       0 breaches
+  Wed 04 Nov  hard       0 breaches
+  Thu 05 Nov  busy       1 sick, 0 breaches
+    20:43  Aisha off sick for night.carer at 21:15 (director)
+    20:43    cover: agency Nadia Hussain, arriving 22:13
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  ordinary   0 breaches
+  Sun 08 Nov  ordinary   0 breaches
+  Mon 09 Nov  ordinary   0 breaches
+  Tue 10 Nov  busy       0 breaches
+  Wed 11 Nov  busy       0 breaches
+  Thu 12 Nov  ordinary   0 breaches
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  ordinary   0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  ordinary   0 breaches
+  Tue 17 Nov  ordinary   0 breaches
+  Wed 18 Nov  hard       0 breaches
+  Thu 19 Nov  ordinary   0 breaches
+  Fri 20 Nov  ordinary   0 breaches
+  Sat 21 Nov  ordinary   0 breaches
+  Sun 22 Nov  busy       0 breaches
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  ordinary   0 breaches
+  Wed 25 Nov  ordinary   0 breaches
+  Thu 26 Nov  ordinary   0 breaches
+  Fri 27 Nov  hard       0 breaches
+  Sat 28 Nov  ordinary   0 breaches
+  Sun 29 Nov  ordinary   1 sick, 0 breaches
+    20:15  Florin off sick for night.carer at 21:15 (director)
+    20:15    cover: stay_on Shanice Clarke
+  Mon 30 Nov  busy       0 breaches
+  Tue 01 Dec  ordinary   0 breaches
+
+=== seed 5 ===
+  Tue 03 Nov  busy       0 breaches
+  Wed 04 Nov  busy       1 breach
+    21:34  breach reposition: res_dennis not turned for 120 min (interval 120) [no emergency]
+  Thu 05 Nov  busy       0 breaches
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  busy       0 breaches
+  Sun 08 Nov  busy       1 sick, 0 breaches
+    06:09  Kasia off sick for early.lead at 07:00 (director)
+    06:09    cover: agency Daniel Silva, arriving 07:22
+  Mon 09 Nov  ordinary   0 breaches
+  Tue 10 Nov  busy       2 sick, 0 breaches
+    06:12  Maria off sick for rn_day.nurse at 07:00 (director)
+    06:12    cover: agency Oluwaseun Bello, arriving 07:53
+    13:24  Dave off sick for late.lead at 14:00 (director)
+    13:24    cover: agency Nadia Hussain, arriving 14:35
+  Wed 11 Nov  ordinary   0 breaches
+  Thu 12 Nov  ordinary   0 breaches
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  busy       0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  ordinary   0 breaches
+  Tue 17 Nov  busy       0 breaches
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  busy       1 sick, 0 breaches
+    06:01  Tom off sick for early.ca at 07:00 (director)
+    06:01    cover: bank Shanice Clarke, arriving 06:54
+  Fri 20 Nov  ordinary   0 breaches
+  Sat 21 Nov  ordinary   0 breaches
+  Sun 22 Nov  ordinary   0 breaches
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  ordinary   1 sick, 0 breaches
+    06:30  Tom off sick for early.ca at 07:00 (director)
+    06:30    cover: agency Rohan Pillai, arriving 07:58
+  Wed 25 Nov  ordinary   0 breaches
+  Thu 26 Nov  ordinary   0 breaches
+  Fri 27 Nov  ordinary   0 breaches
+  Sat 28 Nov  ordinary   0 breaches
+  Sun 29 Nov  ordinary   0 breaches
+  Mon 30 Nov  ordinary   1 sick, 0 breaches
+    06:16  Tom off sick for early.ca at 07:00 (director)
+    06:16    cover: bank Lucy Brennan, arriving 06:53
+  Tue 01 Dec  ordinary   0 breaches
+
+=== seed 6 ===
+  Tue 03 Nov  ordinary   0 breaches
+  Wed 04 Nov  ordinary   0 breaches
+  Thu 05 Nov  ordinary   1 sick, 0 breaches
+    20:39  Aisha off sick for night.carer at 21:15 (director)
+    20:39    cover: agency Ioana Radu, arriving 21:52
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  busy       0 breaches
+  Sun 08 Nov  ordinary   0 breaches
+  Mon 09 Nov  ordinary   0 breaches
+  Tue 10 Nov  ordinary   1 sick, 0 breaches
+    06:29  Tom off sick for early.ca at 07:00 (director)
+    06:29    cover: agency Ioana Radu, arriving 07:29
+  Wed 11 Nov  busy       2 sick, 0 breaches
+    06:04  Blessing off sick for early.lead at 07:00 (director)
+    06:04    cover: agency Kwame Asante, arriving 07:41
+    13:15  Dave off sick for late.lead at 14:00 (director)
+    13:15    cover: agency Precious Moyo, arriving 14:34
+  Thu 12 Nov  ordinary   1 sick, 0 breaches
+    06:12  Blessing off sick for early.lead at 07:00 (director)
+    06:12    cover: agency Daniel Silva, arriving 07:38
+  Fri 13 Nov  busy       1 sick, 0 breaches
+    06:08  Blessing off sick for early.lead at 07:00 (director)
+    06:08    cover: agency Ioana Radu, arriving 07:45
+  Sat 14 Nov  ordinary   0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  busy       1 sick, 0 breaches
+    13:16  Kasia off sick for late.lead at 14:00 (director)
+    13:16    cover: agency Daniel Silva, arriving 14:48
+  Tue 17 Nov  ordinary   0 breaches
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  ordinary   1 sick, 0 breaches
+    06:00  Tom off sick for early.ca at 07:00 (director)
+    06:00    cover: agency Emma Walsh, arriving 07:39
+  Fri 20 Nov  ordinary   0 breaches
+  Sat 21 Nov  busy       0 breaches
+  Sun 22 Nov  hard       1 sick, 1 breach
+    06:08  Kasia off sick for early.lead at 07:00 (director)
+    06:08    cover: agency Kwame Asante, arriving 07:57
+    08:36  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Kasia off sick (early), agency from 07:57]
+  Mon 23 Nov  busy       1 sick, 0 breaches
+    06:23  Blessing off sick for early.lead at 07:00 (director)
+    06:23    cover: agency Precious Moyo, arriving 07:37
+  Tue 24 Nov  ordinary   0 breaches
+  Wed 25 Nov  ordinary   0 breaches
+  Thu 26 Nov  ordinary   0 breaches
+  Fri 27 Nov  ordinary   0 breaches
+  Sat 28 Nov  ordinary   1 fall, 0 breaches
+    17:23  minor fall: Peggy (director)
+  Sun 29 Nov  ordinary   0 breaches
+  Mon 30 Nov  ordinary   0 breaches
+  Tue 01 Dec  ordinary   0 breaches
+
+=== seed 7 ===
+  Tue 03 Nov  ordinary   1 fall (1 serious), 0 breaches
+    08:52  serious fall: Stan (director)
+  Wed 04 Nov  ordinary   0 breaches
+  Thu 05 Nov  ordinary   0 breaches
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  ordinary   0 breaches
+  Sun 08 Nov  ordinary   0 breaches
+  Mon 09 Nov  busy       0 breaches
+  Tue 10 Nov  busy       0 breaches
+  Wed 11 Nov  busy       1 fall, 2 breaches
+    07:52  minor fall: Arthur (director)
+    08:16  breach reposition: res_dennis not turned for 120 min (interval 120) [after minor fall (Arthur)]
+    08:41  breach resident_check: res_arthur unchecked for 30 min (interval 30) [after minor fall (Arthur)]
+  Thu 12 Nov  busy       2 sick, 3 breaches
+    06:02  Tom off sick for early.ca at 07:00 (director)
+    06:02    no cover: no bank or agency cover; early.ca runs short
+    06:29  Maria off sick for rn_day.nurse at 07:00 (director)
+    06:29    cover: agency Marco Reyes, arriving 08:08
+    08:07  breach request_wait: Toilet for Raj waiting 30 min [short-staffed: Tom off sick (early), no cover / Maria off sick (rn_day), agency from 08:08]
+    08:24  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Tom off sick (early), no cover / Maria off sick (rn_day), agency from 08:08]
+    12:26  breach lounge_supervision: Peggy in the Lounge with no carer for 15 min [short-staffed: Tom off sick (early), no cover]
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  ordinary   0 breaches
+  Sun 15 Nov  ordinary   0 breaches
+  Mon 16 Nov  busy       0 breaches
+  Tue 17 Nov  ordinary   0 breaches
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  ordinary   0 breaches
+  Fri 20 Nov  ordinary   0 breaches
+  Sat 21 Nov  busy       1 sick, 0 breaches
+    06:15  Kasia off sick for early.lead at 07:00 (director)
+    06:15    cover: agency Emma Walsh, arriving 07:18
+  Sun 22 Nov  ordinary   0 breaches
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  ordinary   0 breaches
+  Wed 25 Nov  ordinary   0 breaches
+  Thu 26 Nov  busy       0 breaches
+  Fri 27 Nov  hard       0 breaches
+  Sat 28 Nov  ordinary   0 breaches
+  Sun 29 Nov  busy       0 breaches
+  Mon 30 Nov  ordinary   0 breaches
+  Tue 01 Dec  busy       0 breaches
+
+=== seed 8 ===
+  Tue 03 Nov  ordinary   0 breaches
+  Wed 04 Nov  ordinary   0 breaches
+  Thu 05 Nov  busy       2 sick, 4 breaches
+    06:05  Maria off sick for rn_day.nurse at 07:00 (director)
+    06:05    no cover: no bank or agency cover; rn_day.nurse runs short
+    08:24  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Maria off sick (rn_day), no cover]
+    13:09  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Maria off sick (rn_day), no cover]
+    13:25  Kasia off sick for late.lead at 14:00 (director)
+    13:25    cover: agency Rohan Pillai, arriving 14:43
+    14:40  breach reposition: res_dennis not turned for 120 min (interval 120) [short-staffed: Maria off sick (rn_day), no cover / Kasia off sick (late), agency from 14:43]
+    16:03  breach lounge_supervision: Peggy and Stan in the Lounge with no carer for 15 min [short-staffed: Maria off sick (rn_day), no cover]
+  Fri 06 Nov  ordinary   0 breaches
+  Sat 07 Nov  ordinary   0 breaches
+  Sun 08 Nov  ordinary   0 breaches
+  Mon 09 Nov  ordinary   0 breaches
+  Tue 10 Nov  ordinary   0 breaches
+  Wed 11 Nov  ordinary   0 breaches
+  Thu 12 Nov  ordinary   0 breaches
+  Fri 13 Nov  ordinary   0 breaches
+  Sat 14 Nov  ordinary   1 no-show, 0 breaches
+    06:45  Anjali didn't turn up for rn_day.nurse at 07:00 (director)
+    06:45    cover: agency Marco Reyes, arriving 08:09
+  Sun 15 Nov  busy       0 breaches
+  Mon 16 Nov  ordinary   0 breaches
+  Tue 17 Nov  busy       2 sick, 0 breaches
+    06:21  Tom off sick for early.ca at 07:00 (director)
+    06:21    cover: bank Lucy Brennan, arriving 06:53
+    20:18  Florin off sick for night.carer at 21:15 (director)
+    20:18    cover: bank Shanice Clarke, arriving 21:08
+  Wed 18 Nov  ordinary   0 breaches
+  Thu 19 Nov  ordinary   0 breaches
+  Fri 20 Nov  ordinary   0 breaches
+  Sat 21 Nov  ordinary   0 breaches
+  Sun 22 Nov  hard       1 fall, 0 breaches
+    14:18  minor fall: Stan (director)
+  Mon 23 Nov  ordinary   0 breaches
+  Tue 24 Nov  busy       0 breaches
+  Wed 25 Nov  ordinary   1 sick, 0 breaches
+    13:04  Dave off sick for late.lead at 14:00 (director)
+    13:04    cover: agency Liam Doyle, arriving 14:33
+  Thu 26 Nov  ordinary   1 sick, 0 breaches
+    06:12  Blessing off sick for early.lead at 07:00 (director)
+    06:12    cover: agency Kwame Asante, arriving 07:32
+  Fri 27 Nov  hard       0 breaches
+  Sat 28 Nov  ordinary   0 breaches
+  Sun 29 Nov  ordinary   0 breaches
+  Mon 30 Nov  busy       0 breaches
+  Tue 01 Dec  ordinary   0 breaches
+
+=== totals, seeds 1-8, 672 h each ===
+  days: 232 (hard 16 (7%), busy 55 (24%), ordinary 161 (69%)); hard days capped to busy: 1
+  falls: 5 (4 minor, 1 serious) = 0.16 a week
+  sick calls: 39 = 1.22 a week; agency no-shows: 1
+  cover: bank 7, agency 29, late carer stayed on 2, none 2
+  held back by pacing caps: none
+  skipped when due: none
+  service breaches: 12 (1 on days with no director event, 11 on days with one)
+       4  reposition, short-staffed
+       3  lounge_supervision, short-staffed
+       1  resident_check, short-staffed
+       1  reposition, no emergency
+       1  reposition, after minor fall
+       1  resident_check, after minor fall
+       1  request_wait, short-staffed
+  hard violations: 0

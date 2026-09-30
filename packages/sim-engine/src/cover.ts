@@ -1,0 +1,151 @@
+// Sick calls and no-shows (docs/10): a rostered worker won't be in, and the rota rule looks for
+// cover. A free bank carer first (care assistant and night slots), then an agency worker (a nurse
+// for the RN slot; for a lead's slot a meds-trained senior, always found), otherwise the shift
+// runs short. At night a carer comes over from the main building, and the late carer stays on
+// only until she arrives (1 to 2 hours); everyone else keeps 11 hours' rest.
+
+import {
+  SECONDS_PER_DAY,
+  WEEKDAYS,
+  clockToSeconds,
+  dayIndex,
+  type AbsenceReason,
+  type CoverChoice,
+  type ShiftName,
+  type Source,
+} from "@vch/shared-types";
+import { emit } from "./emit.js";
+import { addAgencyWorker, addPerson, holder, staffPerson } from "./rota.js";
+import type { Absence, Person, ShiftAssignment, World } from "./state.js";
+
+const REST_HOURS = 11;
+
+/** Used when the director is off (a manual sick call): the manager always finds someone if anyone can come. */
+const MANUAL = { bank_accept: 1, agency_available: 1, bank_travel_mins: [30, 60], agency_arrival_mins: [60, 120] } as const;
+
+/** Applies `staff_sick`: their next shift that hasn't started is lost. Returns why it didn't apply, if it didn't. */
+export function staffSick(world: World, staffId: string, cover: CoverChoice, source: Source): string | null {
+  const a = nextShift(world, (s) => s.personId === staffId);
+  if (!a) return world.shifts.some((s) => s.personId === staffId && !s.ended) ? "already at work" : "no shift to miss";
+  markAbsent(world, a, "sick", cover, world.t, source);
+  return null;
+}
+
+/** Applies `shift_no_show`: whoever holds the slot's next shift doesn't turn up. */
+export function shiftNoShow(world: World, slot: string, cover: CoverChoice, source: Source): string | null {
+  const a = nextShift(world, (s) => s.slot === slot);
+  if (!a) return `no upcoming ${slot} shift`;
+  markAbsent(world, a, "no_show", cover, Math.max(world.t, a.startT), source);
+  return null;
+}
+
+function nextShift(world: World, match: (a: ShiftAssignment) => boolean): ShiftAssignment | undefined {
+  return world.shifts.filter((a) => match(a) && !a.spawned && !a.stayOn).sort((a, b) => a.startT - b.startT)[0];
+}
+
+function markAbsent(world: World, a: ShiftAssignment, reason: AbsenceReason, choice: CoverChoice, bookT: number, source: Source): void {
+  const person = world.people.get(a.personId)!;
+  world.shifts.splice(world.shifts.indexOf(a), 1);
+  emit(world, "staff.absent", [person.id], { staffId: person.id, name: person.name, slot: a.slot, shift: a.shift, reason, shiftStartT: a.startT }, source);
+  if (person.kind === "agency") {
+    world.people.delete(person.id);
+    world.order = world.order.filter((id) => id !== person.id);
+  }
+  world.absences = world.absences.filter((x) => x.endT > world.t - SECONDS_PER_DAY);
+  const absence: Absence = { staffId: person.id, name: person.name, slot: a.slot, shift: a.shift, reason, startT: a.startT, endT: a.endT, cover: null };
+  world.absences.push(absence);
+  bookCover(world, a, absence, choice, bookT);
+  world.shifts.sort((x, y) => x.arriveT - y.arriveT || x.personId.localeCompare(y.personId));
+}
+
+function bookCover(world: World, a: ShiftAssignment, absence: Absence, choice: CoverChoice, bookT: number): void {
+  const rng = world.rng.cover;
+  const tuning = world.director?.settings.config.absence ?? MANUAL;
+  const nurse = a.shift === "rn_day";
+  const lead = a.slot.endsWith(".lead");
+  const add = (kind: "bank" | "agency", personId: string, arriveT: number) => {
+    const startT = Math.max(a.startT, arriveT);
+    world.shifts.push({ personId, shift: a.shift, slot: a.slot, arriveT, startT, endT: a.endT, spawned: false, started: false, ended: false });
+    absence.cover = { kind, staffId: personId, name: world.people.get(personId)!.name, arriveT: startT };
+    emit(world, "rota.cover_booked", [personId], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: kind, staffId: personId, arriveT });
+  };
+
+  // 1. Bank: care assistant and night slots only (the bank carers aren't meds-trained).
+  if (!nurse && !lead && (choice === "auto" || choice === "bank")) {
+    for (const s of world.data.staff.filter((x) => x.employment === "bank" && x.id !== absence.staffId)) {
+      if (!restedFor(world, s.id, a)) continue;
+      if (choice === "auto" && !rng.chance(tuning.bank_accept)) continue;
+      const [lo, hi] = tuning.bank_travel_mins;
+      add("bank", s.id, Math.max(a.startT - 10 * 60, bookT + rng.int(lo, hi) * 60));
+      return;
+    }
+  }
+  // 2. Agency, booked now, arriving an hour or two later. A shift lead's slot is always filled
+  //    (at short notice and a premium if need be): someone meds-trained must be on the wing.
+  if (choice === "agency" || (choice === "auto" && (lead || rng.chance(tuning.agency_available)))) {
+    const pool = nurse ? world.data.rota.agency_pool.nurse : world.data.rota.agency_pool.carer;
+    const inUse = new Set([...world.people.values()].filter((p) => p.kind === "agency").map((p) => p.name));
+    const free = pool.filter((w) => !inUse.has(w.name));
+    const worker = rng.pick(free.length > 0 ? free : pool);
+    const [lo, hi] = tuning.agency_arrival_mins;
+    const arriveT = Math.max(a.startT - 10 * 60, bookT + rng.int(lo, hi) * 60);
+    add("agency", addAgencyWorker(world, worker, nurse, lead).id, arriveT);
+    return;
+  }
+  // 3. Nobody. At night the wing is never left to the floating carer alone: a carer comes over
+  //    from the main building (1 to 2 hours), and the late carer stays on only until she arrives.
+  if (a.shift === "night") {
+    const day = dayIndex(a.startT);
+    const late = holder(world, day, "late.ca") ?? holder(world, day, "late.lead");
+    const lateShift = world.shifts.find((s) => s.personId === late && s.shift === "late" && dayIndex(s.startT) === day);
+    if (late && lateShift && !lateShift.ended) {
+      const coverT = Math.max(a.startT, bookT) + rng.int(60, 120) * 60;
+      world.shifts.push({ personId: late, shift: "night", slot: a.slot, arriveT: a.startT, startT: a.startT, endT: coverT, spawned: false, started: false, ended: false, stayOn: true });
+      emit(world, "rota.cover_booked", [late], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: "stay_on", staffId: late, arriveT: a.startT, untilT: coverT });
+      const cover = addMainBuildingCarer(world);
+      world.shifts.push({ personId: cover.id, shift: "night", slot: a.slot, arriveT: coverT, startT: coverT, endT: a.endT, spawned: false, started: false, ended: false });
+      absence.cover = { kind: "main_building", staffId: cover.id, name: cover.name, arriveT: coverT };
+      absence.bridgedBy = late;
+      emit(world, "rota.cover_booked", [cover.id], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, cover: "main_building", staffId: cover.id, arriveT: coverT });
+      return;
+    }
+  }
+  const reason = choice === "none" ? "no cover (scripted)" : choice === "bank" ? "no bank carer free" : "no bank or agency cover";
+  emit(world, "rota.no_cover", [], { slot: a.slot, shift: a.shift, forStaffId: absence.staffId, reason });
+}
+
+/** A night carer sent over from the main building to cover a night (joins the world when booked). */
+function addMainBuildingCarer(world: World): Person {
+  let n = 1;
+  while (world.people.has(`ext_night_cover_${n}`)) n += 1;
+  const p = staffPerson({ id: `ext_night_cover_${n}`, name: "Main-building Night Carer", gender: "female", walk_speed_mps: 1.2, role: "care_assistant", competencies: ["moving_handling"] });
+  p.kind = "external";
+  p.staff!.role = "main_building_carer";
+  addPerson(world, p);
+  return p;
+}
+
+/** Free for the shift with 11 hours' rest either side, against what's planned and the rota for the days around it. */
+function restedFor(world: World, staffId: string, a: ShiftAssignment): boolean {
+  const busy: [number, number][] = world.shifts.filter((s) => s.personId === staffId).map((s) => [s.startT, s.endT]);
+  const day = dayIndex(a.startT);
+  for (let d = day - 1; d <= day + 1; d++) {
+    const rotaDay = world.data.rota.week[WEEKDAYS[((d % 7) + 7) % 7]!];
+    const slots: [ShiftName, string[]][] = [
+      ["early", [rotaDay.early.lead, rotaDay.early.ca]],
+      ["late", [rotaDay.late.lead, rotaDay.late.ca]],
+      ["night", [rotaDay.night.carer]],
+      ["rn_day", [rotaDay.rn_day.nurse]],
+    ];
+    for (const [shift, who] of slots) {
+      if (!who.includes(staffId)) continue;
+      const times = world.data.rota.shifts[shift];
+      const start = d * SECONDS_PER_DAY + clockToSeconds(times.start);
+      let end = d * SECONDS_PER_DAY + clockToSeconds(times.end);
+      if (end <= start) end += SECONDS_PER_DAY;
+      busy.push([start, end]);
+    }
+  }
+  const rest = REST_HOURS * 3600;
+  return busy.every(([s, e]) => e + rest <= a.startT || a.endT + rest <= s);
+}

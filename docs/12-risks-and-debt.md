@@ -8,8 +8,7 @@
 
 - Base rates are approximate and context-dependent; treat them as tunable parameters.
 - Some workforce figures are secondary sources.
-- Model names and prices change often; cost per sim day is an estimate to measure in Phase 2.
-- Shared rooms are less common in modern UK homes; say so in demos.
+- Model names and prices change often; cost per sim day is an estimate to measure in Phase 3 (LLM minds).
 - The 10-person rota cannot cover 24/7 alone; relies on off-map support and agency / bank staff.
 - LLM bias and dignity; human review of every persona.
 - Not a clinical tool; care processes need RN / care manager review before any real-world use.
@@ -26,12 +25,21 @@
 - **Several falls at once used to abandon residents.** Fixed (2026-09-30): a fall never takes anyone from another fall, a two-person transfer or a walking resident; a fall nobody can reach asks for help and goes to the next person free; a hard invariant (`fall_unattended`) now catches anyone left. One judgement call remains: when everyone on the wing is with a fallen resident waiting for a lift and no more help can come, two carers lift one resident at a time, so an assessed resident is briefly left (with help asked for). The alternative would be waiting indefinitely. The left resident must be assessed as not injured, made comfortable, and looked in on every 5 minutes; with two minor falls, two carers and nobody to spare from the main building, that can't be done during a 5-minute hoist lift, so the missed look-in is reported (`fall_waiting_check`).
 - **Visitors' waiting-area seats depend on how many people exist.** `visitors.ts` picks a seat by the visitor's position in `world.order`, so adding anyone to the world (an agency worker, the main-building carer) moves some visitors to other seats. Harmless, but it's why the main-building carer is added only when first asked for, to keep runs without falls byte-identical. Fix it (a seat chosen by the visitor's own id) the next time the golden fixtures are re-recorded.
 - **Tuned parameters.** Need rates, priorities and deadline pressure were tuned against these runs (docs/04). They are not measured values.
-- **Not generated yet:** PRN (as-needed) medication requests; return from hospital (Phase 3).
+- **Not generated yet:** PRN (as-needed) medication requests; care-profile changes after a hospital stay (Phase 2, director sub-milestone (c)).
+
+## Findings from the scenario director (Phase 2)
+
+- **Hospital return is simple.** A resident comes back 3 to 10 days after conveyance to their own bed with the same care profile; reduced mobility, new falls risk or extra care after a stay come in (c).
+- **A round nobody on the wing can give waits for the on-call RN** (25 to 35 minutes; only when a scenario leaves a lead's slot uncovered).
+- **A late carer may stay on 1 to 2 hours** past her shift to bridge a night until a main-building carer arrives; nobody stays on overnight.
+- **Office and reception staff never call in sick.** Sick calls cover the care and RN slots only (`data/director.json` `absence.slots`). Sanjay missing would need a rule for signing visitors in during office hours.
+- **Placeholder rates.** The hospital admission rate (3 to 6 a year) has no source yet and must be cited before (c). Flu and norovirus rates are approximate. The airborne route is a proxy until the air model exists; steriliser experiments need the real model.
+- **Director-off identity is a fixture.** `test/fixtures/director-off-hashes.json` holds the main-branch fingerprints from 2026-09-30. Any deliberate change to director-off behaviour must re-record it, with the reason in the commit.
 
 
 ## Tuning debt: scheduling rules added to reach zero service breaches (2026-09-29)
 
-In the Lounge and audit-fixes round (M8) these narrow rules were added, beyond what the user asked for, to keep service breaches at zero on every no-fall week. Each one patches a specific clash in the rota rather than modelling something general. The user's decision: occasional breaches on normal days are acceptable and realistic, so no more rules like these. Revisit them all when the scenario director arrives (Phase 3), and remove any that the director or better staffing models make unnecessary. Everything is in `packages/sim-engine/src` unless stated.
+In the Lounge and audit-fixes round (M8) these narrow rules were added, beyond what the user asked for, to keep service breaches at zero on every no-fall week. Each one patches a specific clash in the rota rather than modelling something general. The user's decision: occasional breaches on normal days are acceptable and realistic, so no more rules like these. Revisit them all with the scenario director (Phase 2, sub-milestone (e), against the calm-week baseline), and remove any that the director or better staffing models make unnecessary. Everything is in `packages/sim-engine/src` unless stated.
 
 | Rule | Where | Clash it patched |
 |---|---|---|

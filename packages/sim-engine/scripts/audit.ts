@@ -3,13 +3,14 @@
 // per resident, per staff shift and per day, with flags where behaviour looks wrong.
 // Read-only: it never changes the world. Thresholds live in audit.config.ts.
 
-import { clockToSeconds, formatSimTime, timeOfDay, type AnySimEvent, type NeedName, type WorldData } from "@vch/shared-types";
+import { clockToSeconds, formatSimTime, timeOfDay, type AnySimEvent, type DirectorSettings, type NeedName, type WorldData } from "@vch/shared-types";
 import { createSim, type Person, type World } from "../src/index.js";
 import { ACT_THRESHOLD } from "../src/needs.js";
 import { isNight } from "../src/nightcover.js";
 import { isCareStaff, type ShiftAssignment } from "../src/state.js";
 import { cellAt } from "../src/world/grid.js";
 import { AUDIT, type AuditConfig } from "./audit.config.js";
+import { dayLines, dayReport } from "./day-report.js";
 
 export interface Flag {
   type: string;
@@ -86,8 +87,9 @@ interface RoundRec {
   missed: string[];
 }
 
-export function runAudit(seed: string, hours: number, data: WorldData, cfg: AuditConfig = AUDIT): AuditResult {
-  const sim = createSim({ seed, data });
+export function runAudit(seed: string, hours: number, data: WorldData, cfg: AuditConfig = AUDIT, director?: DirectorSettings): AuditResult {
+  const sim = createSim({ seed, data, ...(director ? { director } : {}) });
+  const all: AnySimEvent[] = [];
   const w = sim.world;
   const flags: Flag[] = [];
   const flag = (type: string, subject: string, t: number, detail: string) => flags.push({ type, subject, t, detail });
@@ -725,7 +727,11 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
   // ------------------------------------------------------------ run
   const ticks = Math.round((hours * 3600) / 5);
   for (let i = 0; i < ticks; i++) {
-    for (const e of sim.step()) onEvent(e);
+    for (const e of sim.step()) {
+      onEvent(e);
+      if (director) all.push(e);
+      if (director) for (const id of e.actors) if (!names.has(id)) names.set(id, w.people.get(id)?.name ?? id);
+    }
     onTick();
     if (w.t % 60 === 0) onMinute();
   }
@@ -902,6 +908,11 @@ export function runAudit(seed: string, hours: number, data: WorldData, cfg: Audi
   for (const f of other) L.push(`    [${f.type}] ${formatSimTime(f.t).slice(0, 3)} ${f.detail}`);
   const movement = flags.filter((f) => f.type.startsWith("movement.") && (residents.some((r) => r.id === f.subject) || staffIds.includes(f.subject)));
   L.push(`  (${movement.length} movement flags for residents and staff are listed under each person above)`);
+
+  if (director) {
+    L.push("", "==================== PER DAY (DIRECTOR) ====================");
+    L.push(...dayLines(dayReport(all, new Map([...names, ...[...w.people.values()].map((p) => [p.id, p.name] as const)])).rows));
+  }
 
   L.push("", "==================== FLAG SUMMARY ====================");
   for (const line of summarise(flags)) L.push(line);

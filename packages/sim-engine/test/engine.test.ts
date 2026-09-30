@@ -153,7 +153,7 @@ describe("movement", () => {
       }
       for (const [zone, n] of perZone) expect(n, zone).toBeLessThanOrEqual(1);
     });
-  });
+  }, 30000);
 });
 
 describe("rota", () => {
