@@ -16,6 +16,8 @@ export interface DayRow {
   breaches: number;
   hard: number;
   cases: number;
+  /** Residents taken ill (not an infection): chest infection, UTI, dehydration. */
+  unwell: number;
   lines: string[];
 }
 
@@ -33,6 +35,8 @@ export interface DayTotals {
   hard: number;
   /** Symptomatic cases by disease, exposures by route, outbreaks (disease, days), visits cancelled. */
   infection: { cases: Map<string, number>; routes: Map<string, number>; outbreaks: { disease: string; days: number; cases: number }[]; open: number; cancelledVisits: number; wentHome: number };
+  /** Illness by kind and severity, hospital stays by cause (days), deaths, residents moving in. */
+  health: { illness: Map<string, number>; stays: Map<string, number[]>; deaths: number; admitted: number; endOfLife: number; careChanges: number };
 }
 
 export function emptyTotals(): DayTotals {
@@ -49,6 +53,7 @@ export function emptyTotals(): DayTotals {
     breaches: { calm: 0, eventful: 0, byCause: new Map() },
     hard: 0,
     infection: { cases: new Map(), routes: new Map(), outbreaks: [], open: 0, cancelledVisits: 0, wentHome: 0 },
+    health: { illness: new Map(), stays: new Map(), deaths: 0, admitted: 0, endOfLife: 0, careChanges: 0 },
   };
 }
 
@@ -62,7 +67,7 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
     const day = dayIndex(t);
     let r = rows.get(day);
     if (!r) {
-      r = { day, dayType: "-", falls: { minor: 0, serious: 0 }, sick: 0, noShows: 0, covers: { bank: 0, agency: 0, stay_on: 0, main_building: 0, none: 0 }, suppressed: [], skipped: [], breaches: 0, hard: 0, cases: 0, lines: [] };
+      r = { day, dayType: "-", falls: { minor: 0, serious: 0 }, sick: 0, noShows: 0, covers: { bank: 0, agency: 0, stay_on: 0, main_building: 0, none: 0 }, suppressed: [], skipped: [], breaches: 0, hard: 0, cases: 0, unwell: 0, lines: [] };
       rows.set(day, r);
     }
     return r;
@@ -119,10 +124,38 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
         totals.infection.cancelledVisits += 1;
         break;
       case "resident.conveyed_to_hospital":
-        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} taken to hospital`);
+        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} taken to hospital${e.payload.cause ? ` (${e.payload.cause.replace(/_/g, " ")})` : ""}`);
         break;
-      case "resident.returned_from_hospital":
+      case "resident.returned_from_hospital": {
         r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} back from hospital after ${e.payload.daysAway} days`);
+        const cause = e.payload.cause ?? "unknown";
+        totals.health.stays.set(cause, [...(totals.health.stays.get(cause) ?? []), e.payload.daysAway]);
+        break;
+      }
+      case "illness.started": {
+        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} unwell: ${e.payload.kind.replace(/_/g, " ")} (${e.payload.severity})`);
+        const key = `${e.payload.kind} ${e.payload.severity}`;
+        totals.health.illness.set(key, (totals.health.illness.get(key) ?? 0) + 1);
+        r.unwell += 1;
+        break;
+      }
+      case "resident.care_changed":
+        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)}'s care changed (${e.payload.reason}): ${e.payload.changes.join("; ")}`);
+        totals.health.careChanges += 1;
+        break;
+      case "end_of_life.started":
+        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)}'s end-of-life care began (about ${e.payload.expectedDays} days)`);
+        totals.health.endOfLife += 1;
+        r.cases += 1;
+        break;
+      case "resident.died":
+        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} died peacefully; family told; ${e.payload.roomId} left empty`);
+        totals.health.deaths += 1;
+        break;
+      case "resident.admitted":
+        r.lines.push(`    ${at}  ${first(e.payload.residentId, names)} moved in (${e.payload.roomId})`);
+        totals.health.admitted += 1;
+        r.cases += 1;
         break;
       case "med_round.no_giver":
         r.lines.push(`    ${at}  ${e.payload.round} round: nobody meds-trained on the wing, on-call RN called`);
@@ -161,7 +194,7 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
     totals.sick += r.sick;
     totals.noShows += r.noShows;
     for (const k of Object.keys(r.covers) as (keyof DayRow["covers"])[]) totals.covers[k] += r.covers[k];
-    const eventful = r.falls.minor + r.falls.serious + r.sick + r.noShows + r.cases > 0 || r.lines.some((l) => / caught | OUTBREAK | outbreak over /.test(l));
+    const eventful = r.falls.minor + r.falls.serious + r.sick + r.noShows + r.cases + r.unwell > 0 || r.lines.some((l) => / caught | OUTBREAK | outbreak over |'s end-of-life care began | moved in \(/.test(l));
     if (eventful) totals.breaches.eventful += r.breaches;
     else totals.breaches.calm += r.breaches;
     totals.hard += r.hard;
@@ -173,7 +206,7 @@ export function dayReport(events: AnySimEvent[], names: Map<string, string>, tot
 function causeKind(cause: string): string {
   return cause
     .split("; ")
-    .map((c) => (c.startsWith("short-staffed") ? "short-staffed" : c.startsWith("no emergency") ? "no emergency" : c.replace(/ \(.*$/, "")))
+    .map((c) => (c.startsWith("short-staffed") ? "short-staffed" : c.startsWith("no emergency") ? "no emergency" : c.startsWith("end-of-life care") ? "end-of-life care" : c.startsWith("illness (") ? "illness" : c.replace(/ \(.*$/, "")))
     .filter((c, i, all) => all.indexOf(c) === i)
     .join(" + ");
 }
@@ -187,6 +220,7 @@ export function dayLines(rows: DayRow[]): string[] {
       falls ? `${falls} fall${falls > 1 ? "s" : ""}${r.falls.serious ? ` (${r.falls.serious} serious)` : ""}` : null,
       r.sick ? `${r.sick} sick` : null,
       r.cases ? `${r.cases} ill (infection)` : null,
+      r.unwell ? `${r.unwell} unwell` : null,
       r.noShows ? `${r.noShows} no-show` : null,
       r.suppressed.length ? `${r.suppressed.length} held back` : null,
       `${r.breaches} breach${r.breaches === 1 ? "" : "es"}`,
@@ -211,6 +245,10 @@ export function totalsLines(t: DayTotals, weeks: number): string[] {
   const inf = t.infection;
   L.push(`  infection cases (ill): ${[...inf.cases].map(([k, v]) => `${k} ${v}`).join(", ") || "none"}; caught by route: ${[...inf.routes].map(([k, v]) => `${k} ${v}`).join(", ") || "none"}; staff sent home ill: ${inf.wentHome}`);
   L.push(`  outbreaks: ${inf.outbreaks.length} over${inf.open ? `, ${inf.open} still on at the end` : ""}${inf.outbreaks.map((o) => `; ${o.disease} ${o.days} days, ${o.cases} cases`).join("")}; visits cancelled: ${inf.cancelledVisits}`);
+  const hl = t.health;
+  const stays = [...hl.stays].map(([k, v]) => `${k.replace(/_/g, " ")} ${v.length} (${Math.min(...v)} to ${Math.max(...v)} days)`).join(", ");
+  L.push(`  illness: ${[...hl.illness].map(([k, v]) => `${k.replace(/_/g, " ")} ${v}`).join(", ") || "none"}; back from hospital: ${stays || "none"}; care changes logged: ${hl.careChanges}`);
+  L.push(`  end of life begun: ${hl.endOfLife}; deaths: ${hl.deaths}; residents moved in: ${hl.admitted}`);
   L.push(`  hard violations: ${t.hard}${t.hard ? "  <-- MUST BE ZERO" : ""}`);
   return L;
 }

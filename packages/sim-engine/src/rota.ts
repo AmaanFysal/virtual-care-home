@@ -16,7 +16,7 @@ import {
 import { emit } from "./emit.js";
 import { coveredWithout } from "./floor.js";
 import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
-import { MAIN_CARER_ID, ON_CALL_RN_ID, PARAMEDICS_ID, mainCarerArrived, mainCarerDeparted, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
+import { ON_CALL_RN_ID, PARAMEDICS_ID, mainCarerArrived, mainCarerDeparted, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
 import { floatArrived, floatDeparted } from "./float.js";
 import { coverableOnSite } from "./nightcover.js";
 import { createHandover, idleStaff, pullOff } from "./tasks.js";
@@ -264,8 +264,10 @@ export function rotaMinute(world: World): void {
     if (!a.spawned && t >= a.arriveT) {
       a.spawned = true;
       person.staff!.shift = a;
-      // Staying on from the late shift: already here and on duty.
-      if (!a.stayOn) {
+      // Staying on from the late shift, or the main-building carer already here helping with
+      // falls: already here and on duty.
+      const alreadyHere = person.id === world.data.rota.main_building_carer.id && (person.onMap || world.spawnQueue.includes(person.id));
+      if (!a.stayOn && !alreadyHere) {
         person.staff!.duty = "arriving";
         if (person.kind === "agency") emit(world, "agency.spawned", [person.id], { staffId: person.id, role: person.staff!.role === "agency_nurse" ? "nurse" : "carer", shift: a.shift });
         world.spawnQueue.push(person.id);
@@ -361,7 +363,8 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       onCallRnArrived(world, person);
       continue;
     }
-    if (person.id === MAIN_CARER_ID) {
+    // The main-building carer sent for to help with falls (on a night shift he arrives like staff).
+    if (person.id === world.data.rota.main_building_carer.id && world.mainCarer.status === "on_site" && !person.staff!.shift) {
       mainCarerArrived(world, person);
       continue;
     }
@@ -376,7 +379,7 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       person.staff.shift = null;
       if (person.id === world.data.rota.night_float.id) floatDeparted(world, person);
       if (person.id === ON_CALL_RN_ID) onCallRnDeparted(world, person);
-      if (person.id === MAIN_CARER_ID) mainCarerDeparted(world, person);
+      if (person.id === world.data.rota.main_building_carer.id && world.mainCarer.status !== "off") mainCarerDeparted(world, person);
     }
   }
 }

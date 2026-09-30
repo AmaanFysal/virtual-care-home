@@ -8,6 +8,7 @@ import { emit } from "../emit.js";
 import { staffSick, shiftNoShow } from "../cover.js";
 import { injectFall } from "../falls.js";
 import { infect } from "../infection.js";
+import { admit, startEndOfLife, startIllness } from "../health.js";
 import type { DirectorEvent, World } from "../state.js";
 import { isMajor, planRandomDay, residentRisk, type RosterEntry } from "./plan.js";
 import { scenarioEvents } from "./scenario.js";
@@ -46,11 +47,19 @@ export function planDirectorDay(world: World, fromT: number): void {
         agency: world.people.get(a.personId)?.kind === "agency",
         propensity: staffCards.get(a.personId)?.contract.sickness_propensity ?? 0,
       }));
+    const dayStart = day * SECONDS_PER_DAY;
     const residents = world.order
       .map((id) => world.people.get(id)!)
       .filter((p) => p.resident && p.onMap)
-      .map((p) => residentRisk(p.resident!.data));
-    const plan = planRandomDay(d.settings.config, world.rng.director, d, day, fromT, roster, residents);
+      .map((p) => {
+        const res = p.resident!;
+        // Falls likelier while ill and for two weeks after a hospital stay (docs/10).
+        const h = d.settings.config.health;
+        const extra = (res.illness ? h.illness.falls_factor : 1) * (res.recentReturnUntil > dayStart ? h.after_return.falls_factor : 1);
+        return { ...residentRisk(res.data), extra, busy: !!res.illness || !!res.endOfLife };
+      });
+    const endOfLifeOn = world.order.some((id) => !!world.people.get(id)!.resident?.endOfLife);
+    const plan = planRandomDay(d.settings.config, world.rng.director, d, day, fromT, roster, residents, { deaths: world.deaths, endOfLifeOn });
     ({ planned, suppressed, dayType, downgradedFrom } = plan);
   }
 
@@ -73,6 +82,9 @@ function reasonFor(e: DirectorEvent): string {
   if (e.type === "inject_fall") return "falls base rate";
   if (e.type === "staff_sick") return "sickness base rate";
   if (e.type === "shift_no_show") return "agency no-show rate";
+  if (e.type === "resident_illness") return "illness base rate";
+  if (e.type === "end_of_life_start") return "deaths base rate";
+  if (e.type === "infection_case") return "infections brought in";
   return "base rate";
 }
 
@@ -106,6 +118,17 @@ function dispatch<K extends InputType>(world: World, type: K, params: InputPaylo
     const { staffId, cover } = params as InputPayloads["staff_sick"];
     return staffSick(world, staffId, cover ?? "auto", source);
   }
+  if (type === "resident_illness") {
+    const { residentId, kind, severity } = params as InputPayloads["resident_illness"];
+    const r = world.people.get(residentId);
+    return r ? startIllness(world, r, kind, severity, source) : "unknown resident";
+  }
+  if (type === "end_of_life_start") {
+    const { residentId, expectedDays } = params as InputPayloads["end_of_life_start"];
+    const r = world.people.get(residentId);
+    return r ? startEndOfLife(world, r, expectedDays, source) : "unknown resident";
+  }
+  if (type === "admission") return admit(world, (params as InputPayloads["admission"]).cardId, source);
   if (type === "infection_case") {
     const { personId, disease } = params as InputPayloads["infection_case"];
     const p = world.people.get(personId);

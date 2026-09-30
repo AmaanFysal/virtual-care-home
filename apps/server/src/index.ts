@@ -9,7 +9,7 @@ import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { DEFAULT_START_T, type DirectorSettings, type DirectorView } from "@vch/shared-types";
 import { createSim, dataVersion, hashString, validateData, validateScenario } from "@vch/sim-engine";
-import { loadDirectorConfig, loadScenario, loadWorldData } from "@vch/sim-engine/load-data";
+import { loadAdmissions, loadDirectorConfig, loadScenario, loadWorldData } from "@vch/sim-engine/load-data";
 import { EventLog } from "./eventlog.js";
 import { Runner, parseCommand } from "./runner.js";
 
@@ -45,7 +45,13 @@ const deaths = process.env.DEATHS !== "off";
 const config = loadDirectorConfig();
 const director: DirectorSettings | undefined =
   mode === "off" ? undefined : { config, random: mode !== "scenario" || !!scenario?.random, deaths, ...(mode !== "random" && scenario ? { scenario } : {}) };
-const directorView: DirectorView = { mode, scenario: director?.scenario ? { id: scenario!.id, name: scenario!.name, description: scenario!.description } : null, deaths };
+const admissions = loadAdmissions();
+const directorView: DirectorView = {
+  mode,
+  scenario: director?.scenario ? { id: scenario!.id, name: scenario!.name, description: scenario!.description } : null,
+  deaths,
+  admissions: admissions.filter((c) => c.status === "reviewed").map((c) => ({ id: c.id, name: `${c.resident.name.known_as} ${c.resident.name.last}` })),
+};
 
 const created = new Date();
 const runId = `run-${created.toISOString().replace(/[-:]/g, "").replace(/\..*/, "").replace("T", "-")}-seed${seed}`;
@@ -61,7 +67,7 @@ const log = new EventLog(`${runsDir}/${runId}.sqlite`, {
     : "off",
 });
 // The tuning is passed even with the director off, for manual triggers (a sick call, an infection).
-const sim = createSim({ seed, data, config, ...(director ? { director } : {}) });
+const sim = createSim({ seed, data, config, admissions, deaths, ...(director ? { director } : {}) });
 const runner = new Runner(sim, data, log, directorView);
 
 const app = Fastify({ logger: { level: "warn" } });

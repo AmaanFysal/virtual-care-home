@@ -67,8 +67,52 @@
     },
     "index_staff_share": 0.3
   },
-  "later": {
-    "hospital_admissions_per_year": [3, 6],
-    "hospital_admissions_note": "Placeholder for sub-milestones (a) and (b); cite a source and update before building (c)."
-  }
+  "health": {
+    "admissions_per_resident_year": 0.7,
+    "admissions_note": "Emergency admissions of care home residents aged 65+ in England: 0.70 per resident per year (0.77 residential, 0.63 nursing), 2016/17. Health Foundation Improvement Analytics Unit, Emergency admissions to hospital from care homes: how often and what for? (2019). https://reader.health.org.uk/emergency-admissions-to-hospital-from-care-homes. Serious falls give their own share (falls.per_resident_year x serious_share); illness gives the rest.",
+    "illness": {
+      "kinds": {
+        "chest_infection": { "share": 0.55, "winter_factor": 1.5 },
+        "uti": { "share": 0.3, "winter_factor": 1 },
+        "dehydration": { "share": 0.15, "winter_factor": 1 }
+      },
+      "kinds_note": "Shares of illness-driven admissions among the three kinds modelled, from the same Health Foundation briefing: pneumonia 12 to 15% and other lower respiratory infections, urinary tract infections 8%, and a smaller share for dehydration; other causes are folded into these three.",
+      "severe_share": 0.4,
+      "mild_days": [3, 7],
+      "check_interval_mins": 60,
+      "falls_factor": 1.5,
+      "gp_hours": [1, 4],
+      "illness_note": "Severe share, mild illness length and the GP delay are modelling assumptions, not sourced."
+    },
+    "stay_days": {
+      "serious_fall": [11, 25],
+      "chest_infection": [5, 12],
+      "uti": [3, 10],
+      "dehydration": [3, 7]
+    },
+    "stay_note": "Serious fall or fracture: mean acute stay after hip fracture 16.0 days in England in 2023 (National Hip Fracture Database, via the BGS service review); median 20 days (IQR 11 to 40) in hospital in the year after (REDUCE, Lancet Healthy Longevity 2023). Chest infection: median 5 days for community-acquired pneumonia (BTS national audit 2009/10, mean age 71); care home residents' emergency stays average 8.2 days, 8.9 from residential homes (Health Foundation 2019). UTI: mean 6.4 days in 2023-24 (UKHSA, Understanding the burden of UTI hospitalisations in England, via Care England's briefing). Dehydration: mean 4.6 days for people averaging 80 (ILC-UK, Hydration and older people in the UK, 2018); median 4 days for older patients still dehydrated at 48 hours (Age and Ageing 2014;43 suppl 1).",
+    "after_return": {
+      "falls_factor": 1.5,
+      "weeks": 2,
+      "changes": {
+        "serious_fall": { "walk_speed_factor": 0.8, "falls_risk_up": true, "personal_care_staff": 2, "weeks": null },
+        "chest_infection": { "walk_speed_factor": 0.9, "falls_risk_up": true, "weeks": 2 },
+        "uti": { "falls_risk_up": true, "weeks": 2 },
+        "dehydration": { "falls_risk_up": true, "weeks": 1 }
+      },
+      "note": "Care changes after a stay are modelling assumptions: a lasting loss of mobility after a fracture, a few weeks' weakness after an infection."
+    },
+    "end_of_life": {
+      "deaths_per_resident_year": 0.262,
+      "end_of_life_weight": 10,
+      "expected_days": [7, 28],
+      "final_days": 3,
+      "comfort_interval_mins": 60,
+      "check_interval_mins": 60,
+      "final_check_interval_mins": 30,
+      "note": "26.2% of care home residents died within a year (England and Wales cohort, plan-v2 base rates). Most deaths come through a planned end-of-life decline; the length of the decline and the final days are modelling assumptions. Checks hourly during the decline and every 30 minutes in the last days, as care plans usually step up comfort checks as death nears; a 30-minute check for the whole decline (up to four weeks) was missed at the same busy time most days (docs/10)."
+    },
+    "admission_weeks_after_death": [2, 6]
+  },
+  "later": {}
 }

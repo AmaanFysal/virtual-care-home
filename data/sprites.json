@@ -129,6 +129,28 @@
         }
       },
       "note": "drawn by tools/characters/zimmer.mjs; the generator has no walking frames"
+    },
+    "stick": {
+      "image": "sprites/overlays/stick.png",
+      "poses": [
+        "walk",
+        "stand"
+      ],
+      "frames": {
+        "north": {
+          "index": 0
+        },
+        "west": {
+          "index": 1
+        },
+        "south": {
+          "index": 2
+        },
+        "east": {
+          "index": 3
+        }
+      },
+      "note": "drawn by tools/characters/stick.mjs for anyone whose card says they use a walking stick; the generator's cane has no walking frames"
     }
   },
   "roles": {
@@ -141,9 +163,13 @@
       "female": "ext_agency_nurse",
       "male": "ext_agency_nurse"
     },
+    "resident": {
+      "female": "vis_pat",
+      "male": "vis_bernard"
+    },
     "main_building_carer": {
-      "female": "ext_night_float",
-      "male": "ext_night_float"
+      "female": "ext_main_carer",
+      "male": "ext_main_carer"
     },
     "paramedic": {
       "female": "ext_paramedic_f",
@@ -174,7 +200,8 @@
         "sit",
         "bed",
         "floor"
-      ]
+      ],
+      "overlay": "stick"
     },
     "res_arthur": {
       "name": "Arthur Pemberton",
@@ -716,6 +743,49 @@
       "name": "Paramedic (female)",
       "group": "extra",
       "sheet": "sprites/characters/ext_paramedic_f.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "res_kamala": {
+      "name": "Kamala Shah",
+      "group": "resident",
+      "sheet": "sprites/characters/res_kamala.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit",
+        "bed",
+        "floor"
+      ],
+      "overlay": "stick"
+    },
+    "vis_hema": {
+      "name": "Hema Mistry",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_hema.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "vis_kiran": {
+      "name": "Kiran Mistry",
+      "group": "visitor",
+      "sheet": "sprites/characters/vis_kiran.png",
+      "poses": [
+        "walk",
+        "stand",
+        "sit"
+      ]
+    },
+    "ext_main_carer": {
+      "name": "Nikos Georgiou",
+      "group": "extra",
+      "sheet": "sprites/characters/ext_main_carer.png",
       "poses": [
         "walk",
         "stand",

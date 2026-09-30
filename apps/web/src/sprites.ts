@@ -1,7 +1,7 @@
 // Which LPC character sheet draws each person, from data/sprites.json (written by
 // tools/characters/import.mjs). Display only: nothing here affects the simulation.
 
-import type { PersonView } from "@vch/shared-types";
+import { spriteIdFor as sharedSpriteIdFor, type PersonView } from "@vch/shared-types";
 import manifest from "../../../data/sprites.json";
 
 export type Pose = "walk" | "stand" | "sit" | "bed" | "floor";
@@ -13,7 +13,8 @@ export interface SpriteEntry {
   poses: Pose[];
   /** "wheelchair": sit using the wheelchair block (Raj). */
   sit?: "wheelchair";
-  overlay?: "zimmer";
+  /** A walking aid drawn over the walk and stand frames (from the card: zimmer or walking stick). */
+  overlay?: "zimmer" | "stick";
   scale?: number;
 }
 
@@ -27,18 +28,12 @@ export const sprites = manifest as unknown as {
   people: Record<string, SpriteEntry>;
 };
 
-/**
- * The sprite id for a person: their own sheet if they have one (residents, staff, visitors, the
- * floating night carer, the on-call nurse), otherwise one chosen by staff role and gender (agency
- * staff, whose ids are made up when they're booked, and the paramedics).
- */
-export function spriteIdFor(view: Pick<PersonView, "id" | "gender" | "role">): string | null {
-  if (sprites.people[view.id]) return view.id;
-  const byRole = view.role ? sprites.roles[view.role] : undefined;
-  return byRole ? byRole[view.gender] : null;
+/** The sprite id for a person (shared with the audit's clash check, docs/08). */
+export function spriteIdFor(view: Pick<PersonView, "id" | "gender" | "role"> & { kind?: PersonView["kind"] }): string | null {
+  return sharedSpriteIdFor(sprites, view);
 }
 
-export function spriteFor(view: Pick<PersonView, "id" | "gender" | "role">): SpriteEntry | null {
+export function spriteFor(view: Pick<PersonView, "id" | "gender" | "role"> & { kind?: PersonView["kind"] }): SpriteEntry | null {
   const id = spriteIdFor(view);
   return id ? sprites.people[id]! : null;
 }

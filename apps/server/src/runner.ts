@@ -96,7 +96,7 @@ export class Runner {
 
   connect(client: Client): () => void {
     this.clients.add(client);
-    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director });
+    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.sim.world.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director });
     return () => this.clients.delete(client);
   }
 
@@ -170,9 +170,10 @@ export class Runner {
     const person = this.sim.world.people.get(personId);
     if (!person) return null;
     const persona =
-      this.data.residents.find((r) => r.id === personId) ??
-      this.data.staff.find((s) => s.id === personId) ??
-      this.data.visitors.find((v) => v.id === personId) ??
+      // The run's own data: it includes anyone who has moved in since the start (docs/10).
+      this.sim.world.data.residents.find((r) => r.id === personId) ??
+      this.sim.world.data.staff.find((s) => s.id === personId) ??
+      this.sim.world.data.visitors.find((v) => v.id === personId) ??
       { name: person.name, note: "Generated agency worker" };
     const schedule: { t: number; label: string }[] = [];
     const shift = person.staff?.shift;
@@ -180,7 +181,7 @@ export class Runner {
       schedule.push({ t: shift.startT, label: `${shift.shift} shift starts (${shift.slot})` });
       schedule.push({ t: shift.endT, label: `${shift.shift} shift ends` });
     }
-    const resident = this.data.residents.find((r) => r.id === personId);
+    const resident = this.sim.world.data.residents.find((r) => r.id === personId);
     if (resident) {
       const dayStart = this.sim.t - (this.sim.t % 86400);
       const at = (clock: string | null, label: string) => clock && schedule.push({ t: dayStart + clockToSeconds(clock), label });

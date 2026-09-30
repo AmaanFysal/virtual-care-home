@@ -39,7 +39,7 @@ export interface PersonView {
   infection?: { disease: "norovirus" | "flu"; status: "incubating" | "symptomatic" | "recovering"; isolated: boolean };
   /** Residents: their bed point, and where they are if off the wing. */
   bedId?: string;
-  away?: "hospital" | null;
+  away?: "hospital" | "died" | null;
 }
 
 export interface ClockView {
@@ -66,6 +66,8 @@ export interface DirectorView {
   mode: "off" | "random" | "scenario" | "both";
   scenario: { id: string; name: string; description: string } | null;
   deaths: boolean;
+  /** Reviewed admission cards that can move in (id and name). */
+  admissions?: { id: string; name: string }[];
 }
 
 export type ServerMessage =

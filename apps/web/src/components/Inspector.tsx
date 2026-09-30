@@ -98,7 +98,7 @@ export function Inspector() {
         </button>
       </header>
       <p className="status">
-        {person.onMap ? `${person.posture.replace("_", " ")} in ${person.roomId ?? "the wing"}` : person.away === "hospital" ? "In hospital" : "Not on the wing"}
+        {person.onMap ? `${person.posture.replace("_", " ")} in ${person.roomId ?? "the wing"}` : person.away === "hospital" ? "In hospital" : person.away === "died" ? "Died" : "Not on the wing"}
         {detail?.currentTask && <> · {detail.currentTask}</>}
         {detail?.btNode && <span className="muted"> ({detail.btNode})</span>}
       </p>

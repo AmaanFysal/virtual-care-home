@@ -209,8 +209,8 @@ export class WingRenderer {
       const s = tileset.icons.size;
       this.icons.set(name as IconName, new Texture({ source: icons.source, frame: new Rectangle(i * s, 0, s, s) }));
     });
-    const zimmer = sprites.overlays.zimmer;
-    if (zimmer) this.sheets.set("overlay:zimmer", await Assets.load<Texture>(`/${zimmer.image}`));
+    // Walking aids the generator has no frames for: Peggy's zimmer, Win's and Kamala's sticks.
+    for (const [name, o] of Object.entries(sprites.overlays)) this.sheets.set(`overlay:${name}`, await Assets.load<Texture>(`/${o.image}`));
     return images;
   }
 
@@ -288,7 +288,8 @@ export class WingRenderer {
     if (!this.plan || !this.banding) return;
     for (const child of [...this.labels.children]) if (child.label === "away") child.destroy();
     for (const p of Object.values(people)) {
-      if (p.onMap || !p.away || !p.bedId) continue;
+      // Only a stay in hospital is labelled; after a death the room is simply empty.
+      if (p.onMap || p.away !== "hospital" || !p.bedId) continue;
       const bed = this.plan.points.find((pt) => pt.id === p.bedId);
       if (!bed) continue;
       const label = new Text({ text: `${p.initials}\nIN HOSPITAL`, style: { fontFamily: "ui-monospace, Menlo, monospace", fontSize: 8, fontWeight: "700", fill: 0xffffff, align: "center", stroke: { color: 0xb23b3b, width: 3 } }, resolution: 4 });
@@ -417,7 +418,8 @@ export class WingRenderer {
         const cycle = L.walk!.cycle!;
         const frame = moving ? cycle[Math.floor(fig.walked / STRIDE_PX) % cycle.length]! : L.stand!.frame!;
         fig.body.texture = this.frameTexture(sheet, frame * FRAME, (L.walk!.row! + dirRow) * FRAME);
-        // Peggy's zimmer frame, under her when she faces away.
+        // A walking aid on every walk and stand frame: Peggy's zimmer (under her when she faces
+        // away), or a stick for anyone whose card says they use one.
         const overlay = entry.overlay ? sprites.overlays[entry.overlay] : undefined;
         const tex = this.sheets.get(`overlay:${entry.overlay}`);
         if (overlay && tex) {

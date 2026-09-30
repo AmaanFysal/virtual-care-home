@@ -77,6 +77,8 @@ function wanted(world: World, p: Person, sessionDay: boolean): Want | null {
   if (!prefs) return null;
   // Isolated with an infection, or the Lounge closed for an outbreak (docs/10): they stay in their room.
   if (isIsolated(p) || outbreakOn(world)) return "room";
+  // Ill, or at the end of their life (docs/10): resting in their room.
+  if (res.illness || res.endOfLife) return "room";
   const tod = timeOfDay(world.t);
   const session = sessionDay && tod >= TIMES.sessionGo && tod < TIMES.sessionUntil;
   const lunch = prefs.lunch && tod >= (sessionDay ? TIMES.sessionUntil : TIMES.lunchGo) && tod < TIMES.lunchUntil;

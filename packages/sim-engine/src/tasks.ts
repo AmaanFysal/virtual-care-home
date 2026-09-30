@@ -679,6 +679,8 @@ export function decideStaff(world: World): void {
     const s = p.staff!;
     // Office and reception staff take lunch too; they don't cover the floor, so no cover check.
     if (s.duty !== "on_shift" || !idleOrFree(world, p) || !s.shift?.started) continue;
+    // A handover's floor cover stays on the floor until it's done: no break starts or resumes.
+    if (isCareStaff(p) && coveringHandover(world, p)) continue;
     if (s.pausedBreakId) {
       const paused = world.tasks.get(s.pausedBreakId)!;
       // A day break cut short (for a fall) resumes only once someone else covers the floor, as

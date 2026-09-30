@@ -1,0 +1,21 @@
+{
+  "id": "res_kamala",
+  "name": "Kamala Shah",
+  "group": "resident",
+  "note": "85, walking stick (drawn by the sim as an overlay); draft admission",
+  "hash": {
+    "sex": "female",
+    "body": "Body_Color_taupe",
+    "head": "Human_Female_Elderly_taupe",
+    "expression": "Neutral_taupe",
+    "eyes": "Eye_Color_brown",
+    "wrinkles": "Wrinkles_taupe",
+    "hair": "Bangs_bun_gray",
+    "facial_eyes": "Glasses_gold",
+    "clothes": "Cardigan_all.lpcr.dove",
+    "neck": "Scarf_all.lpcr.lavender",
+    "legs": "Pantaloons_all.lpcr.lavender",
+    "shoes": "Basic_Shoes_brown"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=female&body=Body_Color_taupe&head=Human_Female_Elderly_taupe&expression=Neutral_taupe&eyes=Eye_Color_brown&wrinkles=Wrinkles_taupe&hair=Bangs_bun_gray&facial_eyes=Glasses_gold&clothes=Cardigan_all.lpcr.dove&neck=Scarf_all.lpcr.lavender&legs=Pantaloons_all.lpcr.lavender&shoes=Basic_Shoes_brown"
+}

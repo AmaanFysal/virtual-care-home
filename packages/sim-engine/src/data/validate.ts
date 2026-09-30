@@ -401,6 +401,7 @@ function validateRota(data: WorldData, errors: string[]): void {
   if (!rota.night_float.id.startsWith("ext_")) errors.push("rota: night_float id should start with \"ext_\"");
   if (rota.night_float.gender !== "female") errors.push("rota: night_float covers Peggy's female-only care, so must be female");
   for (const t of rota.night_float.rounds) checkClock(t, "rota night_float", errors);
+  if (!rota.main_building_carer.id.startsWith("ext_")) errors.push("rota: main_building_carer id should start with \"ext_\"");
 
   const onDuty = (day: RotaDay) => [day.early.lead, day.early.ca, day.late.lead, day.late.ca, day.night.carer, day.rn_day.nurse];
 

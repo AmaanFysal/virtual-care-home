@@ -64,23 +64,26 @@ function visitorsOf(world: World): Person[] {
  * days left in that week count. Phase 3's director can cancel a visitor's week with a cause.
  */
 export function planWeek(world: World, fromDay: number): void {
+  for (const p of visitorsOf(world).sort((a, b) => a.id.localeCompare(b.id))) planVisitorWeek(world, p, fromDay);
+}
+
+/** One lead visitor's days this week (also for the family of a resident who moves in mid-week). */
+export function planVisitorWeek(world: World, p: Person, fromDay: number): void {
   const rng = world.rng.visitors;
   const monday = fromDay - (fromDay % 7);
-  for (const p of visitorsOf(world).sort((a, b) => a.id.localeCompare(b.id))) {
-    const v = p.visitor!;
-    if (v.leadId) continue; // companions come when their lead does
-    const pattern = v.data.visit_pattern;
-    const days = pattern.days.map((d) => monday + WEEKDAYS.indexOf(d)).sort((a, b) => a - b);
-    const exact = pattern.reliability * days.length;
-    const quota = Math.floor(exact) + (rng.next() < exact - Math.floor(exact) ? 1 : 0);
-    // Pick `quota` of the pattern days (a seeded shuffle), then keep those not already past.
-    const shuffled = [...days];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = rng.int(0, i);
-      [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-    }
-    v.weekDays = shuffled.slice(0, quota).filter((d) => d >= fromDay).sort((a, b) => a - b);
+  const v = p.visitor!;
+  if (v.leadId) return; // companions come when their lead does
+  const pattern = v.data.visit_pattern;
+  const days = pattern.days.map((d) => monday + WEEKDAYS.indexOf(d)).sort((a, b) => a - b);
+  const exact = pattern.reliability * days.length;
+  const quota = Math.floor(exact) + (rng.next() < exact - Math.floor(exact) ? 1 : 0);
+  // Pick `quota` of the pattern days (a seeded shuffle), then keep those not already past.
+  const shuffled = [...days];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = rng.int(0, i);
+    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
   }
+  v.weekDays = shuffled.slice(0, quota).filter((d) => d >= fromDay).sort((a, b) => a - b);
 }
 
 /** Plans today's visits from the weekly quota. Leads first, so companions can see whether their lead is coming. */
@@ -91,6 +94,21 @@ export function planVisits(world: World, day: number, fromT: number): void {
   for (const p of people) {
     const v = p.visitor!;
     const pattern = v.data.visit_pattern;
+    const resident = world.people.get(v.residentId)!.resident!;
+    if (resident.away === "died") continue; // their family no longer visits
+    // At the end of their life (docs/10) the family comes every day, later and for longer.
+    const endOfLife = !!resident.endOfLife;
+    if (endOfLife && !v.leadId && v.phase === "home") {
+      if (rng.next() >= Math.min(0.95, pattern.reliability + 0.5)) continue;
+      const [from, to] = pattern.time_window.split("-").map(clockToSeconds) as [number, number];
+      const later = Math.min(from + 2 * 3600, 18 * 3600);
+      const arriveT = day * SECONDS_PER_DAY + later + rng.int(0, Math.max(0, (Math.min(to + 3 * 3600, 20 * 3600) - later) / 60)) * 60;
+      const durationMins = Math.round(pattern.duration_mins * 1.5 * (0.8 + rng.next() * 0.4));
+      if (arriveT < fromT) continue;
+      Object.assign(v, { phase: "outside", arriveT, durationMins, visitStartT: null, stepT: null });
+      emit(world, "visit.planned", [p.id, v.residentId], { visitorId: p.id, residentId: v.residentId, arriveT, durationMins });
+      continue;
+    }
     if (!pattern.days.includes(weekday) || v.phase !== "home") continue;
     // Leads visit on their quota days; a companion comes along with the given probability.
     if (v.leadId ? rng.next() >= pattern.reliability : !v.weekDays.includes(day)) continue;

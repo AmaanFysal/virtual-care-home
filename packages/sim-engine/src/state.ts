@@ -15,9 +15,12 @@ import type {
   Resident,
   ShiftName,
   DayType,
+  AdmissionCard,
   DirectorConfig,
   DirectorSettings,
   Disease,
+  HospitalCause,
+  IllnessKind,
   InputPayloads,
   InputType,
   SimInput,
@@ -143,9 +146,25 @@ export interface ResidentState {
   /** Post-fall observations: checks every 30 minutes until this time. */
   postFallUntil: number;
   /** Off the wing (conveyed to hospital); the bed is kept. */
-  away: "hospital" | null;
-  /** When they come back from hospital (3 to 10 days after conveyance). */
+  away: "hospital" | "died" | null;
+  /** When they come back from hospital, and why they went (sets the stay and what changes after). */
   returnT: number | null;
+  leftForHospitalT: number | null;
+  hospitalCause: HospitalCause | null;
+  /** Falls risk is raised until then (back from hospital, docs/10). */
+  recentReturnUntil: number;
+  /** An illness (docs/10): mild (rest in their room, extra checks, fluids pushed) or severe (GP, then hospital). */
+  illness: { kind: IllnessKind; severity: "mild" | "severe"; startT: number; endT: number; gpT: number | null; checkMins: number } | null;
+  /**
+   * Changes to their care profile, applied to their card in this run (`data`) and ended at `untilT`
+   * (null: lasting). Walking speed, falls risk and staff for personal care are always the values
+   * before the first change (`careBase`) with every change still on applied, so changes that
+   * overlap end in any order.
+   */
+  overrides: { reason: string; changes: string[]; untilT: number | null; ended: boolean; effect: { speedFactor?: number; fallsUp?: boolean; twoStaff?: boolean } }[];
+  careBase: { speed: number; fallsRisk: Resident["mobility"]["falls_risk"]; personalCareStaff: 1 | 2 } | null;
+  /** Their end-of-life decline: death is expected at `deathT`; from `finalFromT` they're in bed on comfort care. */
+  endOfLife: { startT: number; deathT: number; finalFromT: number; final: boolean; checkMins: number } | null;
   /** Last time a member of staff saw them (a check or any care with them). */
   lastCheckedT: number;
   lastToiletT: number;
@@ -163,7 +182,7 @@ export interface FloatState {
   planned: boolean;
 }
 
-export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "self_move" | "care" | "round" | "med_round" | "fall" | "let_in" | "idle" | "lounge_check";
+export type TaskKind = "assist" | "handover" | "briefing" | "break" | "self_toilet" | "self_move" | "care" | "round" | "med_round" | "fall" | "let_in" | "idle" | "lounge_check" | "hospital_transfer";
 
 /** A visitor's progress through a visit (docs/05 "Visiting"). */
 export interface VisitorState {
@@ -335,6 +354,10 @@ export interface World {
   director: DirectorState | null;
   /** data/director.json: used by the director and by the rules it triggers (cover, infection), also when it's off. */
   config: DirectorConfig | null;
+  /** New residents' cards (data/personas/admissions.json); only reviewed ones move in. */
+  admissions: AdmissionCard[];
+  /** Deaths and end-of-life decline happen (off for the public demo). */
+  deaths: boolean;
   /** Symptom onsets by disease (outbreak detection), and outbreaks declared so far. */
   onsets: { personId: string; disease: Disease; t: number; symptomsEndT: number }[];
   outbreaks: Outbreak[];

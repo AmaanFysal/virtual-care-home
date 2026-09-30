@@ -2,7 +2,7 @@
 
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { DirectorConfig, Scenario, WorldData } from "@vch/shared-types";
+import type { AdmissionCard, DirectorConfig, Scenario, SpriteChoice, WorldData } from "@vch/shared-types";
 
 const dataDir = fileURLToPath(new URL("../../../data/", import.meta.url));
 
@@ -24,6 +24,16 @@ export function loadWorldData(): WorldData {
 /** data/director.json: the director's base rates and pacing (docs/10). */
 export function loadDirectorConfig(): DirectorConfig {
   return read("director.json");
+}
+
+/** New residents' cards (data/personas/admissions.json); only reviewed ones are used. */
+export function loadAdmissions(): AdmissionCard[] {
+  return read<{ cards: AdmissionCard[] }>("personas/admissions.json").cards;
+}
+
+/** data/sprites.json: which sheet draws each person (for the audit's check that nobody on screen shares one). */
+export function loadSprites(): SpriteChoice {
+  return read("sprites.json");
 }
 
 /** A scenario by id (data/scenarios/<id>.json) or by path. */

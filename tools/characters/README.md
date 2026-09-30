@@ -12,6 +12,8 @@ This folder has everything needed to regenerate the set from the repo:
 | `specs/<personId>/` | Each character's generator JSON export (`character.json`) and selection hash (`info.json`). |
 | `animations.json` | Frame size, rows and cycles for walk, run, idle and emote. |
 | `zimmer.mjs` | Draws Peggy's zimmer frame overlay (the generator has none). |
+| `stick.mjs` | Draws the walking-stick overlay for everyone whose card says they use one (Win, Kamala). |
+| `png.mjs` | The PNG writer both overlays use. |
 | `import.mjs` | Copies generated sheets into the app and rebuilds `data/sprites.json` and `CREDITS.md`. |
 
 ## Regenerating
@@ -25,7 +27,8 @@ node generate.mjs              # writes tools/characters/out/NN_<personId>/ (ign
 node audit.mjs && node anicheck.mjs
 cd ../../..
 node tools/characters/import.mjs   # or: node tools/characters/import.mjs /path/to/characters
-node tools/characters/zimmer.mjs   # only if the overlay changes
+node tools/characters/zimmer.mjs   # only if an overlay changes
+node tools/characters/stick.mjs
 ```
 
 The scripts write to `tools/characters/out/` unless `VCH_CHARACTERS_DIR` is set.
@@ -33,7 +36,7 @@ The scripts write to `tools/characters/out/` unless `VCH_CHARACTERS_DIR` is set.
 ## How the app uses them
 
 `data/sprites.json` gives the sheet layout (64 × 64 frames, rows north, west, south, east), each person's sheet and poses, and the render workarounds:
-- Peggy's zimmer overlay on her walk and stand frames;
+- Peggy's zimmer overlay on her walk and stand frames, and a walking stick for everyone whose card's `mobility.aid` says so (Win, Kamala);
 - Arjun and Priya drawn at 80% (the generator's child body lacks run, idle and emote art);
 - Raj's wheelchair block for sitting only;
 - the hurt row's last frame for a resident on the floor after a fall.

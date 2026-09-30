@@ -7,6 +7,7 @@ import {
   dayIndex,
   type AnySimEvent,
   type PersonView,
+  type AdmissionCard,
   type DirectorConfig,
   type DirectorSettings,
   type Resident,
@@ -23,6 +24,7 @@ import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } fro
 import { floatMinute } from "./float.js";
 import { breachCause, checkInvariants, checkServiceTargets, staffBusyCause } from "./invariants.js";
 import { noteLoungeSupervision } from "./lounge.js";
+import { healthMinute } from "./health.js";
 import { infectionMinute } from "./infection.js";
 import { initialNeeds, noAppetite, residentsMinute } from "./needs.js";
 import { createStreams, hashString } from "./rng.js";
@@ -44,6 +46,10 @@ export interface SimOptions {
    * a manual infection case from the admin panel. Ignored when `director` is given (its config is used).
    */
   config?: DirectorConfig;
+  /** New residents' cards (data/personas/admissions.json); only reviewed ones move in. */
+  admissions?: AdmissionCard[];
+  /** Deaths and end-of-life decline (off for the public demo); `director.deaths` wins when given. Default on. */
+  deaths?: boolean;
 }
 
 export interface Sim {
@@ -60,7 +66,7 @@ export interface Sim {
   readonly world: World;
 }
 
-function residentPerson(r: Resident, world: World): Person {
+export function residentPerson(r: Resident, world: World): Person {
   const bed = world.points.get(r.room)!;
   const name = `${r.name.known_as} ${r.name.last}`;
   return {
@@ -103,6 +109,13 @@ function residentPerson(r: Resident, world: World): Person {
       postFallUntil: 0,
       away: null,
       returnT: null,
+      leftForHospitalT: null,
+      hospitalCause: null,
+      recentReturnUntil: 0,
+      illness: null,
+      overrides: [],
+      careBase: null,
+      endOfLife: null,
       // Night checks already on schedule at the start (spec decision 13).
       lastCheckedT: world.startT - world.rng.needs.int(0, Math.floor(r.care.check_interval_mins.night / 2)) * 60,
       lastToiletT: world.startT - 60 * 60,
@@ -122,7 +135,10 @@ export function dataVersion(data: WorldData): string {
 }
 
 export function createSim(options: SimOptions): Sim {
-  const { seed, data } = options;
+  const { seed } = options;
+  // The run keeps its own copy: residents can join (admissions) and their cards change (care
+  // overrides after a hospital stay) without touching the caller's data.
+  const data: WorldData = structuredClone(options.data);
   const startT = options.startT ?? DEFAULT_START_T;
   if (startT % 60 !== 0) throw new Error("startT must be on a minute boundary");
   const errors = validateData(data);
@@ -164,6 +180,8 @@ export function createSim(options: SimOptions): Sim {
     inputs: [],
     director: null,
     config: options.director?.config ?? options.config ?? null,
+    admissions: structuredClone(options.admissions ?? []),
+    deaths: options.director?.deaths ?? options.deaths ?? true,
     onsets: [],
     outbreaks: [],
     absences: [],
@@ -220,6 +238,7 @@ export function createSim(options: SimOptions): Sim {
         rotaMinute(world);
         if (world.director && world.t % 86400 === 0) planDirectorDay(world, world.t);
         infectionMinute(world);
+        healthMinute(world);
         residentsMinute(world);
         careMinute(world);
         medsMinute(world);

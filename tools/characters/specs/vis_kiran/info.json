@@ -1,0 +1,18 @@
+{
+  "id": "vis_kiran",
+  "name": "Kiran Mistry",
+  "group": "visitor",
+  "note": "24, Kamala's grandson",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_taupe",
+    "head": "Human_Male_taupe",
+    "expression": "Neutral_taupe",
+    "eyes": "Eye_Color_brown",
+    "hair": "Side_Swoop_black",
+    "clothes": "Longsleeve_2_charcoal",
+    "legs": "Pants_blue",
+    "shoes": "Revised_Shoes_white"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_taupe&head=Human_Male_taupe&expression=Neutral_taupe&eyes=Eye_Color_brown&hair=Side_Swoop_black&clothes=Longsleeve_2_charcoal&legs=Pants_blue&shoes=Revised_Shoes_white"
+}

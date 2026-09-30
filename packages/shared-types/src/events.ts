@@ -1,7 +1,7 @@
 // Event and input schema. See docs/07-events-and-persistence.md for the catalogue and rules.
 
 import type { ShiftName } from "./data.js";
-import type { AbsenceReason, CoverChoice, DayType, Disease } from "./director.js";
+import type { AbsenceReason, CoverChoice, DayType, Disease, HospitalCause, IllnessKind } from "./director.js";
 
 /** Who caused a change. Constitution rule 5. */
 export type Source = "engine" | "director" | "user" | "llm" | "external";
@@ -88,11 +88,23 @@ export interface EventPayloads {
   "fall.rn_called": { residentId: string; staffId: string; onCall: boolean };
   "fall.assessed": { residentId: string; by: string; outcome: "cleared_to_move" | "wait_for_ambulance" };
   "fall.lifted": { residentId: string; staffIds: string[]; to: string };
-  "ambulance.called": { residentId: string; staffId: string };
+  "ambulance.called": { residentId: string; staffId: string; cause?: HospitalCause };
   "paramedics.arrived": { residentId: string };
-  "resident.conveyed_to_hospital": { residentId: string };
-  /** Back from hospital to their own bed after 3 to 10 days, with their care profile as before. */
-  "resident.returned_from_hospital": { residentId: string; daysAway: number };
+  "resident.conveyed_to_hospital": { residentId: string; cause?: HospitalCause };
+  /** Back from hospital to their own bed (how long depends on why they went, docs/10). */
+  "resident.returned_from_hospital": { residentId: string; daysAway: number; cause?: HospitalCause };
+  /** A change to a resident's care profile (e.g. after a hospital stay), kept as an override of their card. */
+  "resident.care_changed": { residentId: string; reason: string; changes: string[]; untilT: number | null };
+  /** An illness looked after in the home (mild) or needing the GP and hospital (severe). */
+  "illness.started": { residentId: string; kind: IllnessKind; severity: "mild" | "severe" };
+  "illness.recovered": { residentId: string; kind: IllnessKind };
+  "gp.consulted": { residentId: string; kind: IllnessKind; outcome: "admit" | "treat_at_home" };
+  /** Their end-of-life care begins (docs/10): more comfort care, family visiting more and later. */
+  "end_of_life.started": { residentId: string; expectedDays: number };
+  /** Recorded quietly: their family is told and their room is left empty for now. */
+  "resident.died": { residentId: string; roomId: string };
+  /** A new resident moves in (data/personas/admissions.json). */
+  "resident.admitted": { residentId: string; roomId: string; cardId: string };
   /** Post-fall observations are over (the resident's "obs" badge clears). */
   "fall.observations_ended": { residentId: string };
   "family.informed": { residentId: string; visitorId: string; staffId: string; reason: string };
@@ -194,6 +206,12 @@ export interface InputPayloads {
   shift_no_show: { slot: string; cover?: CoverChoice };
   /** Someone falls ill with an infection brought in from outside (symptoms now); it may spread (docs/10). */
   infection_case: { personId: string; disease: Disease };
+  /** A resident falls ill (docs/10): mild (looked after at home) or severe (GP, then hospital). */
+  resident_illness: { residentId: string; kind: IllnessKind; severity: "mild" | "severe" };
+  /** Their end-of-life decline begins; they die after about `expectedDays` (skipped when deaths are off). */
+  end_of_life_start: { residentId: string; expectedDays: number };
+  /** A new resident moves into an empty room (a reviewed card from data/personas/admissions.json). */
+  admission: { cardId: string };
 }
 
 export type InputType = keyof InputPayloads;

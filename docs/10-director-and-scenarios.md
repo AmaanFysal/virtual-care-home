@@ -5,9 +5,10 @@
 > Status: **Phase 2** (moved before LLM minds on 2026-09-30, [ADR-0005](adr/0005-scenario-director-before-llm-minds.md)).
 > - Sub-milestone (a) is built: the director core, falls, sick calls and no-shows, scenario files, the admin panel, the Notable feed and the per-day report.
 > - Sub-milestone (b) is built: infection state, spread through pluggable routes, isolation, outbreaks and the two outbreak scenarios.
-> - Sub-milestones (c) to (e) are designed below.
+> - Sub-milestone (c) is built: illness, hospital stays by cause with care changes after, end of life, death and new admissions.
+> - Sub-milestones (d) and (e) are designed below.
 >
-> Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
+> Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`, `src/health.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
 
 ## How it works
 
@@ -39,12 +40,12 @@ Rates are for six residents. Every number is in `data/director.json`.
 
 | # | Event (input) | Base rate | Context modifiers | Rule | Status |
 |---|---|---|---|---|---|
-| 1 | Fall (`inject_fall`) | 1.249 per resident a year (1,249 per 1,000 residents; plan-v2), about 7.5 a year on the wing. 12% serious (a major event) | Hour weights with a morning peak (06:00 to 10:00). ×1.5 for 4 h from a sundowning resident's onset: this moves their falls to dusk rather than adding more. Falls risk high ×2, medium ×1, low ×0.3, bed-bound ×0.1: these share out the wing's rate rather than adding to it. ×1.3 during a shift with a planned absence. Later: ×1.5 for 2 weeks after a hospital return, and while ill | The fall procedure, unchanged | (a) built |
+| 1 | Fall (`inject_fall`) | 1.249 per resident a year (1,249 per 1,000 residents; plan-v2), about 7.5 a year on the wing. 12% serious (a major event) | Hour weights with a morning peak (06:00 to 10:00). ×1.5 for 4 h from a sundowning resident's onset: this moves their falls to dusk rather than adding more. Falls risk high ×2, medium ×1, low ×0.3, bed-bound ×0.1: these share out the wing's rate rather than adding to it. ×1.3 during a shift with a planned absence. ×1.5 while ill, and ×1.5 for 2 weeks after a hospital return (these add falls) | The fall procedure, unchanged | (a) built; illness and return factors (c) |
 | 2 | Sick call (`staff_sick {staffId, cover?}`) and agency no-show (`shift_no_show {slot, cover?}`) | Each rostered shift in a care or RN slot: the staff card's `sickness_propensity` (about 1.2 calls a week); each agency shift 2%. Winter (Nov to Mar) ×1.3 | The call comes 30 to 60 min before the shift; a no-show is found at the shift start | The cover rule (below) | (a) built |
 | 3 | Visitor misses a week (`visitor_week_off {visitorId, cause}`) | With the director on, the weekly quota uses every pattern day; absences come from here at 1 − reliability per visitor-week | Holidays in summer and at Christmas; illness in winter | That week's visits cancelled, with the cause logged | (d) |
-| 4 | Illness (`resident_illness`), hospital admission, return (`hospital_return`) | About 3 to 6 unplanned admissions a year: a **placeholder**, to be sourced before (c) | Winter ×1.5; frailty; after a fall | Mild: rest in bed or room, extra checks, fluids pushed, falls ×1.5. Severe: GP, ambulance and conveyance. Return after 3 to 10 days with care-profile changes, stored as overrides in resident state (not by editing the cards) | (c) |
+| 4 | Illness (`resident_illness {residentId, kind, severity}`), hospital admission and return | 0.70 unplanned admissions per resident a year (Health Foundation 2019), 4.2 a year on the wing: serious falls plus severe illness. About 5 more illnesses a year looked after at home | Chest infections ×1.5 in winter | Mild: rest in their room, hourly checks, drinks at every contact, falls ×1.5. Severe: GP, then ambulance. A stay by cause, then care changes stored as overrides (see "Illness, hospital, end of life and admissions") | (c) built |
 | 5 | Infection (`infection_case {personId, disease}`) | Norovirus about 1 a winter, flu about 1 a winter | Season; visitors and new admissions can bring it in | Symptomatic residents isolated (care and meals in their room, no Lounge, +3 min per care visit for PPE); sick staff go off through the cover rule for 48 h after symptoms stop. Outbreak declared at 2 cases within 48 h (Lounge closed, essential visits only) and over after 48 h with no new case. **Spread through per-disease routes: contact, plus an airborne proxy (time in the same room as an infectious person, scaled by the disease's airborne weight, logged as "airborne (proxy)"), replaced later by the air model in the same slot** (see "Infection routes") | (b) built |
-| 6 | End of life (`end_of_life_start`), death, admission (`admission {cardId}`) | Deaths about 1 to 2 a year (26.2% within a year; plan-v2), mostly through a planned decline | — | Comfort care every 30 min, family visiting more, longer and into the evening; death at the planned time, handled with dignity (family informed, the room left empty, a quiet log). A new admission some weeks later from `data/personas/admissions.json`, reviewed by the project owner first. Off with `deaths: false` | (c) |
+| 6 | End of life (`end_of_life_start {residentId, expectedDays}`), death, admission (`admission {cardId}`) | 0.262 deaths per resident a year (26.2% within a year; plan-v2), 1.6 a year on the wing, through a planned decline of 7 to 28 days | A resident already on an end-of-life plan (Dennis) ×10 | Checks hourly (every 30 min in the last 3 days), family visiting every day, later and for longer; death at the planned time, handled with dignity (family informed, the room left empty, a quiet log). A new admission 2 to 6 weeks later from `data/personas/admissions.json`, reviewed by the project owner first. Off with `deaths: false` | (c) built |
 | 7 | Celebrations (`celebration {kind, residentId?}`) | Birthdays from each dob; festivals from faith (Christmas, Easter, Vaisakhi for Raj, …) | — | All the family visits, longer visits, tea and cake in the Lounge | (d) |
 
 ## The cover rule (sub-milestone a)
@@ -60,7 +61,7 @@ A sick call hits the staff member's next shift that hasn't started. A no-show hi
    - **Lead's slot:** a meds-trained agency senior, always found. Someone meds-trained must be on the wing.
    - **Other slots:** found with an 85% chance.
 3. **Nobody.** A day shift runs short (`rota.no_cover`).
-   - **Nights:** the wing is never left to the floating carer alone. A carer comes over from the main building, arriving 1 to 2 hours after the gap is known (`cover: "main_building"`, a Main-building Night Carer, drawn in the main-building uniform). The late carer (or the late lead) stays on only until she arrives (`cover: "stay_on"` with `untilT`), then goes home; nobody stays on overnight, and everyone else keeps 11 hours' rest. There's no evening handover; the main-building carer hands over at 07:00. The shift isn't counted as short.
+   - **Nights:** the wing is never left to the floating carer alone. Nikos Georgiou, the main building's cover carer (`rota.json` `main_building_carer`), comes over, arriving 1 to 2 hours after the gap is known (`cover: "main_building"`). He's the same person who's sent for when everyone is with a fallen resident, so while he covers a night he can't be sent for again, and if he's here for falls he stays on for the night. The late carer (or the late lead) stays on only until he arrives (`cover: "stay_on"` with `untilT`), then goes home; nobody stays on overnight, and everyone else keeps 11 hours' rest. There's no evening handover; the main-building carer hands over at 07:00. The shift isn't counted as short.
 
 The run logs `rota.cover_booked {slot, shift, forStaffId, cover, staffId, arriveT, untilT?}`. The cover rule draws from its own `cover` stream, so the director's daily plans don't shift when how cover plays out changes.
 
@@ -194,7 +195,7 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
   - **Who can catch it:** residents, staff and agency workers. Visitors and people from the main building aren't modelled.
 - **Isolation.** A resident with symptoms is isolated in their room (`infection.isolated`): care and meals there, no Lounge (someone in it is walked back), and 3 extra minutes for every visit (care, help, drinks and medication) for PPE. It ends with `infection.isolation_ended`.
 - **Staff.** A member of staff with symptoms goes home, and misses every shift until they're clear:
-  - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, the main-building night carer comes, and they stay until she's here.
+  - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, Nikos comes from the main building, and they stay until he's here.
   - **Taken ill off duty:** each shift before they're clear is a sick call, with cover.
 - **Outbreaks**, declared and ended per disease as UK guidance has it (`infection.outbreak` in `data/director.json`, with the citations):
 
@@ -225,9 +226,73 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
 | `norovirus-outbreak`, seeds 1 to 8, 3 weeks | 18 / 23 | 9: 3 to 14.4 (median about 7) | 19 | 0 |
 | `flu-outbreak` (Win, Tom, Arthur), seeds 1 to 8, 3 weeks | 18 / 25 (16 and 8 of them scripted) | 8: seven of 5 to 5.9, one of 12.6 | 23 | 0 |
 
+## Illness, hospital, end of life and admissions (sub-milestone c, built)
+
+Code: `src/health.ts`, and the planner's steps 5 and 6 (`director/plan.ts`). Tuning: `data/director.json` `health`, with the sources in its notes. It runs on its own `health` random stream, and only for residents it has started something for, so runs without it are unchanged.
+
+- **Hospital admissions: 0.70 per resident a year**, 4.2 a year on the wing. Source: the Health Foundation's [*Emergency admissions to hospital from care homes*](https://reader.health.org.uk/emergency-admissions-to-hospital-from-care-homes/background) (Improvement Analytics Unit, 2019), 0.70 a year for residential homes in England, 2016/17.
+  - Serious falls already make 1.249 × 12% = 0.15 of these per resident a year.
+  - The rest, 0.55, are severe illness. With 40% of illnesses severe (an assumption), that's 1.37 illnesses per resident a year: 0.55 to hospital and 0.82 looked after at home.
+  - Kinds: chest infection 55% (×1.5 in winter), UTI 30%, dehydration 15%.
+- **Length of stay by cause** (seeded, uniform over the range; back between 11:00 and 16:00):
+
+  | Cause | Days | Source |
+  |---|---|---|
+  | Serious fall or fracture | 11 to 25 | [NHFD](https://www.nhfd.co.uk/2024report): mean acute stay 16 days; [REDUCE](https://www.thelancet.com/journals/lanhl/article/PIIS2666-7568(23)00086-7/fulltext): median 20 for care-home residents |
+  | Chest infection | 5 to 12 | [BTS pneumonia audit](https://pubmed.ncbi.nlm.nih.gov/21502103/): median 5; Health Foundation: 8.9 on average from residential homes |
+  | UTI | 3 to 10 | UKHSA 2023–24 ([Care England briefing](https://www.careengland.org.uk/care-england-briefing-to-members-on-the-ukhsa-report-understanding-the-burden-of-uti-hospitalisations-in-england/)): mean 6.4 |
+  | Dehydration | 3 to 7 | [ILC-UK](https://ilcuk.org.uk/wp-content/uploads/2018/10/Hydration-and-older-people-in-the-UK-2.pdf): 4.6; [*Age and Ageing* 2014](https://academic.oup.com/ageing/article/43/suppl_1/i33/88638): median 4 |
+
+  A run without the tuning file (a fall injected by hand with no `config`) keeps the simple 3 to 10 days.
+- **Illness at home** (`illness.started`): **mild** means 3 to 7 days resting in their room (no Lounge), checks at least hourly, a drink offered at every contact, and falls ×1.5, then `illness.recovered`. **Severe** means the GP within 1 to 4 hours (`gp.consulted`), then an ambulance in 30 to 90 minutes (a `hospital_transfer` task at the bedside), conveyance with the cause, and the family told.
+- **Back from hospital:** `resident.returned_from_hospital {daysAway, cause}`. Care changes by cause are **overrides on the run's copy of the card**, never the data files, each logged as `resident.care_changed {reason, changes, untilT}`, and again when it ends. Walking speed, falls risk and staff for personal care are always the values before the first change with every change still on applied, so changes that overlap (two stays close together) end in any order:
+  - serious fall: walks 20% slower, falls risk up a level, two carers for personal care, for good;
+  - chest infection: 10% slower and falls risk up, 2 weeks;
+  - UTI: falls risk up, 2 weeks; dehydration: falls risk up, 1 week;
+  - and falls ×1.5 for 2 weeks after any return.
+- **End of life** (`end_of_life.started`): a decline of 7 to 28 days, one at a time and a major event. A resident already on an end-of-life plan (Dennis) is 10 times likelier to be the one.
+  - **Decline:** checks every **60 minutes**; the family visits every day (with their usual chance plus 0.5, up to 95%), later (from 2 hours after their usual window opens to 3 hours after it closes, until 20:00) and for 1.5 times as long.
+  - **The last 3 days:** in bed, pads changed in bed (turns include a change) and no call bell, as on Dennis's card; comfort care (mouth care and sips) hourly, checks every **30 minutes**, turned 2-hourly from when they're settled (`resident.care_changed`).
+  - **Why 60 then 30** (project owner, 2026-09-30): the design first had 30-minute checks for the whole decline. In the 12-week runs that was missed at the same busy time most days (Dennis about 09:15, Arthur about 20:30), about 60 breaches, for weeks on end. Hourly comfort checks during a decline, stepped up as death nears, is closer to usual care-home practice, and the extra checks go where they matter most.
+  - **Death** at the planned time (`resident.died`), once any care in progress is finished: the family is told ("died peacefully"), CQC Regulation 16 is flagged, the room is left empty and nobody is woken or moved. The Notable feed has one quiet line ("Dennis died peacefully. Their family have been told."), not an alert. Their visitors stop coming, and their tasks are closed. The handover summary leaves them out.
+- **Admissions** (`resident.admitted`): 2 to 6 weeks after a death, at 13:00 to 16:00, the next **reviewed** card in `data/personas/admissions.json` moves into the first empty room (a draft card is skipped with the reason).
+  - The room is set up for them: a bedside chair for someone who sits out, a wheelchair spot for a hoist user, neither for someone bed-bound; what the last resident had and they don't need goes (Raj's wheelchair spot).
+  - The card is validated like any resident against the wing as it is now, before anything changes.
+  - They arrive in their chair (or bed), with checks, meals and medication from their card. Their family join the visitors and start visiting from that week.
+  - The first card, Kamala Shah, was reviewed on 2026-09-30.
+- **Pacing:** severe illness, an end-of-life start and an admission are major events. The planner uses each resident's current state: someone in hospital or who has died isn't planned for; someone ill or at the end of life gets no new illness; someone ill or back within 2 weeks has falls ×1.5; someone in their last days is bed-bound (falls ×0.1).
+- **Breach causes:** "end-of-life care (Dennis): checks every 60 min", "illness (Arthur): checks every 60 min".
+- **Everywhere else a resident joining or leaving mid-run shows:** the inspector ("In hospital", "Died"), sprites (a stand-in by gender), handovers, visitor links, the Notable feed, the Director tab (illness, end-of-life and admission triggers), the audit and the reports.
+
+**Results (2026-09-30):** realised rates from the planner alone (`director-rates`, seeds 1 to 8, 200 years each; `reports/c-realised-rates.txt`):
+
+| Event | Realised a year | Base | Difference |
+|---|---|---|---|
+| Hospital admissions (serious falls plus severe illness) | 3.99 | 4.20 | −5.1% (the major-event caps hold back 0.17 severe illnesses a year) |
+| Illness looked after at home | 4.97 | 4.95 | +0.3% |
+| End of life (deaths) | 1.57 | 1.57 | +0.1% (the caps hold back 0.09 a year, which come later instead) |
+
+**Random director, seeds 1 to 8, 12 weeks each** (`reports/c-random-12-weeks-seeds-1-8.txt`):
+- 19 illnesses: 13 at home (chest infection 7, UTI 6), 6 to hospital (chest infection 4, dehydration 2), plus 1 serious fall. All 7 stays were within their ranges: chest infection 6 to 8 days, dehydration 3 to 7, the serious fall 19.
+- 16 care changes logged (after stays, and for the last days); the ones with an end date ended on time.
+- 3 end-of-life declines and deaths (Raj on seed 3, Dennis on seed 4, Arthur on seed 7), then 3 admissions: Kamala moved into Room 3, Room 6 and Room 1 2 to 6 weeks later.
+- 1 flu outbreak (11.5 days), 187 sick calls.
+- **0 hard violations.**
+- **121 service breaches:** 98 on days with a director event and 23 on days without (0.24 a week).
+  - Short staffing is behind 78, some alongside end-of-life care, an outbreak or illness.
+  - 26 fall while someone is at the end of life. 12 of those are the dying resident's own checks, missed by a few minutes; before the change there were about 60 with 30-minute checks for the whole decline.
+  - 26 have no emergency behind them. 17 of those are Dennis's turns, mostly in January on seeds 3 and 7: after Kamala moves in, his 2-hourly turns drift to about 06:25 to 06:50, just before the morning handover. They're reported, not patched (docs/12).
+- **Sprites:** with the stand-in, people on screen with the same sheet for 275 minutes on seed 7 (Kamala and Pat) and 259 minutes on seeds 2 and 5 (the main-building carer in Lorna's sheet). With Kamala's and Nikos's own sheets (2026-09-30): none.
+
+**Found and fixed while running it:**
+- A resident leaving for hospital or dying deleted their tasks without freeing whoever was working on them. On seed 1 an agency nurse stood by Dennis's empty bed every weekend late shift from New Year, behind most of that seed's 48 calm-day breaches.
+- Changes that overlapped (two stays close together) ended in the wrong order.
+- A walking resident couldn't move into Raj's room (his wheelchair spot was still there).
+- In the last days, a bed-bound resident was still walked to the toilet on request.
+
 ## Deaths switch
 
-`deaths: false` (server `DEATHS=off`) turns off deaths and end-of-life decline for the public demo. It's on by default for experiments. It's plumbed and shown in the Director panel now; it takes effect with (c).
+`deaths: false` (server `DEATHS=off`) turns off deaths and end-of-life decline for the public demo: the planner plans none, and a manual or scripted `end_of_life_start` is skipped ("deaths and end-of-life decline are off for this run"). It's on by default for experiments.
 
 ## Sub-milestones
 
@@ -240,7 +305,7 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
   - the calendar over any year (`simDate`);
   - the director-off golden test; ADR-0005.
 - **(b) Outbreaks and isolation** (built): infection state, pluggable routes, isolation, outbreaks, staff off sick, the `norovirus-outbreak` and `flu-outbreak` scenarios, the unwell badge and Health filter.
-- **(c) Illness, hospital, end of life and admissions.** It needs a cited admission rate and the reviewed admissions card first.
+- **(c) Illness, hospital, end of life and admissions** (built): sourced admission rate and stays by cause, illness at home, care changes after a stay, end of life, death, admissions from reviewed cards, the deaths switch.
 - **(d) Visitors' missed weeks and celebrations.**
 - **(e) Tuning-debt review** against the calm-week baseline, one rule at a time (docs/12).
 

@@ -39,7 +39,7 @@ Not yet validated (Phase 3 persona pipeline): age and date arithmetic across fam
 
 ## Generation and review
 
-Phase 1 cards are hand-written from the plan's cast, not LLM-generated. The `persona-gen` pipeline (skeleton, LLM narrative fill, validators) comes in Phase 3 at the earliest. Every resident card gets a human read-through for stereotypes and dignity before it is used (constitution: dignity first).
+Phase 1 cards are hand-written from the plan's cast, not LLM-generated. **New admissions** (Phase 2, docs/10) come from `data/personas/admissions.json`: each card holds a resident and their visitors, with `status` `draft` or `reviewed`; the engine moves in only reviewed cards, into the first empty room, validated like any resident. The first card, Kamala Shah (Hindu, from Mombasa and Leicester, mild vascular dementia, female carers only; her daughter Hema and grandson Kiran visit), was reviewed by the project owner on 2026-09-30. She, Hema and Kiran have their own characters; a later card without one is drawn with a stand-in by gender (`roles.resident` in `data/sprites.json`: Pat's sheet for women, Bernard's for men). **Nikos Georgiou** (`ext_main_carer`, `rota.json` `main_building_carer`) is the main building's cover carer: he covers a night nobody on the wing can, and comes over when everyone is with a fallen resident. The `persona-gen` pipeline (skeleton, LLM narrative fill, validators) comes in Phase 3 at the earliest. Every resident card gets a human read-through for stereotypes and dignity before it is used (constitution: dignity first).
 
 ## To be decided
 

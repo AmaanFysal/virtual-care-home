@@ -11,7 +11,7 @@ import { loadDirectorConfig, loadWorldData } from "../tools/load-data.js";
 const { values } = parseArgs({ options: { years: { type: "string", default: "200" }, seeds: { type: "string", default: "1-8" } } });
 const data = loadWorldData();
 const config = loadDirectorConfig();
-const residents = data.residents.map(residentRisk);
+const residents = () => data.residents.map(residentRisk); // fresh each day (the planner marks who's busy)
 const propensity = new Map(data.staff.map((s) => [s.id, s.contract.sickness_propensity]));
 const FIRST_DAY = 1; // Tue 3 Nov 2026, as in a normal run
 
@@ -37,7 +37,7 @@ function roster(day: number): RosterEntry[] {
 const [from, to] = values.seeds!.split("-").map(Number);
 const years = Number(values.years);
 const days = Math.round(years * 365.25);
-const count = { days: 0, types: { ordinary: 0, busy: 0, hard: 0 } as Record<DayType, number>, downgraded: 0, minor: 0, serious: 0, sick: 0, noShow: 0, intro: { norovirus: 0, flu: 0 } as Record<string, number> };
+const count = { days: 0, types: { ordinary: 0, busy: 0, hard: 0 } as Record<DayType, number>, downgraded: 0, minor: 0, serious: 0, sick: 0, noShow: 0, intro: { norovirus: 0, flu: 0 } as Record<string, number>, illnessSevere: 0, illnessMild: 0, endOfLife: 0 };
 const suppressed = new Map<string, number>();
 let expectedSick = 0;
 let expectedNoShow = 0;
@@ -48,7 +48,7 @@ for (let seed = from!; seed <= (to ?? from)!; seed++) {
     const list = roster(day);
     const winter = config.absence.winter_months.includes(simDate(day * SECONDS_PER_DAY).month) ? config.absence.winter_factor : 1;
     for (const a of list) if (config.absence.slots.includes(a.slot)) a.agency ? (expectedNoShow += config.absence.agency_no_show) : (expectedSick += a.propensity * winter);
-    const plan = planRandomDay(config, rng, memory, day, day * SECONDS_PER_DAY - 1, list, residents);
+    const plan = planRandomDay(config, rng, memory, day, day * SECONDS_PER_DAY - 1, list, residents());
     memory.dayTypes.set(day, plan.dayType);
     memory.dayTypes.delete(day - 8);
     memory.majorTs = memory.majorTs.filter((t) => t > (day - 7) * SECONDS_PER_DAY);
@@ -60,6 +60,8 @@ for (let seed = from!; seed <= (to ?? from)!; seed++) {
       if (e.type === "staff_sick") count.sick += 1;
       if (e.type === "shift_no_show") count.noShow += 1;
       if (e.type === "infection_case") count.intro[(e.params as { disease: string }).disease]! += 1;
+      if (e.type === "resident_illness") (e.params as { severity: string }).severity === "severe" ? count.illnessSevere++ : count.illnessMild++;
+      if (e.type === "end_of_life_start") count.endOfLife += 1;
     }
     for (const s of plan.suppressed) {
       const key = `${s.event.type}${s.event.type === "inject_fall" ? ` (${(s.event.params as { severity: string }).severity})` : ""}: ${s.reason}`;
@@ -75,11 +77,15 @@ const line = (label: string, realised: number, base: number) =>
   console.log(`  ${label.padEnd(28)} ${realised.toFixed(2).padStart(7)} a year   base ${base.toFixed(2).padStart(6)}   ${(((realised - base) / base) * 100).toFixed(1).padStart(6)}%`);
 console.log(`Director planner only, seeds ${values.seeds}, ${years} years each (${count.days} days); mean day-type rate ${meanRate.toFixed(3)}`);
 console.log(`  day types: ordinary ${pct(count.types.ordinary)}, busy ${pct(count.types.busy)}, hard ${pct(count.types.hard)} (target 70/22/8); hard days capped to busy: ${count.downgraded} (${pct(count.downgraded)})`);
-const wingFalls = config.falls.per_resident_year * residents.length;
+const wingFalls = config.falls.per_resident_year * data.residents.length;
 line("falls (all)", (count.minor + count.serious) / seedYears, wingFalls);
 line("falls (serious)", count.serious / seedYears, wingFalls * config.falls.serious_share);
 line("sick calls", count.sick / seedYears, expectedSick / seedYears);
 line("agency no-shows", count.noShow / seedYears, expectedNoShow / seedYears);
+const n = data.residents.length;
+line("hospital admissions", (count.illnessSevere + count.serious) / seedYears, config.health.admissions_per_resident_year * n);
+line("illness looked after at home", count.illnessMild / seedYears, ((config.health.admissions_per_resident_year - config.falls.per_resident_year * config.falls.serious_share) * n * (1 - config.health.illness.severe_share)) / config.health.illness.severe_share);
+line("end of life (deaths)", count.endOfLife / seedYears, config.health.end_of_life.deaths_per_resident_year * n);
 for (const disease of ["norovirus", "flu"] as const) {
   const d = config.infection.diseases[disease];
   line(`${disease} brought in`, count.intro[disease]! / seedYears, d.per_winter + d.per_summer);

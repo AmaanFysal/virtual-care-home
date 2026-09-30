@@ -1,0 +1,19 @@
+{
+  "id": "ext_main_carer",
+  "name": "Nikos Georgiou",
+  "group": "extra",
+  "note": "care assistant from the main building, covers the wing",
+  "hash": {
+    "sex": "male",
+    "body": "Body_Color_olive",
+    "head": "Human_Male_Plump_olive",
+    "expression": "Neutral_olive",
+    "eyes": "Eye_Color_brown",
+    "hair": "Balding_dark_brown",
+    "beard": "Basic_Beard_dark_brown",
+    "clothes": "Shortsleeve_Polo_lavender",
+    "legs": "Pants_navy",
+    "shoes": "Basic_Shoes_black"
+  },
+  "generatorUrl": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&body=Body_Color_olive&head=Human_Male_Plump_olive&expression=Neutral_olive&eyes=Eye_Color_brown&hair=Balding_dark_brown&beard=Basic_Beard_dark_brown&clothes=Shortsleeve_Polo_lavender&legs=Pants_navy&shoes=Basic_Shoes_black"
+}
