@@ -1,0 +1,26 @@
+Director planner only, seeds 1-8, 200 years each (584400 days); mean day-type rate 1.006
+  day types: ordinary 70.1%, busy 22.5%, hard 7.5% (target 70/22/8); hard days capped to busy: 3038 (0.5%)
+  falls (all)                     7.55 a year   base   7.49      0.7%
+  falls (serious)                 0.87 a year   base   0.90     -3.2%
+  sick calls                     61.81 a year   base  62.18     -0.6%
+  agency no-shows                 5.23 a year   base   5.22      0.2%
+  hospital admissions             3.99 a year   base   4.20     -5.1%
+  illness looked after at home    4.97 a year   base   4.95      0.3%
+  end of life (deaths)            1.57 a year   base   1.57      0.1%
+  norovirus brought in            1.15 a year   base   1.20     -4.4%
+  flu brought in                  1.05 a year   base   1.10     -4.9%
+  visitors' weeks off            66.96 a year   base  67.60     -0.9%
+    14 regular visitors; by cause: family 20%, holiday 55%, illness 25%
+    by month: 1:5.6 2:5.1 3:5.7 4:4.6 5:4.8 6:4.7 7:7.0 8:8.0 9:4.5 10:4.8 11:5.5 12:6.7
+  (base = the rate before day types, short staffing and caps; introductions here ignore outbreaks' quiet periods)
+Held back by the pacing caps:
+    0.365 a year  staff_sick: absence cap: 2 a day
+    0.108 a year  resident_illness: major-event cap: 48 h apart
+    0.092 a year  infection_case: major-event cap: 48 h apart
+    0.061 a year  resident_illness: major-event cap: one a day
+    0.058 a year  end_of_life_start: major-event cap: 48 h apart
+    0.031 a year  inject_fall (serious): major-event cap: 48 h apart
+    0.028 a year  end_of_life_start: major-event cap: one a day
+    0.012 a year  shift_no_show: absence cap: 2 a day
+    0.010 a year  infection_case: major-event cap: one a day
+    0.002 a year  inject_fall (serious): major-event cap: one a day

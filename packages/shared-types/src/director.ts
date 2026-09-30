@@ -165,6 +165,8 @@ export interface DirectorConfig {
     index_staff_share: number;
   };
   health: HealthConfig;
+  visitors: VisitorWeeksConfig;
+  celebrations: CelebrationsConfig;
   /** Rates and parameters for later sub-milestones, kept here so they can be tuned without code. */
   later: Record<string, unknown>;
 }
@@ -197,4 +199,56 @@ export interface DirectorSettings {
   scenario?: Scenario;
   /** Deaths and end-of-life decline (sub-milestone c); off for the public demo. Default on. */
   deaths?: boolean;
+}
+
+// ---------------------------------------------------------------- visitors and celebrations (d)
+
+export const WEEK_OFF_CAUSES = ["holiday", "illness", "family"] as const;
+export type WeekOffCause = (typeof WEEK_OFF_CAUSES)[number];
+
+/**
+ * A regular visitor's missed weeks (sub-milestone d). With the random director on, lead visitors
+ * whose reliability is at least `regular_from_reliability` miss about `weeks_off_per_year` whole
+ * weeks a year, each with a cause (seasonal by month), never more than 1 - reliability of their
+ * weeks; their other weeks are scaled up so they visit as often as before on average. Occasional
+ * visitors (Gary, Tunde, Colin...) keep their pattern: their quiet weeks are how they visit.
+ */
+export interface VisitorWeeksConfig {
+  regular_from_reliability: number;
+  weeks_off_per_year: number;
+  /** Each cause's share of missed weeks, and a factor by month (1..12, default 1; normalised over the year). */
+  causes: Record<WeekOffCause, { share: number; months?: Record<string, number> }>;
+  note?: string;
+}
+
+export type CelebrationKind = "birthday" | "festival";
+
+/**
+ * Birthdays (from each resident's dob) and festivals (from their faith). On the day: every lead
+ * visitor comes with their usual chance plus `visit_chance_add` (up to `visit_chance_max`),
+ * companions with at least `companion_chance`, arriving in `arrive` and staying `duration_factor`
+ * times as long; tea and cake from `tea[0]` to `tea[1]`, in the Lounge (or in their room for
+ * someone who doesn't use it), led by Bev when she's on. No gathering during an outbreak.
+ */
+export interface CelebrationsConfig {
+  visit_chance_add: number;
+  visit_chance_max: number;
+  companion_chance: number;
+  arrive: [ClockTime, ClockTime];
+  duration_factor: number;
+  min_duration_mins: number;
+  tea: [ClockTime, ClockTime];
+  /** Faith groups, by words in a card's `faith` (lower case). */
+  faiths: Record<string, string[]>;
+  festivals: FestivalConfig[];
+  note?: string;
+}
+
+export interface FestivalConfig {
+  name: string;
+  /** "any" (everyone, faith or none), or faith groups from `faiths`. */
+  for: "any" | string[];
+  /** A fixed date "MM-DD", "easter" (Western Easter Sunday), or a list of dates "YYYY-MM-DD". */
+  date: string | string[];
+  note?: string;
 }

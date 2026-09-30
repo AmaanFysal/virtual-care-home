@@ -7,7 +7,8 @@
 // wait in the waiting area (someone who helps at meals, like Kuldip with Raj, may stay).
 // No moods or conflicts yet (Phase 4).
 
-import { SECONDS_PER_DAY, WEEKDAYS, clockToSeconds, dayIndex, timeOfDay, type Visitor } from "@vch/shared-types";
+import { SECONDS_PER_DAY, WEEKDAYS, clockToSeconds, dayIndex, timeOfDay, type Source, type Visitor, type WeekOffCause } from "@vch/shared-types";
+import { weekOffShare } from "./director/plan.js";
 import { act, seq, type BtNode } from "./bt.js";
 import { newBtState } from "./bt.js";
 import { emit } from "./emit.js";
@@ -47,7 +48,7 @@ export function visitorPerson(v: Visitor): Person {
     waitingAtDoor: null,
     staff: null,
     resident: null,
-    visitor: { data: v, residentId: v.relation_to_resident[0]!.resident, leadId: v.accompanies ?? null, phase: "home", arriveT: null, durationMins: 0, visitStartT: null, stepT: null, weekDays: [] },
+    visitor: { data: v, residentId: v.relation_to_resident[0]!.resident, leadId: v.accompanies ?? null, phase: "home", arriveT: null, durationMins: 0, visitStartT: null, stepT: null, weekDays: [], weekOff: null },
     infection: null,
   };
 }
@@ -73,9 +74,10 @@ export function planVisitorWeek(world: World, p: Person, fromDay: number): void 
   const monday = fromDay - (fromDay % 7);
   const v = p.visitor!;
   if (v.leadId) return; // companions come when their lead does
+  if (v.weekOff && v.weekOff.untilDay <= fromDay) v.weekOff = null;
   const pattern = v.data.visit_pattern;
   const days = pattern.days.map((d) => monday + WEEKDAYS.indexOf(d)).sort((a, b) => a - b);
-  const exact = pattern.reliability * days.length;
+  const exact = weeklyReliability(world, pattern.reliability) * days.length;
   const quota = Math.floor(exact) + (rng.next() < exact - Math.floor(exact) ? 1 : 0);
   // Pick `quota` of the pattern days (a seeded shuffle), then keep those not already past.
   const shuffled = [...days];
@@ -84,6 +86,101 @@ export function planVisitorWeek(world: World, p: Person, fromDay: number): void 
     [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
   }
   v.weekDays = shuffled.slice(0, quota).filter((d) => d >= fromDay).sort((a, b) => a - b);
+}
+
+/**
+ * With the random director on, a regular visitor's missed weeks come from the director with a
+ * cause (docs/10, sub-milestone d), so their other weeks are scaled up to keep the same visits on
+ * average: reliability / (1 - share of weeks off).
+ */
+function weeklyReliability(world: World, reliability: number): number {
+  const d = world.director;
+  if (!d?.settings.random || reliability < d.settings.config.visitors.regular_from_reliability) return reliability;
+  return Math.min(1, reliability / (1 - weekOffShare(d.settings.config, reliability)));
+}
+
+/** Away this week (a holiday, illness, family): no visits until the week is over. */
+function awayThisWeek(v: NonNullable<Person["visitor"]>, day: number): boolean {
+  return !!v.weekOff && day < v.weekOff.untilDay;
+}
+
+/** Applies `visitor_week_off`: the rest of this week's visits are off, with the cause. */
+export function weekOff(world: World, visitorId: string, cause: WeekOffCause, source: Source): string | null {
+  const p = world.people.get(visitorId);
+  const v = p?.visitor;
+  if (!v) return "unknown visitor";
+  if (v.leadId) return "only comes with their lead visitor";
+  const resident = world.people.get(v.residentId)!.resident!;
+  if (resident.away === "died") return "their resident has died";
+  if (resident.endOfLife) return "their resident is at the end of their life";
+  const day = dayIndex(world.t);
+  const untilDay = day - (day % 7) + 7;
+  v.weekOff = { cause, untilDay };
+  v.weekDays = [];
+  emit(world, "visitor.week_off", [visitorId, v.residentId], { visitorId, residentId: v.residentId, cause, untilT: untilDay * SECONDS_PER_DAY }, source);
+  // A visit planned for later today is off too (anyone already here finishes their visit).
+  for (const q of [p!, ...visitorsOf(world).filter((c) => c.visitor!.leadId === visitorId)]) {
+    const qv = q.visitor!;
+    if (qv.phase !== "outside") continue;
+    qv.phase = "home";
+    emit(world, "visit.cancelled", [q.id, qv.residentId], { visitorId: q.id, residentId: qv.residentId, reason: `week off (${cause})` });
+  }
+  return null;
+}
+
+/**
+ * A birthday or festival (docs/10, sub-milestone d): the family comes. Each lead visitor not away
+ * this week comes with their usual chance plus `visit_chance_add`, arriving in the afternoon and
+ * staying longer; one already coming today stays until after tea. Companions come along with at
+ * least `companion_chance`.
+ */
+export function celebrationVisits(world: World, residentIds: string[]): void {
+  const cfg = world.config!.celebrations;
+  const rng = world.rng.visitors;
+  const day = dayIndex(world.t);
+  const [from, to] = cfg.arrive.map(clockToSeconds) as [number, number];
+  const teaUntil = day * SECONDS_PER_DAY + clockToSeconds(cfg.tea[1]);
+  const leads = visitorsOf(world)
+    .filter((p) => !p.visitor!.leadId && residentIds.includes(p.visitor!.residentId))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  for (const p of leads) {
+    const v = p.visitor!;
+    const pattern = v.data.visit_pattern;
+    if (awayThisWeek(v, day) || !world.people.get(v.residentId)!.onMap) continue;
+    const durationMins = Math.max(cfg.min_duration_mins, Math.round(pattern.duration_mins * cfg.duration_factor));
+    if (v.phase === "outside" && v.arriveT !== null && dayIndex(v.arriveT) === day && v.arriveT > day * SECONDS_PER_DAY + to) {
+      // Coming later today anyway: in time for tea instead.
+      const arriveT = day * SECONDS_PER_DAY + from + rng.int(0, (to - from) / 60) * 60;
+      Object.assign(v, { arriveT, durationMins: Math.max(v.durationMins, durationMins) });
+      emit(world, "visit.planned", [p.id, v.residentId], { visitorId: p.id, residentId: v.residentId, arriveT, durationMins: v.durationMins });
+      continue;
+    }
+    if (v.phase !== "home") {
+      // Already coming earlier or here today: they stay until after tea.
+      const start = v.visitStartT ?? v.arriveT ?? world.t;
+      v.durationMins = Math.max(v.durationMins, durationMins, Math.ceil((teaUntil - start) / 60) + 15);
+      continue;
+    }
+    if (rng.next() >= Math.min(cfg.visit_chance_max, pattern.reliability + cfg.visit_chance_add)) continue;
+    const arriveT = day * SECONDS_PER_DAY + from + rng.int(0, (to - from) / 60) * 60;
+    if (arriveT < world.t) continue;
+    Object.assign(v, { phase: "outside", arriveT, durationMins, visitStartT: null, stepT: null });
+    emit(world, "visit.planned", [p.id, v.residentId], { visitorId: p.id, residentId: v.residentId, arriveT, durationMins });
+  }
+  for (const p of visitorsOf(world).filter((q) => q.visitor!.leadId && residentIds.includes(q.visitor!.residentId)).sort((a, b) => a.id.localeCompare(b.id))) {
+    const v = p.visitor!;
+    const lead = world.people.get(v.leadId!)!.visitor!;
+    if (lead.phase !== "outside" || lead.arriveT === null || dayIndex(lead.arriveT) !== day) continue;
+    if (v.phase === "outside") {
+      // Already coming with their lead: same (new) time.
+      Object.assign(v, { arriveT: lead.arriveT, durationMins: lead.durationMins });
+      continue;
+    }
+    if (v.phase !== "home") continue;
+    if (rng.next() >= Math.max(v.data.visit_pattern.reliability, cfg.companion_chance)) continue;
+    Object.assign(v, { phase: "outside", arriveT: lead.arriveT, durationMins: lead.durationMins, visitStartT: null, stepT: null });
+    emit(world, "visit.planned", [p.id, v.residentId], { visitorId: p.id, residentId: v.residentId, arriveT: lead.arriveT, durationMins: lead.durationMins });
+  }
 }
 
 /** Plans today's visits from the weekly quota. Leads first, so companions can see whether their lead is coming. */
@@ -110,6 +207,7 @@ export function planVisits(world: World, day: number, fromT: number): void {
       continue;
     }
     if (!pattern.days.includes(weekday) || v.phase !== "home") continue;
+    if (!v.leadId && awayThisWeek(v, day)) continue;
     // Leads visit on their quota days; a companion comes along with the given probability.
     if (v.leadId ? rng.next() >= pattern.reliability : !v.weekDays.includes(day)) continue;
     let arriveT: number;

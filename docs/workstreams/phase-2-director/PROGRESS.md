@@ -4,7 +4,7 @@
 
 ## Status
 
-Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on branch `director-health` (2026-09-30), PR open.
+Sub-milestones (a), (b) and (c) merged (PRs #7, #8 and #9). Sub-milestone (d) built on branch `director-visitors` (2026-09-30), PR open.
 
 ## Done
 
@@ -78,14 +78,25 @@ Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on br
     - 12 weeks × 8 seeds: 0 hard violations, 121 breaches (23 on days without a director event), 3 deaths and 3 admissions, 7 hospital stays within their ranges, nobody on screen sharing a sheet;
     - director-off golden test and audit (142 flags) unchanged (`reports/c-*.txt`).
 
+- (d) Visitors and celebrations, on branch `director-visitors` (2026-09-30):
+  - **Missed weeks** for the 14 regular visitors (reliability 0.5 or more): about 5 a year with a cause (holiday, illness, family) and seasons, planned on Mondays from their own `visitor_weeks` stream; the rest of the week's visits cancelled; other weeks scaled up so visits stay the same on average. Occasional visitors keep their pattern.
+  - **Celebrations** from the calendar: birthdays from each card's dob, festivals from faith (Christmas for everyone, Easter, Vaisakhi, Diwali); the family come 14:00 to 15:00 and stay longer; tea and cake 15:00 to 16:00 in the Lounge (or the resident's room), led by Bev on her days; no gathering during an outbreak. The `birthday-party` scenario.
+  - **Also:** admin-panel inputs are checked against the run's own data, so a resident who moved in can be picked.
+  - **Web:** Week off, Birthday and Festival triggers; Notable lines; celebrations under Visitors in the log.
+  - **Reporting:** visitors and Lounge person-hours per day and at tea; missed weeks by cause and month; celebration days against ordinary days.
+  - **Tests:** `celebrations.test.ts` (12). 270 tests in all; director-off golden and audit (142 flags) unchanged.
+  - **Results:** missed weeks −0.9% against base, every other rate unchanged. Over a year × 8 seeds: 8.6 visitors on celebration days against 4.9, and at tea 3.9 visitors in the Lounge against 1.0; 0 hard violations; Dennis's turn drift with Kamala (docs/12) is most of the calm-day breaches (`reports/d-*.txt`).
+- Roadmap: `docs/roadmap.md`, with the v1.0-testbed milestone next after (e).
+
 ## In progress
 
 - None.
 
 ## Next
 
-- The project owner reviews (c).
-- (d) Visitors and celebrations, on branch `director-visitors`.
+- The project owner reviews (d).
+- (e) Tuning-debt review, on branch `director-tuning-review`.
+- Then the **v1.0-testbed** milestone (project owner, 2026-09-30; `docs/roadmap.md`): a world description published every step (activity type and intensity per person, touches on objects, doors and windows with states and rules, equipment in use, outdoor weather) and a plug-in API for external models (air, heat, surfaces, energy), with lockstep and recording. It starts with an ADR amending constitution rule 4. Environmental models come after it.
 
 ## Blockers
 
@@ -95,6 +106,7 @@ Sub-milestones (a) and (b) merged (PRs #7 and #8). Sub-milestone (c) built on br
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-09-30 | Sub-milestone (d): visitors' missed weeks, birthdays and festivals, birthday-party scenario; roadmap with v1.0-testbed | 0 hard over a year × 8 seeds; celebration days 8.6 visitors against 4.9 |
 | 2026-09-30 | Sub-milestone (c): illness, hospital, end of life, admissions; card reviewed; end-of-life checks 60 then 30 min; Kamala's family and Nikos imported, walking sticks | 0 hard over 12 weeks × 8 seeds; 3 deaths, 3 admissions; no sprite clashes |
 | 2026-09-30 | Sub-milestone (b): infections, isolation, outbreaks, two outbreak scenarios | 0 hard in all runs; 2 outbreaks in 4 random weeks |
 | 2026-09-30 | Rebased on the falls fix; main-building night cover, on-call RN for missed rounds, hospital return, calmer post-fall icon, separate cover stream | 4-week report re-run: 0 hard, 27 breaches |

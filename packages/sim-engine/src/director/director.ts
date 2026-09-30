@@ -9,6 +9,9 @@ import { staffSick, shiftNoShow } from "../cover.js";
 import { injectFall } from "../falls.js";
 import { infect } from "../infection.js";
 import { admit, startEndOfLife, startIllness } from "../health.js";
+import { celebrate } from "../celebrations.js";
+import { weekOff } from "../visitors.js";
+import { celebrationsOn } from "./calendar.js";
 import type { DirectorEvent, World } from "../state.js";
 import { isMajor, planRandomDay, residentRisk, type RosterEntry } from "./plan.js";
 import { scenarioEvents } from "./scenario.js";
@@ -59,8 +62,17 @@ export function planDirectorDay(world: World, fromT: number): void {
         return { ...residentRisk(res.data), extra, busy: !!res.illness || !!res.endOfLife };
       });
     const endOfLifeOn = world.order.some((id) => !!world.people.get(id)!.resident?.endOfLife);
-    const plan = planRandomDay(d.settings.config, world.rng.director, d, day, fromT, roster, residents, { deaths: world.deaths, endOfLifeOn });
+    // Lead visitors of residents on the wing, for their missed weeks (sub-milestone d).
+    const visitors = world.order
+      .map((id) => world.people.get(id)!)
+      .filter((p) => p.visitor && !p.visitor.leadId && world.people.get(p.visitor.residentId)!.onMap)
+      .map((p) => ({ id: p.id, reliability: p.visitor!.data.visit_pattern.reliability, staying: !!world.people.get(p.visitor!.residentId)!.resident!.endOfLife }));
+    const plan = planRandomDay(d.settings.config, world.rng.director, d, day, fromT, roster, residents, { deaths: world.deaths, endOfLifeOn, visitors, visitorRng: world.rng.visitor_weeks });
     ({ planned, suppressed, dayType, downgradedFrom } = plan);
+    // Birthdays and festivals from the calendar: not random, the same in every run.
+    const onWing = world.order.map((id) => world.people.get(id)!).filter((p) => p.resident && p.onMap);
+    const cards = onWing.map((p) => ({ id: p.id, name: p.name, dob: p.resident!.data.dob, faith: p.resident!.data.faith ?? "" }));
+    for (const c of celebrationsOn(d.settings.config.celebrations, day, cards)) planned.push({ applyT: fromT + 60, type: "celebration", params: c, origin: "calendar" });
   }
 
   // Scripted events are applied exactly as written: no caps, but they count towards them.
@@ -78,7 +90,9 @@ export function planDirectorDay(world: World, fromT: number): void {
 }
 
 function reasonFor(e: DirectorEvent): string {
+  if (e.origin === "calendar") return (e.params as { kind: string }).kind === "birthday" ? "birthday (the card's date of birth)" : "festival (the residents' faith)";
   if (e.origin !== "random") return "scripted";
+  if (e.type === "visitor_week_off") return "visitors' missed weeks";
   if (e.type === "inject_fall") return "falls base rate";
   if (e.type === "staff_sick") return "sickness base rate";
   if (e.type === "shift_no_show") return "agency no-show rate";
@@ -129,6 +143,11 @@ function dispatch<K extends InputType>(world: World, type: K, params: InputPaylo
     return r ? startEndOfLife(world, r, expectedDays, source) : "unknown resident";
   }
   if (type === "admission") return admit(world, (params as InputPayloads["admission"]).cardId, source);
+  if (type === "visitor_week_off") {
+    const { visitorId, cause } = params as InputPayloads["visitor_week_off"];
+    return weekOff(world, visitorId, cause, source);
+  }
+  if (type === "celebration") return celebrate(world, params as InputPayloads["celebration"], source);
   if (type === "infection_case") {
     const { personId, disease } = params as InputPayloads["infection_case"];
     const p = world.people.get(personId);

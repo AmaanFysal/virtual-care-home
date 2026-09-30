@@ -27,7 +27,7 @@ export function categoryOf(type: string): Exclude<Category, "all"> {
   if (/^(ambulance|paramedics|resident\.conveyed|illness|infection|outbreak|hospital|end_of_life|resident\.died|resident\.returned|admission)/.test(type)) return "health";
   if (/^(resident\.fell|fall\.|cqc|incident|family|on_call_rn|main_carer)/.test(type)) return "falls";
   if (/^(shift|break|handover|rn\.|agency|second_carer|sim\.|staff\.|rota\.)/.test(type)) return "staff";
-  if (/^visit/.test(type)) return "visitors";
+  if (/^(visit|celebration)/.test(type)) return "visitors";
   if (/^person\./.test(type)) return "movement";
   return "care";
 }

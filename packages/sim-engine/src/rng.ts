@@ -63,7 +63,7 @@ export function createRng(seed: string): Rng {
 // director's plans don't shift when how cover plays out changes. "infection" is drawn only while
 // someone is infected, and "health" only for illness, hospital stays, end of life and admissions
 // with the tuning file present (docs/10).
-export const STREAMS = ["rota", "visitors", "needs", "decisions", "meds", "falls", "movement", "director", "cover", "infection", "health"] as const;
+export const STREAMS = ["rota", "visitors", "needs", "decisions", "meds", "falls", "movement", "director", "cover", "infection", "health", "visitor_weeks"] as const;
 export type StreamName = (typeof STREAMS)[number];
 
 export function createStreams(seed: string): Record<StreamName, Rng> {

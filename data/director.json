@@ -114,5 +114,36 @@
     },
     "admission_weeks_after_death": [2, 6]
   },
+  "visitors": {
+    "regular_from_reliability": 0.5,
+    "weeks_off_per_year": 5,
+    "causes": {
+      "holiday": { "share": 0.55, "months": { "7": 2, "8": 2.5, "12": 1.5 } },
+      "illness": { "share": 0.25, "months": { "11": 1.8, "12": 1.8, "1": 1.8, "2": 1.8, "3": 1.8 } },
+      "family": { "share": 0.2 }
+    },
+    "note": "Assumptions, not fitted: a regular visitor misses about 5 whole weeks a year (about 3 on holiday, mostly in July, August and at Christmas; about 1 ill, mostly in winter; about 1 for family reasons), never more than 1 - reliability of their weeks. Their other weeks are scaled up (reliability / (1 - share of weeks off)) so they visit as often as before on average. Occasional visitors (reliability under 0.5, e.g. Gary in Spain, Tunde monthly) keep their pattern: their quiet weeks are how they visit, not absences. Month factors are normalised over the year."
+  },
+  "celebrations": {
+    "visit_chance_add": 0.5,
+    "visit_chance_max": 0.95,
+    "companion_chance": 0.8,
+    "arrive": ["14:00", "15:00"],
+    "duration_factor": 1.5,
+    "min_duration_mins": 120,
+    "tea": ["15:00", "16:00"],
+    "faiths": {
+      "christian": ["christian", "church", "catholic", "anglican", "methodist", "baptist", "pentecostal"],
+      "sikh": ["sikh"],
+      "hindu": ["hindu"]
+    },
+    "festivals": [
+      { "name": "Christmas", "for": "any", "date": "12-25", "note": "Kept by the whole wing, faith or none." },
+      { "name": "Easter", "for": ["christian"], "date": "easter", "note": "Western Easter Sunday (Gregorian computus)." },
+      { "name": "Vaisakhi", "for": ["sikh"], "date": "04-14", "note": "14 April (Nanakshahi calendar). Raj's card: 'be home for Vaisakhi'." },
+      { "name": "Diwali", "for": ["hindu"], "date": ["2026-11-08", "2027-10-29", "2028-10-17", "2029-11-05"], "note": "Lakshmi Puja day, UK dates (Royal Museums Greenwich, rmg.co.uk/stories/time/when-diwali; diwali.info/diwali-dates). Kamala's card: 'go to the temple for Diwali'." }
+    ],
+    "note": "On a birthday (from the card's dob) or a festival (from the card's faith) every lead visitor comes with their usual chance plus 0.5 (up to 0.95), companions with at least 0.8, arriving 14:00 to 15:00 and staying 1.5 times as long (at least 2 hours). Tea and cake 15:00 to 16:00 in the Lounge (or in their room for someone who doesn't use it), led by Bev when she's on (Mon to Thu), otherwise served with the carers' afternoon tea. No gathering during an outbreak. Assumptions, not fitted."
+  },
   "later": {}
 }

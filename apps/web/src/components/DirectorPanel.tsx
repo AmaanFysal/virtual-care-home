@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { COVER_CHOICES, DISEASES, ILLNESS_KINDS, ROTA_SLOTS, type CoverChoice, type Disease, type FallSeverity, type IllnessKind } from "@vch/shared-types";
+import { COVER_CHOICES, DISEASES, ILLNESS_KINDS, ROTA_SLOTS, WEEK_OFF_CAUSES, type CoverChoice, type Disease, type FallSeverity, type IllnessKind, type WeekOffCause } from "@vch/shared-types";
 import { send } from "../net";
 import { useView } from "../store";
 
@@ -29,6 +29,11 @@ export function DirectorPanel() {
   const [eol, setEol] = useState("");
   const [eolDays, setEolDays] = useState(14);
   const [cardId, setCardId] = useState("");
+  const [visitorId, setVisitorId] = useState("");
+  const [weekCause, setWeekCause] = useState<WeekOffCause>("holiday");
+  const [party, setParty] = useState("");
+  const [festival, setFestival] = useState("Christmas");
+  const visitors = Object.values(people).filter((p) => p.kind === "visitor").sort((a, b) => a.name.localeCompare(b.name));
 
   const resident = residentId || residents[0]?.id || "";
   const worker = staffId || staff[0]?.id || "";
@@ -174,7 +179,50 @@ export function DirectorPanel() {
           <button onClick={() => send({ type: "inject", input: "admission", params: { cardId: cardId || director.admissions![0]!.id } })}>Move in</button>
         </div>
       )}
-      <p className="muted small">A sick call hits the person's next shift that hasn't started; a no-show hits the slot's next shift. An infection case is someone brought in ill; it may spread. A mild illness is looked after in their room; a severe one gets the GP, then hospital. A new resident moves into the first empty room. Visitors' weeks and celebrations arrive in a later sub-milestone.</p>
+      <div className="trigger">
+        <span>Week off</span>
+        <select value={visitorId || visitors[0]?.id || ""} onChange={(e) => setVisitorId(e.target.value)} aria-label="Visitor">
+          {visitors.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+        <select value={weekCause} onChange={(e) => setWeekCause(e.target.value as WeekOffCause)} aria-label="Cause">
+          {WEEK_OFF_CAUSES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <button onClick={() => send({ type: "inject", input: "visitor_week_off", params: { visitorId: visitorId || visitors[0]!.id, cause: weekCause } })}>Trigger</button>
+      </div>
+      <div className="trigger">
+        <span>Birthday</span>
+        <select value={party || resident} onChange={(e) => setParty(e.target.value)} aria-label="Resident">
+          {residents.map((r) => (
+            <option key={r.id} value={r.id} disabled={!r.onMap}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+        <span />
+        <button
+          onClick={() => {
+            const id = party || resident;
+            send({ type: "inject", input: "celebration", params: { kind: "birthday", name: `${(people[id]?.name ?? id).split(" ")[0]}'s birthday`, residentIds: [id] } });
+          }}
+        >
+          Today
+        </button>
+      </div>
+      <div className="trigger">
+        <span>Festival</span>
+        <input value={festival} onChange={(e) => setFestival(e.target.value)} aria-label="Festival" />
+        <span className="muted small">everyone on the wing</span>
+        <button onClick={() => send({ type: "inject", input: "celebration", params: { kind: "festival", name: festival || "Festival", residentIds: residents.filter((r) => r.onMap).map((r) => r.id) } })}>Today</button>
+      </div>
+      <p className="muted small">A sick call hits the person's next shift that hasn't started; a no-show hits the slot's next shift. An infection case is someone brought in ill; it may spread. A mild illness is looked after in their room; a severe one gets the GP, then hospital. A new resident moves into the first empty room. A week off cancels a visitor's visits until Monday. A birthday or festival brings the family in the afternoon, with tea and cake from 15:00 (not during an outbreak).</p>
     </section>
   );
 }

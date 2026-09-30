@@ -1,7 +1,7 @@
 // Event and input schema. See docs/07-events-and-persistence.md for the catalogue and rules.
 
 import type { ShiftName } from "./data.js";
-import type { AbsenceReason, CoverChoice, DayType, Disease, HospitalCause, IllnessKind } from "./director.js";
+import type { AbsenceReason, CelebrationKind, CoverChoice, DayType, Disease, HospitalCause, IllnessKind, WeekOffCause } from "./director.js";
 
 /** Who caused a change. Constitution rule 5. */
 export type Source = "engine" | "director" | "user" | "llm" | "external";
@@ -164,8 +164,14 @@ export interface EventPayloads {
   "outbreak.declared": { disease: Disease; cases: string[] };
   /** 48 hours with no new case. */
   "outbreak.over": { disease: Disease; cases: string[]; days: number };
-  /** A planned visit that can't go ahead (an outbreak: only essential visits). */
+  /** A planned visit that can't go ahead (an outbreak: only essential visits; a week off). */
   "visit.cancelled": { visitorId: string; residentId: string; reason: string };
+  /** A regular visitor misses this week (docs/10, sub-milestone d), with the cause. */
+  "visitor.week_off": { visitorId: string; residentId: string; cause: WeekOffCause; untilT: number };
+  /** A birthday or festival: the family come, and tea and cake (none of it during an outbreak). */
+  "celebration.started": { kind: CelebrationKind; name: string; residentIds: string[]; gathering: boolean; reason?: string };
+  /** Tea and cake: in the Lounge, or in the resident's room; led by Bev when she's on (staffId null: with the carers' afternoon tea). */
+  "celebration.tea": { name: string; roomId: string; staffId: string | null; residentIds: string[]; visitorIds: string[] };
 
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
@@ -212,6 +218,10 @@ export interface InputPayloads {
   end_of_life_start: { residentId: string; expectedDays: number };
   /** A new resident moves into an empty room (a reviewed card from data/personas/admissions.json). */
   admission: { cardId: string };
+  /** A visitor misses the rest of this week, with the cause (docs/10, sub-milestone d). */
+  visitor_week_off: { visitorId: string; cause: WeekOffCause };
+  /** Today is a birthday or festival for these residents: family visits and tea and cake. */
+  celebration: { kind: CelebrationKind; name: string; residentIds: string[] };
 }
 
 export type InputType = keyof InputPayloads;
