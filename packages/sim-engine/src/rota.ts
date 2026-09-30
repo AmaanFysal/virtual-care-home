@@ -142,18 +142,27 @@ export function planDay(world: World, day: number): void {
       const free = pool.filter((w) => !namesInUse.has(w.name));
       const worker = rng.pick(free.length > 0 ? free : pool);
       namesInUse.add(worker.name);
-      world.agencyCount += 1;
-      personId = `agy_${String(world.agencyCount).padStart(3, "0")}`;
-      const competencies: Staff["competencies"] = isNurse ? ["meds_trained", "fall_assessment", "moving_handling"] : ["moving_handling"];
-      const person = staffPerson({ id: personId, name: worker.name, gender: worker.gender, walk_speed_mps: 1.2, role: isNurse ? "registered_nurse" : "care_assistant", competencies });
-      person.kind = "agency";
-      person.staff!.role = isNurse ? "agency_nurse" : "agency_carer";
-      addPerson(world, person);
+      personId = addAgencyWorker(world, worker, isNurse, false).id;
       early = rng.int(0, 10);
     }
     world.shifts.push({ personId, shift, slot, arriveT: startT - early * 60, startT, endT, spawned: false, started: false, ended: false });
   }
   world.shifts.sort((a, b) => a.arriveT - b.arriveT || a.personId.localeCompare(b.personId));
+}
+
+/**
+ * Adds a booked agency worker (not yet on the map). A nurse is meds-trained and assesses falls; a
+ * carer covering a shift lead's slot is a meds-trained senior (docs/10).
+ */
+export function addAgencyWorker(world: World, worker: { name: string; gender: Staff["gender"] }, isNurse: boolean, medsTrained: boolean): Person {
+  world.agencyCount += 1;
+  const id = `agy_${String(world.agencyCount).padStart(3, "0")}`;
+  const competencies: Staff["competencies"] = isNurse ? ["meds_trained", "fall_assessment", "moving_handling"] : medsTrained ? ["meds_trained", "moving_handling"] : ["moving_handling"];
+  const person = staffPerson({ id, name: worker.name, gender: worker.gender, walk_speed_mps: 1.2, role: isNurse ? "registered_nurse" : "care_assistant", competencies });
+  person.kind = "agency";
+  person.staff!.role = isNurse ? "agency_nurse" : "agency_carer";
+  addPerson(world, person);
+  return person;
 }
 
 function freeStaffRoomSeat(world: World): string {
@@ -182,9 +191,11 @@ function startShift(world: World, a: ShiftAssignment, person: Person): void {
 }
 
 /** Who holds a slot on a given day (the night slot at 07:00 is yesterday's). */
-function holder(world: World, day: number, slot: string): string | null {
+export function holder(world: World, day: number, slot: string): string | null {
   const shift = slot.split(".")[0] as ShiftName;
-  const a = world.shifts.find((s) => s.slot === slot && s.shift === shift && dayIndex(s.startT) === day);
+  // A night split between the late carer staying on and the cover who relieves her (docs/10): whoever holds it now, else the last.
+  const all = world.shifts.filter((s) => s.slot === slot && s.shift === shift && dayIndex(s.startT) === day);
+  const a = all.find((s) => s.started && !s.ended) ?? all.sort((x, y) => x.startT - y.startT).at(-1);
   return a?.personId ?? null;
 }
 
@@ -194,14 +205,34 @@ function createHandovers(world: World): void {
   for (const h of HANDOVERS) {
     if (tod !== clockToSeconds(h.at)) continue;
     const list = (...ids: (string | null)[]) => ids.filter((id): id is string => !!id);
+    let from: string[], to: string[], coverSlot: string;
     if (h.at === "07:00") {
-      createHandover(world, list(holder(world, day - 1, "night.carer")), list(holder(world, day, "early.lead"), holder(world, day, "rn_day.nurse")), holder(world, day, "early.ca"), h.mins, h.brief);
+      [from, to, coverSlot] = [list(holder(world, day - 1, "night.carer")), list(holder(world, day, "early.lead"), holder(world, day, "rn_day.nurse")), "early.ca"];
     } else if (h.at === "14:00") {
-      createHandover(world, list(holder(world, day, "early.lead")), list(holder(world, day, "late.lead"), holder(world, day, "late.ca")), holder(world, day, "early.ca"), h.mins, h.brief);
+      [from, to, coverSlot] = [list(holder(world, day, "early.lead")), list(holder(world, day, "late.lead"), holder(world, day, "late.ca")), "early.ca"];
     } else {
-      createHandover(world, list(holder(world, day, "late.lead")), list(holder(world, day, "night.carer")), holder(world, day, "late.ca"), h.mins, h.brief);
+      // A late carer staying on for the night (docs/10) already knows the shift: no handover.
+      const night = holder(world, day, "night.carer");
+      if (night && (night === holder(world, day, "late.lead") || night === holder(world, day, "late.ca"))) continue;
+      [from, to, coverSlot] = [list(holder(world, day, "late.lead")), list(night), "late.ca"];
     }
+    let cover = holder(world, day, coverSlot);
+    // The floor cover's slot is short (a sick call not yet covered, docs/10): an incoming member
+    // who is here stays on the floor instead and reads the notes; with nobody here to cover or
+    // to hand over to, the written notes stand in for the handover.
+    if (slotShort(world, day, coverSlot)) {
+      const here = (id: string) => !!world.people.get(id)?.onMap;
+      cover = to.filter(here).at(-1) ?? null;
+      to = to.filter((id) => id !== cover);
+      if (!cover || !from.some(here) || !to.some(here)) continue;
+    }
+    createHandover(world, from, to, cover, h.mins, h.brief);
   }
+}
+
+/** Whether a slot is missing its worker right now: an absence with no cover, or cover not here yet. */
+function slotShort(world: World, day: number, slot: string): boolean {
+  return world.absences.some((a) => a.slot === slot && dayIndex(a.startT) === day && world.t < a.endT && (!a.cover || world.t < a.cover.arriveT));
 }
 
 /** Runs on minute boundaries. */
@@ -214,9 +245,12 @@ export function rotaMinute(world: World): void {
     if (!a.spawned && t >= a.arriveT) {
       a.spawned = true;
       person.staff!.shift = a;
-      person.staff!.duty = "arriving";
-      if (person.kind === "agency") emit(world, "agency.spawned", [person.id], { staffId: person.id, role: person.staff!.role === "agency_nurse" ? "nurse" : "carer", shift: a.shift });
-      world.spawnQueue.push(person.id);
+      // Staying on from the late shift: already here and on duty.
+      if (!a.stayOn) {
+        person.staff!.duty = "arriving";
+        if (person.kind === "agency") emit(world, "agency.spawned", [person.id], { staffId: person.id, role: person.staff!.role === "agency_nurse" ? "nurse" : "carer", shift: a.shift });
+        world.spawnQueue.push(person.id);
+      }
     }
     if (a.spawned && !a.started && t >= a.startT) startShift(world, a, person);
     if (a.started && !a.ended && t >= a.endT) {
@@ -226,6 +260,7 @@ export function rotaMinute(world: World): void {
         world.rnOnCall = true;
         emit(world, "rn.on_call_started", [], { nurseLabel: "On-call RN (main building)" });
       }
+      if (person.staff!.shift !== a && person.staff!.shift?.stayOn) continue; // carrying on into the night
       if (person.onMap) person.staff!.duty = "staying";
       else {
         world.spawnQueue.splice(world.spawnQueue.indexOf(person.id), 1);

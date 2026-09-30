@@ -38,7 +38,7 @@ M0 and M1 done on branch `phase-1-rules-mvp`. **Phase 1 complete (2026-09-29).**
 
 ## Next
 
-- User's manual 10x check and merge; then Phase 2 planning (docs/09).
+- Phase 1 is complete. Next: Phase 2, the scenario director (no LLM), in `docs/workstreams/phase-2-director/`. LLM minds move to Phase 3 (reordered 2026-09-30).
 
 ## Decisions made (link ADRs)
 

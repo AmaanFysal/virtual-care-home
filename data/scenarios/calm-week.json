@@ -1,0 +1,7 @@
+{
+  "id": "calm-week",
+  "name": "A calm week",
+  "description": "No unplanned events: the baseline the tuning rules are measured against (at most 2 service breaches a week, no hard violations).",
+  "random": false,
+  "events": []
+}

@@ -31,24 +31,32 @@ export function clockToSeconds(clock: ClockTime): number {
   return hours * 3600 + minutes * 60;
 }
 
-const MONTHS = [
-  { name: "Nov", days: 30 },
-  { name: "Dec", days: 31 },
-  { name: "Jan", days: 31 },
-  { name: "Feb", days: 28 },
-] as const;
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
-/** "Tue 03 Nov 07:30" (with ":05" seconds when `withSeconds`). Valid until end of Feb 2027. */
-export function formatSimTime(t: number, withSeconds = false): string {
-  let day = dayIndex(t) + 2; // the epoch is 2 November
-  let month = 0;
-  while (month < MONTHS.length - 1 && day > MONTHS[month]!.days) {
-    day -= MONTHS[month]!.days;
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28;
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+/** The calendar date of a sim time (the epoch is Mon 2 Nov 2026). Month is 1..12. Any year. */
+export function simDate(t: number): { year: number; month: number; day: number } {
+  let rest = dayIndex(t) + 1; // days after 1 November 2026
+  let year = 2026;
+  let month = 11;
+  while (rest >= daysInMonth(year, month)) {
+    rest -= daysInMonth(year, month);
     month += 1;
+    if (month > 12) (month = 1), (year += 1);
   }
+  return { year, month, day: rest + 1 };
+}
+
+/** "Tue 03 Nov 07:30" (with ":05" seconds when `withSeconds`). */
+export function formatSimTime(t: number, withSeconds = false): string {
+  const { month, day } = simDate(t);
   const secs = timeOfDay(t);
   const pad = (n: number) => String(n).padStart(2, "0");
   const hhmm = `${pad(Math.floor(secs / 3600))}:${pad(Math.floor((secs % 3600) / 60))}`;
   const clock = withSeconds ? `${hhmm}:${pad(secs % 60)}` : hhmm;
-  return `${weekday(t)} ${pad(day)} ${MONTHS[month]!.name} ${clock}`;
+  return `${weekday(t)} ${pad(day)} ${MONTH_NAMES[month - 1]} ${clock}`;
 }

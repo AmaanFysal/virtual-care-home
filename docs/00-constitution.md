@@ -10,7 +10,7 @@ Changing anything here needs an ADR in `docs/adr/` and an explicit decision, not
 2. **Deterministic runs.** A seed plus the recorded input log reproduces a run exactly.
    - All randomness comes from the engine's seeded RNG. No `Math.random()`.
    - No wall-clock time in the engine. No `Date.now()`, `new Date()`, `performance.now()` or timers inside `packages/sim-engine`. The engine only knows sim time.
-   - LLM output (Phase 2+) enters as recorded, timestamped inputs, never as a side effect.
+   - LLM output (LLM minds, Phase 3) enters as recorded, timestamped inputs, never as a side effect. Director events (Phase 2) enter the same way, as inputs with `source: "director"`, planned from the seed, the director settings and the scenario file, so those replay a run too (ADR-0005).
 3. **The browser draws state only.** `apps/web` renders what the server sends and sends typed commands back (pause, speed, inspect, inject). It contains no simulation logic and does not depend on `sim-engine`.
 4. **v1 is people and building only.** No sensors, equipment or air quality in v1. The world is rooms, doors, furniture as blockers and interaction points, and people.
 5. **Every event has a `source` field.** One of `engine`, `director`, `user`, `llm`, `external`. This is the extension point for future modules (adapters subscribe to events and publish inputs).

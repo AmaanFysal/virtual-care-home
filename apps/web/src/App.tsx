@@ -1,7 +1,9 @@
 import { WingCanvas } from "./canvas/WingCanvas";
 import { ClockBar } from "./components/ClockBar";
 import { EventLog } from "./components/EventLog";
+import { DirectorPanel } from "./components/DirectorPanel";
 import { Inspector } from "./components/Inspector";
+import { Notable } from "./components/Notable";
 import { useView } from "./store";
 
 const LEGEND = [
@@ -16,6 +18,7 @@ export function App() {
   const status = useView((s) => s.status);
   const error = useView((s) => s.error);
   const showTags = useView((s) => s.showTags);
+  const sideTab = useView((s) => s.sideTab);
   return (
     <div className="app">
       <header className="top">
@@ -40,7 +43,16 @@ export function App() {
         <WingCanvas />
       </main>
       <aside>
-        <Inspector />
+        <Notable />
+        <nav className="tabs">
+          <button className={sideTab === "inspector" ? "active" : ""} onClick={() => useView.setState({ sideTab: "inspector" })}>
+            Inspector
+          </button>
+          <button className={sideTab === "director" ? "active" : ""} onClick={() => useView.setState({ sideTab: "director" })}>
+            Director
+          </button>
+        </nav>
+        {sideTab === "inspector" ? <Inspector /> : <DirectorPanel />}
         <EventLog />
       </aside>
       <footer className="credits">

@@ -2,12 +2,13 @@
 // The browser only draws what arrives here and sends commands back.
 
 import type { FloorPlan, Gender } from "./data.js";
-import type { AnySimEvent, FallSeverity, NeedName } from "./events.js";
+import type { AnySimEvent, FallSeverity, InputPayloads, InputType, NeedName } from "./events.js";
 
 export type PersonKind = "resident" | "staff" | "agency" | "visitor" | "external";
 /** "dozing": asleep in a Lounge armchair (a nap away from their room). */
 export type Posture = "standing" | "walking" | "sitting" | "dozing" | "in_bed" | "on_floor";
-export type Badge = "pill" | "tray" | "cup" | "towel" | "hoist" | "asleep" | "confused" | "break" | "handover" | "phone" | "alert";
+/** "alert": on the floor after a fall; "obs": back up, on post-fall observations (docs/05). */
+export type Badge = "pill" | "tray" | "cup" | "towel" | "hoist" | "asleep" | "confused" | "break" | "handover" | "phone" | "alert" | "obs";
 export type ClockSpeed = 1 | 10 | 60 | 360;
 
 /** What the canvas needs to draw one person. */
@@ -58,8 +59,15 @@ export interface PersonDetail {
   schedule: { t: number; label: string }[];
 }
 
+/** How this run uses the scenario director (docs/10), for the Director panel. */
+export interface DirectorView {
+  mode: "off" | "random" | "scenario" | "both";
+  scenario: { id: string; name: string; description: string } | null;
+  deaths: boolean;
+}
+
 export type ServerMessage =
-  | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[] }
+  | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[]; director: DirectorView }
   | { type: "delta"; clock: ClockView; people: PersonView[]; events: AnySimEvent[] }
   | { type: "clock"; clock: ClockView }
   | { type: "detail"; detail: PersonDetail }
@@ -71,4 +79,6 @@ export type ClientCommand =
   | { type: "step" }
   | { type: "set_speed"; speed: ClockSpeed }
   | { type: "inspect"; personId: string }
-  | { type: "inject_fall"; residentId: string; severity: FallSeverity };
+  | { type: "inject_fall"; residentId: string; severity: FallSeverity }
+  /** Any director event, triggered by hand from the Director panel (applied with source "user"). */
+  | { type: "inject"; input: InputType; params: InputPayloads[InputType] };

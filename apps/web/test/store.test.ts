@@ -8,7 +8,7 @@ const clock = { t: 108000, tick: 0, paused: false, speed: 60 as const };
 
 describe("store", () => {
   it("replaces state on snapshot and merges deltas", () => {
-    let state = { ...initialState, ...reduce(initialState, { type: "snapshot", clock, floorplan: {} as never, people: [person("a", 1), person("b", 2)], events: [] }) };
+    let state = { ...initialState, ...reduce(initialState, { type: "snapshot", clock, floorplan: {} as never, people: [person("a", 1), person("b", 2)], events: [], director: { mode: "off", scenario: null, deaths: true } }) };
     state = { ...state, ...reduce(state, { type: "delta", clock: { ...clock, tick: 1 }, people: [person("b", 3)], events: [] }) };
     expect(state.people.a!.x).toBe(1);
     expect(state.people.b!.x).toBe(3);

@@ -8,13 +8,15 @@ import {
   type ClientCommand,
   type ClockSpeed,
   type ClockView,
+  type DirectorView,
+  type InputType,
   type PersonDetail,
   type PersonView,
   type ServerMessage,
   type SimInput,
   type WorldData,
 } from "@vch/shared-types";
-import type { Sim } from "@vch/sim-engine";
+import { INPUT_TYPES, validateInput, type Sim } from "@vch/sim-engine";
 import type { EventLog } from "./eventlog.js";
 
 /** How often deltas go out (10 Hz). */
@@ -45,6 +47,7 @@ export class Runner {
     private sim: Sim,
     private data: WorldData,
     private log: EventLog,
+    private director: DirectorView = { mode: "off", scenario: null, deaths: true },
   ) {}
 
   start(): void {
@@ -93,7 +96,7 @@ export class Runner {
 
   connect(client: Client): () => void {
     this.clients.add(client);
-    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.data.floorplan, people: this.sim.people(), events: [...this.recent] });
+    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director });
     return () => this.clients.delete(client);
   }
 
@@ -141,26 +144,26 @@ export class Runner {
         this.advance(1);
         this.broadcastDelta();
         return null;
-      case "inject_fall": {
-        const resident = this.data.residents.find((r) => r.id === command.residentId);
-        if (!resident) return { type: "error", message: `Unknown resident ${command.residentId}` };
-        this.inputSeq += 1;
-        const input: SimInput<"inject_fall"> = {
-          seq: this.inputSeq,
-          applyTick: this.sim.tick + 1,
-          type: "inject_fall",
-          payload: { residentId: command.residentId, severity: command.severity },
-          source: "user",
-        };
-        this.log.appendInput(input);
-        this.sim.enqueue(input);
-        return null;
-      }
+      case "inject_fall":
+        return this.inject("inject_fall", { residentId: command.residentId, severity: command.severity });
+      case "inject":
+        return this.inject(command.input, command.params);
       case "inspect": {
         const detail = this.detail(command.personId);
         return detail ? { type: "detail", detail } : { type: "error", message: `Unknown person ${command.personId}` };
       }
     }
+  }
+
+  /** Queues a manual event for the next tick (source "user"), logged before it's applied. */
+  private inject(type: InputType, params: SimInput["payload"]): ServerMessage | null {
+    const errors = validateInput(type, params, this.data);
+    if (errors.length > 0) return { type: "error", message: errors.join("; ") };
+    this.inputSeq += 1;
+    const input: SimInput = { seq: this.inputSeq, applyTick: this.sim.tick + 1, type, payload: params, source: "user" };
+    this.log.appendInput(input);
+    this.sim.enqueue(input);
+    return null;
   }
 
   private detail(personId: string): PersonDetail | null {
@@ -227,6 +230,11 @@ export function parseCommand(raw: string): ClientCommand | null {
     case "inject_fall":
       return typeof c.residentId === "string" && (c.severity === "minor" || c.severity === "serious")
         ? { type: "inject_fall", residentId: c.residentId, severity: c.severity }
+        : null;
+    // The params are checked against the data by the runner (validateInput).
+    case "inject":
+      return INPUT_TYPES.includes(c.input as InputType) && typeof c.params === "object" && c.params !== null
+        ? { type: "inject", input: c.input as InputType, params: c.params as SimInput["payload"] }
         : null;
     default:
       return null;

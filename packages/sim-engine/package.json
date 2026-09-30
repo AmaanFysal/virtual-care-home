@@ -9,7 +9,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "sim": "tsx scripts/sim.ts"
+    "sim": "tsx scripts/sim.ts",
+    "director-rates": "tsx scripts/director-rates.ts"
   },
   "dependencies": {
     "@vch/shared-types": "workspace:*"

@@ -37,40 +37,59 @@ function giverFor(world: World, slot: string): Person | null {
 }
 
 export function medsMinute(world: World): void {
+  // A round nobody could give at its time is given as soon as someone meds-trained is here (the on-call RN).
+  if (world.pendingRounds.length > 0) {
+    const giver = giverFor(world, "");
+    if (giver) for (const p of world.pendingRounds.splice(0)) createRound(world, p.round, p.roundT, giver);
+  }
   const tod = timeOfDay(world.t);
   for (const round of ROUNDS) {
     if (tod !== clockToSeconds(round.at)) continue;
     const giver = giverFor(world, round.slot);
-    if (!giver) continue; // no one able to give meds: in Phase 1 this can't happen by day
-    const queue = world.order
-      .map((id) => world.people.get(id)!)
-      .filter((p) => p.resident)
-      // Time-critical medication first (Arthur's Parkinson's), then bed by bed.
-      .sort((a, b) => Number(!!b.resident!.data.care.time_critical_meds) - Number(!!a.resident!.data.care.time_critical_meds) || a.resident!.data.room.localeCompare(b.resident!.data.room))
-      .map((p) => p.id);
-    world.taskSeq += 1;
-    const task = {
-      id: `t${String(world.taskSeq).padStart(6, "0")}`,
-      kind: "med_round" as const,
-      label: `${round.at} medication round`,
-      residentId: null,
-      need: null,
-      createdT: world.t,
-      startedT: null,
-      staffNeeded: 1 as const,
-      femaleOnly: false,
-      priority: 0,
-      request: false,
-      deadlineT: null,
-      members: [giver.id],
-      assigned: [],
-      status: "open" as const,
-      bt: newBtState(),
-      data: { round: round.at, roundT: world.t, queue, moved: [], i: 0, phase: 0, start: 0, interruptions: 0, started: 0 },
-    };
-    world.tasks.set(task.id, task);
-    emit(world, "task.created", [giver.id], { taskId: task.id, kind: "med_round", residentId: null, dueT: world.t });
+    if (!giver) {
+      // Nobody meds-trained on the wing (a scenario left a shift lead's slot uncovered, docs/10):
+      // the on-call RN comes over from the main building (about 30 minutes) and gives it.
+      emit(world, "med_round.no_giver", [], { round: round.at });
+      world.pendingRounds.push({ round: round.at, roundT: world.t });
+      if (world.onCallRn.status === "off") {
+        world.onCallRn = { status: "coming", arriveT: world.t + world.rng.meds.int(25, 35) * 60, residentId: null };
+        emit(world, "on_call_rn.called", [], { residentId: null, reason: `${round.at} medication round: nobody meds-trained on the wing` });
+      }
+      continue;
+    }
+    createRound(world, round.at, world.t, giver);
   }
+}
+
+function createRound(world: World, round: string, roundT: number, giver: Person): void {
+  const queue = world.order
+    .map((id) => world.people.get(id)!)
+    .filter((p) => p.resident)
+    // Time-critical medication first (Arthur's Parkinson's), then bed by bed.
+    .sort((a, b) => Number(!!b.resident!.data.care.time_critical_meds) - Number(!!a.resident!.data.care.time_critical_meds) || a.resident!.data.room.localeCompare(b.resident!.data.room))
+    .map((p) => p.id);
+  world.taskSeq += 1;
+  const task = {
+    id: `t${String(world.taskSeq).padStart(6, "0")}`,
+    kind: "med_round" as const,
+    label: `${round} medication round`,
+    residentId: null,
+    need: null,
+    createdT: world.t,
+    startedT: null,
+    staffNeeded: 1 as const,
+    femaleOnly: false,
+    priority: 0,
+    request: false,
+    deadlineT: null,
+    members: [giver.id],
+    assigned: [],
+    status: "open" as const,
+    bt: newBtState(),
+    data: { round, roundT, queue, moved: [], i: 0, phase: 0, start: 0, interruptions: 0, started: 0 },
+  };
+  world.tasks.set(task.id, task);
+  emit(world, "task.created", [giver.id], { taskId: task.id, kind: "med_round", residentId: null, dueT: roundT });
 }
 
 function giveDose(c: Ctx, r: Person): void {

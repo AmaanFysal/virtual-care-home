@@ -3,12 +3,15 @@
 // --report prints help requests per day by need, the longest wait per resident and call-outs.
 // --audit prints a behaviour audit per resident, staff shift and day (thresholds in scripts/audit.config.ts);
 //   add --seeds 1-8 to audit several seeds and print only the combined flag summary.
+// --director random|scenario|both|off and --scenario <id or path> turn on the scenario director (docs/10);
+//   --report then adds a per-day report, and --report --seeds 1-8 prints it for several seeds with totals.
 
 import { parseArgs } from "node:util";
-import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, type AnySimEvent } from "@vch/shared-types";
-import { createSim } from "../src/index.js";
-import { loadWorldData } from "../tools/load-data.js";
+import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, type AnySimEvent, type DirectorSettings } from "@vch/shared-types";
+import { createSim, validateScenario, type World } from "../src/index.js";
+import { loadDirectorConfig, loadScenario, loadWorldData } from "../tools/load-data.js";
 import { runAudit, summarise, type Flag } from "./audit.js";
+import { dayLines, dayReport, emptyTotals, totalsLines } from "./day-report.js";
 
 const { values } = parseArgs({
   options: {
@@ -20,8 +23,50 @@ const { values } = parseArgs({
     report: { type: "boolean", default: false },
     audit: { type: "boolean", default: false },
     seeds: { type: "string" },
+    director: { type: "string" },
+    scenario: { type: "string" },
   },
 });
+
+function directorSettings(): DirectorSettings | undefined {
+  const mode = values.director ?? (values.scenario ? "scenario" : "off");
+  if (mode === "off") return undefined;
+  if (!["random", "scenario", "both"].includes(mode)) throw new Error("--director must be random, scenario, both or off");
+  const scenario = values.scenario ? loadScenario(values.scenario) : undefined;
+  if (mode !== "random" && !scenario) throw new Error(`--director ${mode} needs --scenario`);
+  if (scenario) {
+    const errors = validateScenario(scenario, loadWorldData());
+    if (errors.length) throw new Error(`Invalid scenario:\n${errors.join("\n")}`);
+  }
+  return { config: loadDirectorConfig(), random: mode === "random" || mode === "both" || !!scenario?.random, ...(mode !== "random" ? { scenario } : {}) };
+}
+const director = directorSettings();
+/** Remembers names while people exist (agency workers are forgotten after they go home). */
+function noteNames(world: World, e: AnySimEvent, names: Map<string, string>): void {
+  for (const id of [...e.actors, ...(e.type === "rota.cover_booked" ? [e.payload.staffId] : [])]) if (!names.has(id)) names.set(id, world.people.get(id)?.name ?? id);
+}
+const seedRange = (spec: string) => {
+  const [from, to] = spec.split("-").map(Number);
+  return Array.from({ length: (to ?? from)! - from! + 1 }, (_, i) => String(from! + i));
+};
+
+if (values.report && values.seeds) {
+  // Per-day report for several seeds, then totals across them.
+  const totals = emptyTotals();
+  const ticks = Math.round((Number(values.hours) * 3600) / 5);
+  for (const seed of seedRange(values.seeds)) {
+    const sim = createSim({ seed, data: loadWorldData(), ...(director ? { director } : {}) });
+    const events: AnySimEvent[] = [];
+    const names = new Map<string, string>();
+    for (let i = 0; i < ticks; i++) for (const e of sim.step()) events.push(e), noteNames(sim.world, e, names);
+    console.log(`\n=== seed ${seed} ===`);
+    for (const line of dayLines(dayReport(events, names, totals).rows)) console.log(line);
+    console.error(`seed ${seed} done`);
+  }
+  console.log(`\n=== totals, seeds ${values.seeds}, ${values.hours} h each ===`);
+  for (const line of totalsLines(totals, (seedRange(values.seeds).length * Number(values.hours)) / 168)) console.log(line);
+  process.exit(0);
+}
 
 if (values.audit) {
   if (values.fall) throw new Error("--audit runs without injected falls");
@@ -29,7 +74,7 @@ if (values.audit) {
     const [from, to] = values.seeds.split("-").map(Number);
     const all: (Flag & { seed: number })[] = [];
     for (let s = from!; s <= (to ?? from)!; s++) {
-      const { flags } = runAudit(String(s), Number(values.hours), loadWorldData());
+      const { flags } = runAudit(String(s), Number(values.hours), loadWorldData(), undefined, director);
       all.push(...flags.map((f) => ({ ...f, seed: s })));
       console.error(`seed ${s}: ${flags.length} flags`);
     }
@@ -43,12 +88,12 @@ if (values.audit) {
       console.log(`  ${type.padEnd(40)} ${per.map((n) => String(n).padStart(4)).join("")}`);
     }
   } else {
-    for (const line of runAudit(values.seed!, Number(values.hours), loadWorldData()).lines) console.log(line);
+    for (const line of runAudit(values.seed!, Number(values.hours), loadWorldData(), undefined, director).lines) console.log(line);
   }
   process.exit(0);
 }
 
-const sim = createSim({ seed: values.seed!, data: loadWorldData() });
+const sim = createSim({ seed: values.seed!, data: loadWorldData(), ...(director ? { director } : {}) });
 if (values.fall) {
   // --fall res_peggy@06:40 or res_stan@02:00:serious (the first such time after the start)
   const [residentId, when] = values.fall.split("@");
@@ -69,16 +114,25 @@ const describe = (e: AnySimEvent): string => {
 };
 
 const ticks = Math.round((Number(values.hours) * 3600) / 5);
+const names = new Map<string, string>();
 let count = 0;
 const all: AnySimEvent[] = [];
 for (let i = 0; i < ticks; i++) {
   for (const e of sim.step()) {
     count++;
+    noteNames(sim.world, e, names);
     if (values.report) all.push(e);
     else if (!values.type || e.type.startsWith(values.type)) console.log(describe(e));
   }
 }
 if (values.report) report(all, sim.t);
+if (values.report && director) {
+  console.log("\nPer day (director):");
+  const { rows, totals } = dayReport(all, names);
+  for (const line of dayLines(rows)) console.log(line);
+  console.log("\nTotals:");
+  for (const line of totalsLines(totals, Number(values.hours) / 168)) console.log(line);
+}
 
 function report(events: AnySimEvent[], endT: number): void {
   const requests = events.filter((e) => e.type === "resident.requested_help") as Extract<AnySimEvent, { type: "resident.requested_help" }>[];

@@ -115,7 +115,7 @@ Every person has:
 - **Location:** `onMap` flag, position (x, y in metres), current room id, current path and speed (m/s).
 - **Activity:** a posture (`standing`, `walking`, `sitting`, `dozing` (asleep in a Lounge armchair), `in_bed`, `on_floor`) and the current task or behaviour-tree node.
 - **Needs** (residents), or **workload** and a shift assignment (staff), or a visit plan (visitors). See [04](04-agents-and-behaviour.md).
-- **Badges:** short derived labels for the UI (pill, tray, towel, asleep, alert).
+- **Badges:** short derived labels for the UI (pill, tray, towel, asleep, alert while on the floor after a fall, obs during post-fall observations).
 
 ## Off-map people
 

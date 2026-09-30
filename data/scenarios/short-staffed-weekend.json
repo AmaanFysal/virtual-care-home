@@ -1,0 +1,11 @@
+{
+  "id": "short-staffed-weekend",
+  "name": "A short-staffed weekend",
+  "description": "Tom rings in sick for Friday's early shift and agency cover arrives late; Saturday's agency night carer doesn't turn up and nobody can come, so the late carer stays on; Aisha is off sick on Monday's late shift and a bank carer covers.",
+  "random": false,
+  "events": [
+    { "day": "Fri", "time": "06:15", "type": "staff_sick", "params": { "staffId": "stf_tom", "cover": "agency" } },
+    { "day": "Sat", "time": "20:30", "type": "shift_no_show", "params": { "slot": "night.carer", "cover": "none" } },
+    { "day": "Mon", "time": "12:30", "type": "staff_sick", "params": { "staffId": "stf_aisha", "cover": "bank" } }
+  ]
+}

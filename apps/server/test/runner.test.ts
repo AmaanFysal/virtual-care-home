@@ -63,6 +63,20 @@ describe("Runner", () => {
     expect(fell).toMatchObject({ tick: 1, source: "user" });
   });
 
+  it("applies an inject command from the Director panel as a logged user input, and refuses bad params", () => {
+    const { runner, db, received } = setup();
+    expect(runner.handle({ type: "inject", input: "staff_sick", params: { staffId: "stf_nobody" } })).toMatchObject({ type: "error" });
+    expect(runner.handle({ type: "inject", input: "staff_sick", params: { staffId: "stf_dave", cover: "agency" } })).toBeNull();
+    const input = db.prepare("SELECT * FROM inputs").get() as Record<string, unknown>;
+    expect(input).toMatchObject({ seq: 1, apply_tick: 1, type: "staff_sick", source: "user" });
+    runner.handle({ type: "step" });
+    const absent = db.prepare("SELECT * FROM events WHERE type = 'staff.absent'").get() as Record<string, unknown>;
+    expect(absent).toMatchObject({ tick: 1, source: "user" });
+    expect(JSON.parse(String(absent.payload))).toMatchObject({ staffId: "stf_dave", slot: "late.lead" });
+    const snapshot = received[0] as Extract<ServerMessage, { type: "snapshot" }>;
+    expect(snapshot.director).toEqual({ mode: "off", scenario: null, deaths: true });
+  });
+
   it("refuses to step while running and answers inspect", () => {
     const { runner } = setup();
     runner.handle({ type: "resume" });
@@ -80,6 +94,9 @@ describe("parseCommand", () => {
     expect(parseCommand('{"type":"inject_fall","residentId":"res_win","severity":"awful"}')).toBeNull();
     expect(parseCommand("not json")).toBeNull();
     expect(parseCommand('{"type":"teleport"}')).toBeNull();
+    expect(parseCommand('{"type":"inject","input":"shift_no_show","params":{"slot":"night.carer"}}')).toMatchObject({ type: "inject", input: "shift_no_show" });
+    expect(parseCommand('{"type":"inject","input":"outbreak","params":{}}')).toBeNull();
+    expect(parseCommand('{"type":"inject","input":"staff_sick"}')).toBeNull();
   });
 });
 

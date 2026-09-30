@@ -7,6 +7,7 @@ import {
   dayIndex,
   type AnySimEvent,
   type PersonView,
+  type DirectorSettings,
   type Resident,
   type SimInput,
   type WorldData,
@@ -14,7 +15,8 @@ import {
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
-import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall, staffFalls, watchFalls } from "./falls.js";
+import { applyDirectorEvents, applyInput, initDirector, planDirectorDay } from "./director/director.js";
+import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, staffFalls, watchFalls } from "./falls.js";
 import { medsMinute } from "./meds.js";
 import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
 import { floatMinute } from "./float.js";
@@ -33,6 +35,8 @@ export interface SimOptions {
   data: WorldData;
   /** Sim seconds since Mon 2026-11-02 00:00; must be on a minute boundary. Default Tue 06:00. */
   startT?: number;
+  /** The scenario director (docs/10). Off when absent: the run is exactly as without it. */
+  director?: DirectorSettings;
 }
 
 export interface Sim {
@@ -91,6 +95,7 @@ function residentPerson(r: Resident, world: World): Person {
       fall: null,
       postFallUntil: 0,
       away: null,
+      returnT: null,
       // Night checks already on schedule at the start (spec decision 13).
       lastCheckedT: world.startT - world.rng.needs.int(0, Math.floor(r.care.check_interval_mins.night / 2)) * 60,
       lastToiletT: world.startT - 60 * 60,
@@ -140,6 +145,7 @@ export function createSim(options: SimOptions): Sim {
     loungeSeenT: startT,
     session: null,
     onCallRn: { status: "off", arriveT: null, residentId: null },
+    pendingRounds: [],
     mainCarer: { status: "off", arriveT: null, retryT: 0 },
     fallLog: [],
     metrics: { floatCallouts: 0, medInterruptions: 0 },
@@ -148,6 +154,8 @@ export function createSim(options: SimOptions): Sim {
     rnOnCall: true,
     agencyCount: 0,
     inputs: [],
+    director: null,
+    absences: [],
     pending: [],
     seq: 0,
   };
@@ -171,15 +179,17 @@ export function createSim(options: SimOptions): Sim {
   planWeek(world, dayIndex(startT));
   planVisits(world, dayIndex(startT), startT);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
+  if (options.director) {
+    initDirector(world, options.director);
+    planDirectorDay(world, startT);
+  }
 
   const applyInputs = () => {
     while (world.inputs.length > 0 && world.inputs[0]!.applyTick <= world.tick) {
       const input = world.inputs.shift()!;
-      if (input.type === "inject_fall") {
-        const { residentId, severity } = (input as SimInput<"inject_fall">).payload;
-        injectFall(world, residentId, severity, input.source);
-      }
+      applyInput(world, input.type, input.payload, input.source);
     }
+    applyDirectorEvents(world);
   };
 
   return {
@@ -197,6 +207,7 @@ export function createSim(options: SimOptions): Sim {
       applyInputs();
       if (world.t % 60 === 0) {
         rotaMinute(world);
+        if (world.director && world.t % 86400 === 0) planDirectorDay(world, world.t);
         residentsMinute(world);
         careMinute(world);
         medsMinute(world);

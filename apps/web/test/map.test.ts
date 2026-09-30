@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { FloorPlan, PersonView } from "@vch/shared-types";
 import floorplan from "../../../data/floorplan.json";
 import { BLEND_M, FACE_PX, PAD_PX, TILE_PX, makeBanding } from "../src/canvas/banding";
+import tileset from "../src/canvas/tileset.json";
 import { activityIcon, directionOf, facingFixture, figureBox, makeSlide, pickPerson, seatFacings, slideAt, slideRest } from "../src/canvas/figures";
 
 const plan = floorplan as unknown as FloorPlan;
@@ -87,6 +88,17 @@ describe("facing and activity icons", () => {
     expect(activityIcon(v({ kind: "visitor", task: "Visiting Peggy" }))).toBe("visiting");
     expect(activityIcon(v({ task: "Sitting with Stan" }))).toBe("chatting");
     expect(activityIcon(v({}))).toBeNull();
+  });
+
+  it("shows the red fall icon only while someone is on the floor, a calmer one during post-fall observations, and nothing after", () => {
+    const resident = (over: Partial<PersonView>) => ({ kind: "resident" as const, posture: "in_bed" as const, badges: [], task: null, ...over });
+    expect(activityIcon(resident({ posture: "on_floor", badges: ["alert"] }))).toBe("fall");
+    expect(activityIcon(resident({ badges: ["obs"] }))).toBe("observe");
+    expect(activityIcon(resident({ posture: "sitting", badges: ["obs"] }))).toBe("observe");
+    expect(activityIcon(resident({ badges: ["obs", "asleep"] }))).toBe("observe");
+    expect(activityIcon(resident({}))).toBeNull();
+    // Every icon has a frame in the icon strip.
+    expect(tileset.icons.order).toContain("observe");
   });
 });
 
