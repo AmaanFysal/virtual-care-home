@@ -76,6 +76,7 @@ function setBadge(p: Person, badge: "asleep", on: boolean): void {
 
 function updateSleep(world: World, p: Person): void {
   const res = p.resident!;
+  if (res.fall) return; // on the floor: nothing changes until they've been assessed and moved
   const needsSettled = NEEDS.every((n) => res.needs[n] < ACT_THRESHOLD[n]);
   if (res.asleep) {
     const reason = res.needs.toileting >= WAKE_FOR_TOILET ? "toilet" : !sleepTime(res.data, world.t) ? "routine" : null;
@@ -115,7 +116,7 @@ function drinkWhatWasLeft(world: World, p: Person): void {
     res.drinkStale = true;
     return;
   }
-  if (res.asleep || res.busyTaskId) return;
+  if (res.asleep || res.busyTaskId || res.fall) return;
   res.drinkLeftT = null;
   res.needs.thirst = Math.max(0, res.needs.thirst - 0.7);
   res.needs.hunger = Math.max(0, res.needs.hunger - 0.2);
@@ -129,7 +130,7 @@ function canSelfToilet(p: Person): boolean {
 /** Acts on the most pressing need, if any is over its threshold. */
 function act(world: World, p: Person): void {
   const res = p.resident!;
-  if (res.busyTaskId || res.requestId) return;
+  if (res.busyTaskId || res.requestId || res.fall) return;
   const pressing = NEEDS.filter((n) => res.needs[n] >= ACT_THRESHOLD[n] && (!res.asleep || n === "toileting")).sort(
     (a, b) => res.needs[b] - res.needs[a] || a.localeCompare(b),
   );

@@ -325,6 +325,15 @@ export function pullOff(world: World, p: Person, reason: string): void {
   }
   if (task.members) return; // handovers and briefings carry on; they'll rejoin when free
   if (task.status === "open") return; // was only holding it for a partner
+  if (task.kind === "fall") {
+    // Nobody should be pulled from a fall (falls.ts criticalWork). If it happens anyway, the fall
+    // keeps its resident and waits, unstaffed, for the next person free (falls.ts staffFalls).
+    if (task.assigned.length === 0) {
+      task.status = "open";
+      task.bt = newBtState();
+    }
+    return;
+  }
   resetTask(world, task, reason);
 }
 
@@ -625,6 +634,19 @@ export function decideStaff(world: World): void {
       if (task.data.heldBy) briefingHold.add(String(task.data.heldBy));
       continue;
     }
+    // A medication round whose giver is off the wing or with a fallen resident goes to another
+    // meds-trained member of staff who is free (e.g. the on-call RN over for a fall at 21:00).
+    if (task.kind === "med_round" && task.assigned.length === 0) {
+      const giver = world.people.get(task.members![0]!);
+      const giverTask = giver?.staff?.taskId ? world.tasks.get(giver.staff.taskId) : undefined;
+      if (!giver || !onDuty(giver) || giverTask?.kind === "fall") {
+        const other = staff.find((p) => p.id !== giver?.id && p.staff!.duty === "on_shift" && memberFree(p) && p.staff!.competencies.includes("meds_trained"));
+        if (other) {
+          task.members = [other.id];
+          emit(world, "task.assigned", [other.id], { taskId: task.id, kind: task.kind, staffIds: [other.id] });
+        }
+      }
+    }
     for (const p of staff) {
       const free = memberFree(p);
       if (!task.members!.includes(p.id) || task.assigned.includes(p.id) || !free) continue;
@@ -659,6 +681,9 @@ export function decideStaff(world: World): void {
     if (s.duty !== "on_shift" || !idleOrFree(world, p) || !s.shift?.started) continue;
     if (s.pausedBreakId) {
       const paused = world.tasks.get(s.pausedBreakId)!;
+      // A day break cut short (for a fall) resumes only once someone else covers the floor, as
+      // when it started; the lone night carer's break counts as on the floor, so it just resumes.
+      if (paused.data.night !== 1 && isCareStaff(p) && !coveredWithout(world, p, true)) continue;
       s.pausedBreakId = null;
       paused.status = "open";
       paused.assigned = [];

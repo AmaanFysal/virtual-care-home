@@ -51,6 +51,8 @@ export interface EventPayloads {
   "task.resumed": { taskId: string; kind: string };
   "task.completed": { taskId: string; kind: string; residentId: string | null; waitMins: number };
 
+  /** A carer called away from personal care to a fall first makes the resident safe: covered for dignity, lying in bed or seated. */
+  "care.made_safe": { residentId: string; staffId: string; care: string; position: "lying in bed" | "seated"; covered: boolean; reason: string };
   "care.personal_care_done": { residentId: string; staffIds: string[]; period: "morning" | "evening" };
   "resident.woke": { residentId: string; reason: "routine" | "toilet" };
   /** `where`: in bed, dozing in their bedside chair, or dozing in a Lounge armchair. */
@@ -74,6 +76,12 @@ export interface EventPayloads {
 
   "resident.fell": { residentId: string; severity: FallSeverity; roomId: string };
   "fall.found": { residentId: string; staffId: string };
+  /** Nobody could come to a fall: help was asked for (at night the floating carer or on-call RN; otherwise the next person free). */
+  "fall.help_requested": { residentId: string; reason: string; called: "floating_carer" | "on_call_rn" | "on_the_way" | "next_free" };
+  /** Left for a few minutes while their carer helps lift another resident: assessed, not injured, made comfortable (pillow, blanket). */
+  "fall.made_comfortable": { residentId: string; staffId: string; reason: string };
+  /** A look-in on a resident left waiting on the floor (at least every 5 minutes until lifted). */
+  "fall.checked": { residentId: string; staffId: string; sinceMins: number };
   "fall.rn_called": { residentId: string; staffId: string; onCall: boolean };
   "fall.assessed": { residentId: string; by: string; outcome: "cleared_to_move" | "wait_for_ambulance" };
   "fall.lifted": { residentId: string; staffIds: string[]; to: string };
@@ -100,6 +108,10 @@ export interface EventPayloads {
   "visit.ended": { visitorId: string; residentId: string };
   "visitor.signed_out": { visitorId: string };
 
+  /** Every care staff member on the wing is with a fallen resident: a carer from the main building is asked for (about 15 minutes, if one is free). */
+  "main_carer.called": { reason: string; available: boolean; arriveT: number | null };
+  "main_carer.arrived": { personId: string };
+  "main_carer.departed": { personId: string };
   "on_call_rn.called": { residentId: string; reason: string };
   "on_call_rn.arrived": { personId: string; residentId: string };
   "on_call_rn.departed": { personId: string };
@@ -111,7 +123,7 @@ export interface EventPayloads {
 }
 
 /** Service targets (docs/11): reported when missed, not failures. */
-export type ServiceTarget = "request_wait" | "resident_check" | "reposition" | "lounge_supervision";
+export type ServiceTarget = "request_wait" | "resident_check" | "reposition" | "lounge_supervision" | "fall_attendance" | "fall_waiting_check";
 
 export type EventType = keyof EventPayloads;
 

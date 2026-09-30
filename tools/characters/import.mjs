@@ -111,6 +111,8 @@ const sprites = {
     $comment: "People without a sheet of their own, chosen at runtime by staff role and gender (agency ids are made up when they're booked)",
     agency_carer: { female: "ext_agency_carer", male: "ext_agency_carer_m" },
     agency_nurse: { female: "ext_agency_nurse", male: "ext_agency_nurse" },
+    // A carer sent over from the main building for several falls: the main-building uniform (the floating carer's sheet).
+    main_building_carer: { female: "ext_night_float", male: "ext_night_float" },
     paramedic: { female: "ext_paramedic_f", male: "ext_paramedic_m" },
   },
   people,

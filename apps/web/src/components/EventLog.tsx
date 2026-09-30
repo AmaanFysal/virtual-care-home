@@ -19,7 +19,7 @@ const CATEGORIES: { id: Category; label: string }[] = [
 export function categoryOf(type: string): Exclude<Category, "all"> {
   if (type.startsWith("invariant.") || type.startsWith("sla.")) return "alerts";
   if (type.startsWith("med")) return "meds";
-  if (/^(resident\.fell|fall\.|ambulance|paramedics|resident\.conveyed|cqc|incident|family|on_call_rn)/.test(type)) return "falls";
+  if (/^(resident\.fell|fall\.|ambulance|paramedics|resident\.conveyed|cqc|incident|family|on_call_rn|main_carer)/.test(type)) return "falls";
   if (/^(shift|break|handover|rn\.|agency|second_carer|sim\.)/.test(type)) return "staff";
   if (/^visit/.test(type)) return "visitors";
   if (/^person\./.test(type)) return "movement";

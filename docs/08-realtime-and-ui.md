@@ -53,7 +53,7 @@ Each person view (`PersonView`) carries their id, kind, name, initials, position
   - sit: rows 30–33, frame 2 (on a chair)
   - hurt: row 20
   - Raj's wheelchair: from y = 3456
-- **Choosing a sheet:** `apps/web/src/sprites.ts` picks each person's own sheet. Agency staff and paramedics are picked by `role` and `gender`, because agency ids are only made up when they're booked.
+- **Choosing a sheet:** `apps/web/src/sprites.ts` picks each person's own sheet. Agency staff, paramedics and the carer sent over from the main building (who wears the floating carer's main-building uniform) are picked by `role` and `gender`, because agency ids are only made up when they're booked.
 - **Licence:** the character art is CC-BY-SA 3.0, separate from the code. `CREDITS.md` lists every part, and the app footer links to `/CREDITS.txt`.
 
 ## Pixel-art map

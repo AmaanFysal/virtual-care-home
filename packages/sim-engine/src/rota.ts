@@ -16,7 +16,7 @@ import {
 import { emit } from "./emit.js";
 import { coveredWithout } from "./floor.js";
 import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
-import { ON_CALL_RN_ID, PARAMEDICS_ID, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
+import { MAIN_CARER_ID, ON_CALL_RN_ID, PARAMEDICS_ID, mainCarerArrived, mainCarerDeparted, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
 import { floatArrived, floatDeparted } from "./float.js";
 import { coverableOnSite } from "./nightcover.js";
 import { createHandover, idleStaff, pullOff } from "./tasks.js";
@@ -248,6 +248,8 @@ export function rotaLeaving(world: World): void {
     const handovers = [...world.tasks.values()].filter((t) => t.kind === "handover");
     // Still owed to a handover (as a member, or as its floor cover): stay until it's done.
     if (handovers.some((t) => (t.members!.includes(p.id) && !t.assigned.includes(p.id)) || t.data.cover === p.id)) continue;
+    // A medication round they were giving and had to leave (for a fall): they finish it first.
+    if ([...world.tasks.values()].some((t) => t.kind === "med_round" && t.members!.includes(p.id))) continue;
     // An open task only they can do (e.g. female-only care, and they're the last woman on shift).
     const onlyThem = [...world.tasks.values()].some(
       (t) => t.status === "open" && t.request && (!t.femaleOnly || p.gender === "female") && isCareStaff(p) && !coverableOnSite(world, t),
@@ -305,6 +307,10 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       onCallRnArrived(world, person);
       continue;
     }
+    if (person.id === MAIN_CARER_ID) {
+      mainCarerArrived(world, person);
+      continue;
+    }
     const a = person.staff?.shift;
     if (a) walkTo(world, person, a.started ? postFor(a) : freeStaffRoomSeat(world));
   }
@@ -316,6 +322,7 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       person.staff.shift = null;
       if (person.id === world.data.rota.night_float.id) floatDeparted(world, person);
       if (person.id === ON_CALL_RN_ID) onCallRnDeparted(world, person);
+      if (person.id === MAIN_CARER_ID) mainCarerDeparted(world, person);
     }
   }
 }

@@ -47,7 +47,7 @@ export interface ShiftAssignment {
 }
 
 export interface StaffState {
-  role: StaffRole | "agency_carer" | "agency_nurse" | "paramedic";
+  role: StaffRole | "agency_carer" | "agency_nurse" | "paramedic" | "main_building_carer";
   competencies: Competency[];
   /** "staying" means the shift has ended but they can't leave yet (task or floor cover). */
   duty: "off" | "arriving" | "on_shift" | "staying" | "leaving";
@@ -88,7 +88,14 @@ export interface ResidentState {
   /** What they're doing in the Lounge, if they're there. */
   loungeActivity: LoungeActivity | null;
   /** A fall in progress: the resident stays on the floor until it has been assessed. */
-  fall: { t: number; severity: "minor" | "serious"; assessed: boolean; taskId: string } | null;
+  fall: {
+    t: number;
+    severity: "minor" | "serious";
+    assessed: boolean;
+    taskId: string;
+    /** Since when nobody has been with them or on their way, and no help has been asked for (the `fall_unattended` invariant). */
+    uncoveredSinceT: number | null;
+  } | null;
   /** Post-fall observations: checks every 30 minutes until this time. */
   postFallUntil: number;
   /** Off the wing (conveyed to hospital); the bed is kept. */
@@ -229,14 +236,16 @@ export interface World {
   float: FloatState;
   /** The on-call RN coming over from the main building for a serious fall. */
   onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
+  /** A carer from the main building, asked for when every care staff member here is with a fallen resident. */
+  mainCarer: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; retryT: number };
   /** Recent falls, for explaining missed service targets. */
   fallLog: { residentId: string; severity: "minor" | "serious"; t: number; endT: number | null }[];
   /** Last time a carer was in the Lounge (the lounge_supervision service target). */
   loungeSeenT: number;
   /** A group activity running in the Lounge. */
   session: { staffId: string; activity: string; residentIds: string[]; endT: number } | null;
-  /** Paramedics on their way to a fall (off-map until due). */
-  paramedics: { taskId: string; dueT: number } | null;
+  /** Ambulance calls in the order they were made; one crew answers them in turn (off the map until due). */
+  paramedics: { taskId: string; dueT: number }[];
   metrics: { floatCallouts: number; medInterruptions: number };
   /** Invariant rules currently failing, so violations are logged once when they start. */
   failing: Set<string>;
@@ -245,7 +254,7 @@ export interface World {
   seq: number;
 }
 
-export const CARE_ROLES = new Set(["senior_carer", "care_assistant", "registered_nurse", "agency_carer", "agency_nurse"]);
+export const CARE_ROLES = new Set(["senior_carer", "care_assistant", "registered_nurse", "agency_carer", "agency_nurse", "main_building_carer"]);
 
 export function isCareStaff(p: Person): boolean {
   return !!p.staff && CARE_ROLES.has(p.staff.role);

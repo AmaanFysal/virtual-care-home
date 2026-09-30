@@ -50,6 +50,14 @@ export function checkInvariants(world: World): Violation[] {
 
   if (!world.rnOnCall && !people.some((p) => isNurse(p) && onDuty(p))) out.push({ rule: "rn_reachable", details: "no RN on the map and none on call" });
 
+  // Nobody is left on the floor: someone is with them or on the way, or help has been asked for.
+  for (const p of people) {
+    const since = p.resident?.fall?.uncoveredSinceT;
+    if (since !== null && since !== undefined && world.t - since > FALL_UNATTENDED_SECS) {
+      out.push({ rule: "fall_unattended", key: p.id, details: `${p.id} on the floor for ${Math.round((world.t - since) / 60)} min with nobody attending and no help asked for` });
+    }
+  }
+
   for (const p of people) {
     if (p.kind === "visitor" && p.onMap && p.roomId === "StaffRoom") out.push({ rule: "no_visitors_in_staff_room", details: p.id });
   }
@@ -62,7 +70,16 @@ export interface Breach {
   residentId: string;
   key: string;
   details: string;
+  /** Set when the target knows its own cause (a fall nobody could reach). */
+  cause?: string;
 }
+
+/** A fallen resident with nobody coming and no help asked for, for longer than this, breaks a hard rule. */
+const FALL_UNATTENDED_SECS = 120;
+/** Someone should be with a fallen resident within this many minutes (the `fall_attendance` service target). */
+export const FALL_ATTENDANCE_MINS = 5;
+/** A resident left waiting for a lift (docs/05 "Several falls at once") is looked in on at least this often. */
+export const FALL_WAITING_CHECK_MINS = 5;
 
 /**
  * Service targets: every request helped within its limit; everyone checked within their interval;
@@ -92,6 +109,31 @@ export function checkServiceTargets(world: World): Breach[] {
   for (const task of world.tasks.values()) {
     if (!task.request || task.startedT !== null || task.deadlineT === null || world.t <= task.deadlineT) continue;
     out.push({ target: "request_wait", residentId: task.residentId!, key: task.id, details: `${task.label} waiting ${Math.round((world.t - task.createdT) / 60)} min` });
+  }
+  // Time from a fall to someone being with them.
+  for (const task of world.tasks.values()) {
+    if (task.kind !== "fall" || task.startedT !== null || world.t - task.createdT <= FALL_ATTENDANCE_MINS * 60) continue;
+    const r = world.people.get(task.residentId!)!;
+    out.push({
+      target: "fall_attendance",
+      residentId: r.id,
+      key: task.id,
+      details: `${r.id} on the floor ${Math.round((world.t - task.createdT) / 60)} min before anyone reached them`,
+      cause: task.data.helpReason ? String(task.data.helpReason) : "a carer on the way",
+    });
+  }
+  // A resident left waiting on the floor while their carer helps with another lift is looked in on every 5 minutes.
+  for (const task of world.tasks.values()) {
+    if (task.kind !== "fall" || task.data.leftT === null || task.data.leftT === undefined || task.assigned.length > 0) continue;
+    const since = world.t - Number(task.data.lastCheckT);
+    if (since <= FALL_WAITING_CHECK_MINS * 60) continue;
+    out.push({
+      target: "fall_waiting_check",
+      residentId: task.residentId!,
+      key: task.id,
+      details: `${task.residentId} waiting on the floor for a lift, not looked in on for ${Math.round(since / 60)} min`,
+      cause: `${String(task.data.leftReason)}; nobody else free to look in`,
+    });
   }
   const unsupervised = supervisedResidents(world);
   if (unsupervised.length > 0 && world.t - world.loungeSeenT > SUPERVISION_MINS * 60) {

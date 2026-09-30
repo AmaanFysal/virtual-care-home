@@ -14,7 +14,7 @@ import {
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
-import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall } from "./falls.js";
+import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, injectFall, staffFalls, watchFalls } from "./falls.js";
 import { medsMinute } from "./meds.js";
 import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
 import { floatMinute } from "./float.js";
@@ -136,10 +136,11 @@ export function createSim(options: SimOptions): Sim {
     tasks: new Map(),
     taskSeq: 0,
     float: { status: "off", arriveT: null, planned: false },
-    paramedics: null,
+    paramedics: [],
     loungeSeenT: startT,
     session: null,
     onCallRn: { status: "off", arriveT: null, residentId: null },
+    mainCarer: { status: "off", arriveT: null, retryT: 0 },
     fallLog: [],
     metrics: { floatCallouts: 0, medInterruptions: 0 },
     shiftLog: new Map(data.residents.map((r) => [r.id, { falls: 0, lateOrMissedDoses: 0, helpRequests: 0, checksDone: 0 }])),
@@ -202,16 +203,19 @@ export function createSim(options: SimOptions): Sim {
         floatMinute(world);
         fallsMinute(world);
         visitorsMinute(world);
+        staffFalls(world); // a fall nobody has reached comes before any other work
         decideStaff(world);
         sendIdleToPosts(world);
       }
       rotaLeaving(world);
       runTasks(world);
+      staffFalls(world); // whoever has just finished goes to a fall nobody has reached
       const spawned = spawnWaiting(world);
       const arrived = moveAll(world);
       rotaArrivals(world, spawned, arrived);
       visitorsTick(world, spawned, arrived);
       noteLoungeSupervision(world);
+      watchFalls(world);
       logInvariants(world);
       const events = world.pending;
       world.pending = [];
@@ -244,7 +248,7 @@ function logInvariants(world: World): void {
     now.add(key);
     if (world.failing.has(key)) continue;
     const cause = breachCause(world);
-    emit(world, "sla.breached", [b.residentId], { target: b.target, residentId: b.residentId, details: b.details, cause: cause === "no emergency" && b.target === "lounge_supervision" ? staffBusyCause(world) : cause });
+    emit(world, "sla.breached", [b.residentId], { target: b.target, residentId: b.residentId, details: b.details, cause: b.cause ?? (cause === "no emergency" && b.target === "lounge_supervision" ? staffBusyCause(world) : cause) });
   }
   world.failing = now;
 }
