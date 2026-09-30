@@ -313,7 +313,7 @@ export function rotaLeaving(world: World): void {
     if (onlyThem) continue;
     // Covered by someone who isn't about to go into a handover.
     const inHandover = new Set(handovers.flatMap((t) => t.members!));
-    if (isCareStaff(p) && !coveredWithout(world, p, false, inHandover)) continue;
+    if (isCareStaff(p) && !coveredWithout(world, p, false, inHandover, true)) continue;
     if (s.pausedBreakId) world.tasks.delete(s.pausedBreakId);
     s.pausedBreakId = null;
     s.duty = "leaving";
@@ -340,7 +340,9 @@ function pruneShifts(world: World, before: number): void {
   world.shifts = world.shifts.filter((a) => !gone.includes(a));
   for (const a of gone) {
     const person = world.people.get(a.personId);
-    if (person?.kind === "agency" && !person.onMap) {
+    // An agency worker still ill with an infection stays known until they've recovered, so their
+    // recovery is logged (an outbreak waits for it, docs/10).
+    if (person?.kind === "agency" && !person.onMap && !(person.infection && !person.infection.recovered)) {
       world.people.delete(person.id);
       world.order = world.order.filter((id) => id !== person.id);
     }

@@ -14,7 +14,7 @@ Everything goes through the existing input path, so manual triggers, scripted sc
 | b (built) | **Outbreaks and isolation:** infection state, contact route and airborne proxy, isolation, Lounge closure, restricted visiting, staff off sick, declared and over; `norovirus-outbreak` scenario | 04, 05, 07, 08, 10, 11 | The scenario's expected outcomes pass; spread rates reported |
 | c (built) | **Illness, hospital, end of life and admissions:** cite the admission rate first; in-room illness; admission and return with care-profile overrides; end-of-life decline; death and the empty room; `deaths: false`; admissions from `admissions.json` (reviewed card) | 05, 06, 07, 08, 10, 11, 12 | A resident can leave and come back changed; a death is handled with dignity; an admission is validated |
 | d (built) | **Visitors and celebrations:** explained missed weeks, birthdays and festivals | 05, 06, 10 | Missed weeks carry causes; celebrations bring the family |
-| e | **Tuning-debt review:** each rule in docs/12 removed in turn against the calm-week baseline; keep only those that stop breaches going over 2 a week | 12 | Each rule kept or removed with its measurement |
+| e (done) | **Tuning-debt review:** each rule in docs/12 removed in turn against the calm-week baseline; keep only those that stop breaches going over 2 a week | 12 | Each rule kept or removed with its measurement |
 
 ## Risks
 

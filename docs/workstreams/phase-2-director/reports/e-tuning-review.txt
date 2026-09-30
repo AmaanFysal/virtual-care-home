@@ -1,0 +1,213 @@
+Tuning review (sub-milestone e), 2026-09-30. scripts/tuning-review.ts.
+
+Each measurement, with director off:
+  calm        seeds 1-8, a week each: service breaches (total, the most in one seed-week), hard violations. DECIDES: a rule
+              is kept only if removing it pushes a week over 2 breaches (or causes a hard violation).
+  with Kamala the same weeks with Kamala in Raj's room from the start (the rota clash in docs/12). Reported, not deciding.
+  falls       three minor falls a minute apart at 10:00, 11:00, 18:15 and 02:00 (the 11:00 and 18:15 sets fall in the day
+              break windows), seeds 1-4, 30 hours each: breaches and hard violations. Reported, not deciding.
+              (Round 1 used the 10:00 and 02:00 sets only.)
+
+=== Dennis's turns before the morning handover (158 of 181 quiet-day breaches in the (d) year run) ===
+Reproduced with the director off: Kamala in Raj's room, seeds 1-8, 3 weeks: 36 breaches, almost all Dennis's turn at
+06:50-06:53 (without Kamala: 4). Cause (seed 1, Wed): Kamala wakes 06:00; her morning care is female-only and the night
+carer is a man, so it waits. The floating carer (a woman) arrives 06:35 for Dennis's 06:50 two-person turn, and at 06:36
+takes Kamala's 20-minute morning care instead (it has waited 36 minutes and scores higher); the turn starts 06:57.
+The existing rule "a pressing reserved turn's only possible partner keeps to short work" didn't apply: nobody had
+reserved the turn, because both people who could do it were free at once.
+Fix (general, not a special case): the only people free for a pressing turn nobody has reserved yet keep to short
+work or pressing turns (turn_team). First version held them for one turn only and missed Raj's night turns (calm 25);
+letting them take any pressing turn fixed that. Result: calm 2 -> 1, with Kamala 15 -> 0, falls unchanged.
+
+Also found: two carers started day breaks at 11:57 (seed 1, falls at 11:00) counting the floating carer and the
+main-building carer as floor cover; both left at 11:58 and the floor was empty (a hard floor_cover violation, exposed
+when a tuning rule's removal shifted the timing). Fix (general): a day break, a resumed break or going home counts only
+staff on a shift as cover, not helpers who leave when their job is done.
+And: an agency worker who fell ill off the wing was forgotten before recovering, so the recovery wasn't logged (the
+outbreak still ended correctly); an ill agency worker is now kept until recovered.
+
+=== Round 1: each rule removed on its own (before the fixes) ===
+break_waits_only_woman     calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  A break waits while female-only work is waiting and they're the only woman on
+breakfast_boost            calm  10 (max 3/week, hard 0)  with Kamala  11 (max 3, hard 0)  falls  30 (hard 0)  KEEP  Breakfast gets the same time-awake boost as morning care
+breakfast_first            calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  Breakfast offered first holds that resident's morning care until they've eaten
+briefing_hold              calm   1 (max 1/week, hard 0)  with Kamala   5 (max 1, hard 0)  falls  20 (hard 0)  remove  The briefing starts only when both are free; the first free keeps to short work for up to 10 minutes
+evening_crunch             calm  21 (max 5/week, hard 0)  with Kamala  38 (max 7, hard 0)  falls  27 (hard 0)  KEEP  Turns due 20:00 to 21:30 are moved to 19:45
+fall_break_recall          calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  Anyone on a day break can be called back for work during a fall
+female_only_bonus          calm   1 (max 1/week, hard 0)  with Kamala  10 (max 3, hard 0)  falls  20 (hard 0)  remove  Female-only care scores +25
+float_planning             calm   6 (max 3/week, hard 0)  with Kamala  15 (max 4, hard 0)  falls  24 (hard 0)  KEEP  The floating carer plans back-to-back turns to start by their due times, and turns due 06:45 to 07:30 for 06:45
+lounge_break_recall        calm  15 (max 4/week, hard 0)  with Kamala  10 (max 3, hard 0)  falls  24 (hard 0)  KEEP  Lounge: an urgent look-in calls someone back from a break
+lounge_break_stagger       calm   0 (max 0/week, hard 0)  with Kamala   8 (max 2, hard 0)  falls  27 (hard 0)  remove  Lounge: breaks are staggered so two care staff stay on the floor
+lounge_pair_wait           calm   2 (max 1/week, hard 0)  with Kamala  14 (max 3, hard 0)  falls  24 (hard 0)  remove  Lounge: a two-person job that would leave nobody to look in waits up to 10 minutes
+morning_care_turn          calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  A bed-bound resident's morning care takes on a turn that falls due
+only_woman_two_person      calm   1 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  The only woman on shift scores -30 for two-person work while female-only care is pending
+pressing_first             calm  81 (max 14/week, hard 0)  with Kamala  98 (max 16, hard 0)  falls  41 (hard 0)  KEEP  Pressing reservations are made before any other matching
+pressing_turns             calm  21 (max 4/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  29 (hard 0)  KEEP  Turns are pressing 25 minutes ahead and created 30 minutes ahead (before: 15 and 20)
+reserve_from_break         calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  Someone on an interruptible break can hold a pressing turn's reservation
+reserve_while_busy         calm   2 (max 1/week, hard 0)  with Kamala  16 (max 3, hard 0)  falls  25 (hard 0)  remove  A turn can be reserved while its resident is briefly busy with a short task
+reserver_wait              calm   3 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  A reserved task waits for its reserver on a short task unless pressing
+skip_prompt_before_care    calm   2 (max 2/week, hard 0)  with Kamala  13 (max 2, hard 0)  falls  22 (hard 0)  remove  The toilet prompt is skipped while morning care is still to come
+sole_partner               calm  39 (max 7/week, hard 0)  with Kamala  13 (max 3, hard 0)  falls  29 (hard 0)  KEEP  A pressing reserved turn's only possible partner keeps to short work
+tea_deadline               calm   1 (max 1/week, hard 0)  with Kamala  13 (max 3, hard 0)  falls  20 (hard 0)  remove  Tea on waking has a hard deadline
+tea_with_tablets           calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  24 (hard 0)  remove  The nurse gives a drink with the tablets to anyone who hasn't had tea
+turns_spare_meds           calm   0 (max 0/week, hard 0)  with Kamala  16 (max 3, hard 0)  falls  24 (hard 0)  remove  Turns don't interrupt a medication round
+
+=== Round 2: each rule removed on its own, with turn_team and the floor-cover fix, four falls sets ===
+baseline                   calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)    
+break_waits_only_woman     calm   2 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  A break waits while female-only work is waiting and they're the only woman on
+breakfast_boost            calm  16 (max 4/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  42 (hard 0)  KEEP  Breakfast gets the same time-awake boost as morning care
+breakfast_first            calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  Breakfast offered first holds that resident's morning care until they've eaten
+briefing_hold              calm   4 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  31 (hard 0)  remove  The briefing starts only when both are free; the first free keeps to short work for up to 10 minutes
+evening_crunch             calm  15 (max 3/week, hard 0)  with Kamala  38 (max 7, hard 0)  falls  44 (hard 0)  KEEP  Turns due 20:00 to 21:30 are moved to 19:45
+fall_break_recall          calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  39 (hard 0)  remove  Anyone on a day break can be called back for work during a fall
+female_only_bonus          calm   1 (max 1/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  35 (hard 0)  remove  Female-only care scores +25
+float_planning             calm   7 (max 2/week, hard 0)  with Kamala  12 (max 4, hard 0)  falls  40 (hard 0)  remove  The floating carer plans back-to-back turns to start by their due times, and turns due 06:45 to 07:30 for 06:45
+lounge_break_recall        calm  16 (max 3/week, hard 0)  with Kamala   2 (max 1, hard 0)  falls  41 (hard 0)  KEEP  Lounge: an urgent look-in calls someone back from a break
+lounge_break_stagger       calm   1 (max 1/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  39 (hard 0)  remove  Lounge: breaks are staggered so two care staff stay on the floor
+lounge_pair_wait           calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  Lounge: a two-person job that would leave nobody to look in waits up to 10 minutes
+morning_care_turn          calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  A bed-bound resident's morning care takes on a turn that falls due
+only_woman_two_person      calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  41 (hard 0)  remove  The only woman on shift scores -30 for two-person work while female-only care is pending
+pressing_first             calm  80 (max 13/week, hard 0)  with Kamala  69 (max 12, hard 0)  falls  71 (hard 0)  KEEP  Pressing reservations are made before any other matching
+pressing_turns             calm   9 (max 2/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  41 (hard 0)  remove  Turns are pressing 25 minutes ahead and created 30 minutes ahead (before: 15 and 20)
+reserve_from_break         calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  Someone on an interruptible break can hold a pressing turn's reservation
+reserve_while_busy         calm   2 (max 1/week, hard 0)  with Kamala   2 (max 1, hard 0)  falls  37 (hard 0)  remove  A turn can be reserved while its resident is briefly busy with a short task
+reserver_wait              calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  A reserved task waits for its reserver on a short task unless pressing
+skip_prompt_before_care    calm   6 (max 3/week, hard 0)  with Kamala   2 (max 1, hard 0)  falls  40 (hard 0)  KEEP  The toilet prompt is skipped while morning care is still to come
+sole_partner               calm  35 (max 8/week, hard 0)  with Kamala  20 (max 5, hard 0)  falls  45 (hard 0)  KEEP  A pressing reserved turn's only possible partner keeps to short work
+tea_deadline               calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  35 (hard 1)  remove  Tea on waking has a hard deadline
+tea_with_tablets           calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  The nurse gives a drink with the tablets to anyone who hasn't had tea
+turn_team                  calm   2 (max 1/week, hard 0)  with Kamala  15 (max 3, hard 0)  falls  40 (hard 0)  remove  The only people free for a pressing turn nobody has reserved yet keep to short work (general form of sole_partner; sub-milestone e)
+turns_spare_meds           calm   1 (max 1/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  Turns don't interrupt a medication round
+
+=== Combined removal ===
+All 17 "remove" rules from round 2 off together:
+  calm 15 (max 3/week; by seed 3 3 0 3 2 2 1 1)  with Kamala 8 (max 2)  falls 42 (hard 0)   -> over the limit
+Putting one back at a time (the other 16 off):
+back break_waits_only_woman: combined (16 off) calm 15 (max 3/week, hard 0; by seed 3 3 0 3 2 2 1 1) with Kamala 8 (max 2, hard 0) falls 42 (hard 0)
+back briefing_hold: combined (16 off) calm 24 (max 4/week, hard 0; by seed 2 3 4 2 3 2 4 4) with Kamala 4 (max 1, hard 0) falls 44 (hard 0)
+back female_only_bonus: combined (16 off) calm 15 (max 4/week, hard 0; by seed 1 4 1 0 1 3 2 3) with Kamala 9 (max 3, hard 0) falls 47 (hard 0)
+back float_planning: combined (16 off) calm 4 (max 1/week, hard 0; by seed 0 0 0 1 0 1 1 1) with Kamala 2 (max 1, hard 0) falls 43 (hard 0)
+back pressing_turns: combined (16 off) calm 3 (max 1/week, hard 0; by seed 0 0 1 0 0 1 1 0) with Kamala 13 (max 5, hard 0) falls 33 (hard 0)
+back reserve_while_busy: combined (16 off) calm 13 (max 4/week, hard 0; by seed 2 4 0 1 2 2 1 1) with Kamala 8 (max 2, hard 0) falls 40 (hard 0)
+-> float_planning back (16 off): passes on seeds 1-8. Held-out check, seeds 9-16:
+baseline calm 2 (max 1/week, hard 0) with Kamala 0 (max 0, hard 0) falls 45 (hard 0) 
+combined (16 off) calm 10 (max 3/week, hard 0; by seed 1 1 0 1 2 3 1 1) with Kamala 4 (max 2, hard 0) falls 42 (hard 0)
+-> seed 14 has 3 in a week (all Dennis's turns at 08:05-08:27, the 08:00 round). Putting one more back (15 off):
+back briefing_hold | 1-8: calm 12 (max 4/week, hard 0; by seed 0 0 3 1 1 1 4 2) with Kamala 1 (max 1, hard 0) falls 45 (hard 0) | 9-16: calm 13 (max 4/week, hard 0; by seed 1 2 4 1 1 2 0 2) with Kamala 2 (max 1, hard 0) falls 50 (hard 0)
+back morning_care_turn | 1-8: calm 3 (max 1/week, hard 0; by seed 0 0 0 1 0 0 1 1) with Kamala 2 (max 1, hard 0) falls 43 (hard 0) | 9-16: calm 9 (max 3/week, hard 0; by seed 1 1 0 1 2 3 0 1) with Kamala 4 (max 2, hard 0) falls 42 (hard 0)
+back pressing_turns | 1-8: calm 2 (max 1/week, hard 0; by seed 0 0 0 1 0 0 1 0) with Kamala 1 (max 1, hard 0) falls 31 (hard 0) | 9-16: calm 4 (max 1/week, hard 0; by seed 0 1 0 1 0 1 1 0) with Kamala 1 (max 1, hard 0) falls 42 (hard 0)
+back reserve_while_busy | 1-8: calm 11 (max 3/week, hard 0; by seed 2 2 0 2 0 1 3 1) with Kamala 0 (max 0, hard 0) falls 43 (hard 0) | 9-16: calm 12 (max 3/week, hard 0; by seed 1 1 1 1 3 3 1 1) with Kamala 3 (max 1, hard 0) falls 43 (hard 0)
+back reserver_wait | 1-8: calm 12 (max 3/week, hard 0; by seed 1 1 1 2 1 3 1 2) with Kamala 2 (max 1, hard 0) falls 43 (hard 0) | 9-16: calm 12 (max 3/week, hard 0; by seed 2 1 1 1 3 3 0 1) with Kamala 4 (max 2, hard 0) falls 41 (hard 0)
+back turns_spare_meds | 1-8: calm 4 (max 1/week, hard 0; by seed 0 0 0 1 0 1 1 1) with Kamala 2 (max 1, hard 0) falls 43 (hard 0) | 9-16: calm 10 (max 3/week, hard 0; by seed 1 1 0 1 2 3 1 1) with Kamala 5 (max 2, hard 0) falls 42 (hard 0)
+-> pressing_turns back as well: the best on both seed sets.
+
+=== Round 3: with 15 removed, two more pass on their own ===
+final 9-16: baseline calm 4 (max 1/week, hard 0) with Kamala 1 (max 1, hard 0) falls 42 (hard 0) 
+off breakfast_boost,skip_prompt_before_care | 1-8: calm 4 (max 1/week, hard 0; by seed 0 0 0 1 1 1 1 0) with Kamala 3 (max 2, hard 0) falls 38 (hard 0) | 9-16: calm 2 (max 1/week, hard 0; by seed 0 0 0 1 0 1 0 0) with Kamala 2 (max 1, hard 0) falls 37 (hard 0)
+off breakfast_boost | 1-8: calm 5 (max 2/week, hard 0; by seed 0 0 1 1 1 0 2 0) with Kamala 1 (max 1, hard 0) falls 46 (hard 0) | 9-16: calm 2 (max 1/week, hard 0; by seed 0 0 0 0 0 1 0 1) with Kamala 4 (max 3, hard 0) falls 39 (hard 0)
+off skip_prompt_before_care | 1-8: calm 0 (max 0/week, hard 0; by seed 0 0 0 0 0 0 0 0) with Kamala 6 (max 2, hard 0) falls 36 (hard 0) | 9-16: calm 1 (max 1/week, hard 0; by seed 0 0 0 0 0 1 0 0) with Kamala 3 (max 1, hard 0) falls 34 (hard 0)
+Both removed together passes on the breach criterion, but the audit (director off, seeds 1-8) went from 142 flags
+to 241: Arthur hungry (need over 0.8) 33 times, late first food 137. With the breakfast boost back: 156 flags, Arthur
+hungry 3 times. -> breakfast boost KEPT on the audit's evidence; the toilet-prompt skip stays removed.
+
+=== Hard days: the random director, 4 weeks x seeds 1-8 ===
+The year-long random run with 17 rules removed had 628 breaches against 469 in (d): checks missed on short-staffed
+mornings (07:00-08:59) rose from 36 to 149. Cause (seed 1, Thu 10 Dec, early carer off sick): with no briefing hold,
+the lead joined the briefing at 07:15 and stood waiting 15 minutes for the nurse (busy with a morning wash); then both
+did Raj's two-person care and the 07:52 checks were missed. On a calm week there are enough staff for it not to matter.
+main (2f38a85):
+  service breaches: 38 (3 on days with no director event, 35 on days with one)
+  hard violations: 0
+without the briefing hold:
+  service breaches: 56 (6 on days with no director event, 50 on days with one)
+  hard violations: 0
+-> briefing hold KEPT (short-staffed days).
+
+=== Audit: first drinks ===
+With the briefing hold back, the audit was 212 flags, with Stan's first drink 23-33 minutes after he wakes at 08:00
+(the 08:00 round) on most days (42 flags). With the tea deadline and the drink with the tablets back: 169 flags, no
+late first drinks. -> both tea rules KEPT on the audit's evidence.
+
+=== The second drift mechanism: long care before a turn that doesn't exist yet ===
+The year run still missed Dennis's 06:xx turns on seed 7 (Kamala in Arthur's room). Reproduced with the director off
+(Kamala in Room 1, seeds 1-8, 3 weeks: 38 breaches, mostly 06:13-06:35 on Fridays and Saturdays). Cause (seed 1,
+Fri): the night carer (a woman that night) starts Kamala's 20-minute morning care at 06:04; Dennis's turn is due 06:24,
+and the floating carer and the turn's task only arrive at 06:15, so nothing marked the turn as pressing.
+Fix (the same principle, looking ahead): nobody starts long care that a two-person turn they're needed for would fall
+due during (fewer than two others could do it; the floating carer counts for turns in her hours), with 5 minutes to
+get to the turn. Kamala in Room 1: 38 -> 20 in 24 weeks (Dennis's 06:xx turns 2; checks at 06:45-06:50 missed instead).
+
+With the look-ahead, three more rules passed the calm criterion on their own; removing them was tested:
+combined (3 off) calm 22 (max 5/week, hard 0; by seed 3 2 3 1 2 3 3 5) with Kamala 3 (max 1, hard 0) falls 42 (hard 0)
+combined (3 off) calm 18 (max 4/week, hard 0; by seed 2 2 2 1 1 3 3 4) with Kamala 2 (max 2, hard 0) falls 45 (hard 0)
+sole_partner,float_planning: combined (2 off) calm 9 (max 2/week, hard 0; by seed 1 1 1 2 1 2 1 0) with Kamala 3 (max 1, hard 0) falls 40 (hard 0)
+sole_partner,evening_crunch: combined (2 off) calm 12 (max 6/week, hard 0; by seed 2 2 0 1 0 1 0 6) with Kamala 3 (max 1, hard 0) falls 41 (hard 0)
+float_planning,evening_crunch: combined (2 off) calm 12 (max 3/week, hard 0; by seed 0 1 1 0 3 3 2 2) with Kamala 3 (max 1, hard 0) falls 42 (hard 0)
+sole_partner + float_planning off, seeds 9-16: combined (2 off) calm 10 (max 2/week, hard 0; by seed 0 2 1 2 2 1 2 0) with Kamala 4 (max 2, hard 0) falls 47 (hard 0)
+sole_partner off, seeds 9-16: combined (1 off) calm 15 (max 4/week, hard 0; by seed 1 2 2 2 1 4 2 1) with Kamala 2 (max 1, hard 0) falls 45 (hard 0)
+float_planning off, seeds 9-16: combined (1 off) calm 7 (max 2/week, hard 0; by seed 0 0 1 0 2 1 2 1) with Kamala 1 (max 1, hard 0) falls 45 (hard 0)
+evening_crunch off, seeds 9-16: evening_crunch calm 6 (max 2/week, hard 0) with Kamala 1 (max 1, hard 0) falls 42 (hard 0) remove Turns due 20:00 to 21:30 are moved to 19:45 (needed with Kamala in)
+Hard days (random director, 4 weeks x seeds 1-8):
+  main (2f38a85):                     service breaches: 38 (3 on days with no director event, 35 on days with one)
+  final:                              service breaches: 33 (4 on days with no director event, 29 on days with one)
+  sole_partner + float_planning off:  service breaches: 64 (27 on days with no director event, 37 on days with one)
+  float_planning off:                 service breaches: 70 (29 on days with no director event, 41 on days with one)
+  evening_crunch off:                 service breaches: 48 (14 on days with no director event, 34 on days with one)
+  briefing_hold off:                  service breaches: 50 (7 on days with no director event, 43 on days with one)
+-> all kept.
+
+=== Final: each kept rule removed on its own (seeds 1-8) ===
+baseline                   calm   1 (max 1/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  35 (hard 0)    
+breakfast_boost            calm   1 (max 1/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  38 (hard 0)  remove  Breakfast gets the same time-awake boost as morning care (kept on the audit's evidence: without it Arthur is hungry most mornings)
+briefing_hold              calm   0 (max 0/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  35 (hard 0)  remove  The briefing starts only when both are free; the first free keeps to short work for up to 10 minutes (kept for short-staffed mornings)
+evening_crunch             calm   0 (max 0/week, hard 0)  with Kamala   3 (max 1, hard 0)  falls  39 (hard 0)  remove  Turns due 20:00 to 21:30 are moved to 19:45 (needed with Kamala in)
+float_planning             calm   9 (max 2/week, hard 0)  with Kamala   0 (max 0, hard 0)  falls  40 (hard 0)  remove  The floating carer plans back-to-back turns to start by their due times, and turns due 06:45 to 07:30 for 06:45
+lounge_break_recall        calm  11 (max 4/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  38 (hard 0)  KEEP  Lounge: an urgent look-in calls someone back from a break
+pressing_first             calm  35 (max 6/week, hard 0)  with Kamala   2 (max 1, hard 0)  falls  50 (hard 0)  KEEP  Pressing reservations are made before any other matching
+pressing_turns             calm  11 (max 5/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  43 (hard 0)  KEEP  Turns are pressing 25 minutes ahead and created 30 minutes ahead (before: 15 and 20)
+sole_partner               calm   5 (max 2/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  39 (hard 0)  remove  A pressing reserved turn's only possible partner keeps to short work
+tea_deadline               calm   2 (max 1/week, hard 0)  with Kamala   3 (max 1, hard 0)  falls  38 (hard 0)  remove  Tea on waking has a hard deadline (kept on the audit's evidence)
+tea_with_tablets           calm   1 (max 1/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  35 (hard 0)  remove  The nurse gives a drink with the tablets to anyone who hasn't had tea (kept on the audit's evidence)
+turn_team                  calm   2 (max 1/week, hard 0)  with Kamala  14 (max 3, hard 0)  falls  36 (hard 0)  remove  The only people free for a pressing turn nobody has reserved yet keep to short work (general form of sole_partner; tuning review 2026-09-30)
+Held-out seeds 9-16:
+baseline                   calm   2 (max 1/week, hard 0)  with Kamala   1 (max 1, hard 0)  falls  43 (hard 0)    
+
+Decision rule: a rule stays if removing it pushes a calm week over 2 breaches (seeds 1-8 or 9-16, or with Kamala in),
+or clearly harms short-staffed days or residents' food and drink in the audit.
+Kept (11): pressing_first, pressing_turns, lounge_break_recall (calm); sole_partner (calm, seeds 9-16);
+float_planning, evening_crunch, briefing_hold (short-staffed days); turn_team (Kamala weeks);
+breakfast_boost, tea_deadline, tea_with_tablets (audit).
+Removed (13): breakfast_first, female_only_bonus, only_woman_two_person, break_waits_only_woman, reserver_wait,
+reserve_while_busy, reserve_from_break, morning_care_turn, skip_prompt_before_care, turns_spare_meds,
+fall_break_recall, lounge_pair_wait, lounge_break_stagger.
+
+=== A year of the random director, seeds 1-8 (reports/e-random-52-weeks-seeds-1-8.txt) ===
+(d): service breaches: 469 (181 on days with no director event, 288 on days with one); Dennis's turns missed with no
+     emergency 170 (158 of them 06:00-06:59)
+final: service breaches: 403 (124 on days with no director event, 279 on days with one); Dennis's turns missed with no emergency 31 (2 of them 06:00-06:59); hard violations 0
+
+=== Director-off audit (seeds 1-8, a week each) ===
+Before the review (main):
+count  type
+    100  morning.late_first_food                arthur 53, peggy 31, win 15, stan 1
+     15  need.toileting_over_0.8                raj 9, peggy 4, dennis 2
+      9  morning.care_out_of_wake_order         wing 9
+      6  staff.idle_while_resident_needs        lucy 2, 006 1, 005 1, shanice 1, kasia 1
+      3  morning.late_first_drink               raj 3
+      2  need.thirst_over_0.8                   raj 2
+      1  drinks.round_started_late              wing 1
+      1  meds.missed_dose                       stan 1
+      1  meds.round_started_late                wing 1
+      1  request.over_wait_limit                peggy 1
+      1  service.reposition                     dennis 1
+      1  service.request_wait                   peggy 1
+      1  turns.gap_over_plan                    dennis 1
+After (final):
+count  type
+    121  morning.late_first_food                arthur 56, peggy 49, win 16
+     30  need.toileting_over_0.8                raj 20, peggy 8, dennis 2
+      8  morning.care_out_of_wake_order         wing 8
+      2  need.hunger_over_0.8                   arthur 2
+      1  meds.missed_dose                       peggy 1
+      1  request.over_wait_limit                peggy 1
+      1  service.request_wait                   peggy 1
+      1  staff.idle_while_resident_needs        006 1

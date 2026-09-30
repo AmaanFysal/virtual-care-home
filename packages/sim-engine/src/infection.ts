@@ -125,7 +125,8 @@ function onset(world: World, p: Person): void {
     const cases = recent.map((o) => o.personId);
     world.outbreaks.push({ disease: inf.disease, declaredT: world.t, lastCaseT: world.t, cases, caseEndTs: recent.map((o) => o.symptomsEndT), overT: null });
     if (world.director) world.director.quietUntil = Number.MAX_SAFE_INTEGER;
-    emit(world, "outbreak.declared", cases, { disease: inf.disease, cases });
+    // A copy: the outbreak's own list grows with later cases, and a logged event never changes.
+    emit(world, "outbreak.declared", [...cases], { disease: inf.disease, cases: [...cases] });
   }
 }
 
@@ -183,7 +184,7 @@ export function infectionMinute(world: World): void {
     if (t - from < rule.hours * HOUR) continue;
     if (rule.min_after_onset_hours !== undefined && t - o.lastCaseT < rule.min_after_onset_hours * HOUR) continue;
     o.overT = t;
-    emit(world, "outbreak.over", o.cases, { disease: o.disease, cases: o.cases, days: Math.round(((t - o.declaredT) / 86400) * 10) / 10 });
+    emit(world, "outbreak.over", [...o.cases], { disease: o.disease, cases: [...o.cases], days: Math.round(((t - o.declaredT) / 86400) * 10) / 10 });
     if (world.director && !outbreakOn(world)) world.director.quietUntil = t + (world.director.settings.config.pacing.outbreak_quiet_days * 86400);
   }
 }

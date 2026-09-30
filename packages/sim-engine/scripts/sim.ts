@@ -25,8 +25,11 @@ const { values } = parseArgs({
     seeds: { type: "string" },
     director: { type: "string" },
     scenario: { type: "string" },
+    "tuning-off": { type: "string" },
   },
 });
+/** --tuning-off a,b: tuning rules switched off for this run (docs/12, the tuning review). */
+const tuning = Object.fromEntries((values["tuning-off"] ?? "").split(",").filter(Boolean).map((r) => [r, false]));
 
 function directorSettings(): DirectorSettings | undefined {
   const mode = values.director ?? (values.scenario ? "scenario" : "off");
@@ -65,7 +68,7 @@ if (values.report && values.seeds) {
   const totals = emptyTotals();
   const ticks = Math.round((Number(values.hours) * 3600) / 5);
   for (const seed of seedRange(values.seeds)) {
-    const sim = createSim({ seed, data: loadWorldData(), admissions: loadAdmissions(), ...(director ? { director } : {}) });
+    const sim = createSim({ seed, data: loadWorldData(), admissions: loadAdmissions(), tuning, ...(director ? { director } : {}) });
     const events: AnySimEvent[] = [];
     const names = new Map<string, string>();
     for (let i = 0; i < ticks; i++) {
@@ -89,7 +92,7 @@ if (values.audit) {
     const [from, to] = values.seeds.split("-").map(Number);
     const all: (Flag & { seed: number })[] = [];
     for (let s = from!; s <= (to ?? from)!; s++) {
-      const { flags } = runAudit(String(s), Number(values.hours), loadWorldData(), undefined, director);
+      const { flags } = runAudit(String(s), Number(values.hours), loadWorldData(), undefined, director, tuning);
       all.push(...flags.map((f) => ({ ...f, seed: s })));
       console.error(`seed ${s}: ${flags.length} flags`);
     }
@@ -103,12 +106,12 @@ if (values.audit) {
       console.log(`  ${type.padEnd(40)} ${per.map((n) => String(n).padStart(4)).join("")}`);
     }
   } else {
-    for (const line of runAudit(values.seed!, Number(values.hours), loadWorldData(), undefined, director).lines) console.log(line);
+    for (const line of runAudit(values.seed!, Number(values.hours), loadWorldData(), undefined, director, tuning).lines) console.log(line);
   }
   process.exit(0);
 }
 
-const sim = createSim({ seed: values.seed!, data: loadWorldData(), admissions: loadAdmissions(), ...(director ? { director } : {}) });
+const sim = createSim({ seed: values.seed!, data: loadWorldData(), admissions: loadAdmissions(), tuning, ...(director ? { director } : {}) });
 if (values.fall) {
   // --fall res_peggy@06:40 or res_stan@02:00:serious (the first such time after the start)
   const [residentId, when] = values.fall.split("@");

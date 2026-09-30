@@ -3,7 +3,10 @@
 // fingerprints recorded on main (test/fixtures/). The one field left out is `sim.started`'s
 // `dataVersion`, a hash of the data files: adding data no rule reads without the director (Nikos,
 // the main-building carer, in rota.json) changes that string and nothing else. Re-recorded on main
-// (e44f98f) with it blanked, 2026-09-30.
+// (e44f98f) with it blanked, 2026-09-30; re-recorded again for the tuning review (sub-milestone e,
+// 2026-09-30), which deliberately changes director-off runs: 13 tuning rules removed, the only
+// people free for a pressing turn keep to short work, and a day break or going home counts only
+// staff on a shift as floor cover.
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";

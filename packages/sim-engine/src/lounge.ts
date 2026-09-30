@@ -347,7 +347,7 @@ function celebrationTea(world: World): void {
         const label = c.kind === "birthday" ? `Birthday tea: ${c.name}` : `${c.name} tea`;
         const here = world.order.filter((id) => world.people.get(id)!.resident && world.people.get(id)!.onMap && world.people.get(id)!.roomId === c.teaRoom).sort();
         walkTo(world, bev, lounge ? "Lounge.Post" : `${people[0]!.resident!.data.room}.Side`);
-        world.session = { staffId: bev.id, activity: label, residentIds: here, endT: c.teaUntil, roomId: c.teaRoom };
+        world.session = { staffId: bev.id, activity: label, residentIds: [...here], endT: c.teaUntil, roomId: c.teaRoom };
         emit(world, "activity.started", [bev.id, ...here], { staffId: bev.id, activity: label, roomId: c.teaRoom, residentIds: here });
       }
     }

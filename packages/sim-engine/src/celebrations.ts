@@ -18,7 +18,7 @@ export function celebrate(world: World, params: InputPayloads["celebration"], so
   const cfg = world.config.celebrations;
   const gathering = !outbreakOn(world);
   const at = (clock: string) => day * SECONDS_PER_DAY + clockToSeconds(clock);
-  world.celebrations.push({ day, kind: params.kind, name: params.name, residentIds: here, gathering, teaFrom: at(cfg.tea[0]), teaUntil: at(cfg.tea[1]), tea: "pending", teaRoom: null, came: { residents: [], visitors: [] } });
+  world.celebrations.push({ day, kind: params.kind, name: params.name, residentIds: [...here], gathering, teaFrom: at(cfg.tea[0]), teaUntil: at(cfg.tea[1]), tea: "pending", teaRoom: null, came: { residents: [], visitors: [] } });
   emit(world, "celebration.started", here, { kind: params.kind, name: params.name, residentIds: here, gathering, ...(gathering ? {} : { reason: "outbreak: no gathering, essential visits only" }) }, source);
   if (gathering) celebrationVisits(world, here);
   return null;
