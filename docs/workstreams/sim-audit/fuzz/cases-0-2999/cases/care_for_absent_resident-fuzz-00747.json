@@ -11,6 +11,14 @@
         "residentId": "res_dennis",
         "expectedDays": 1
       }
+    },
+    {
+      "t": 187200,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_dennis",
+        "disease": "norovirus"
+      }
     }
   ],
   "audit": {
@@ -18,7 +26,7 @@
     "hours": 39,
     "rule": "care_for_absent_resident",
     "severity": "integrity",
-    "firstAt": "Wed 04 Nov 19:49:45",
+    "firstAt": "Wed 04 Nov 19:58:45",
     "details": "visit.started for Dennis Hart, who is died",
     "command": "pnpm --filter @vch/sim-engine sim --seed 5 --hours 39 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/care_for_absent_resident-fuzz-00747.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/care_for_absent_resident-fuzz-00747.json"

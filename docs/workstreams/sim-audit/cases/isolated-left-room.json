@@ -1,7 +1,7 @@
 {
   "id": "audit-isolated-left-room",
   "name": "Stan isolated, back out in the corridor",
-  "description": "Stan has flu and is isolated, then is out in the corridor. (Fuzz case 00011, shrunk; moved from seed 37 to seed 1 in PR B, when escorts began walking together and the timing changed.)",
+  "description": "Stan has flu and is isolated, then is out in the corridor. (Fuzz case 00011, shrunk.)",
   "random": false,
   "events": [
     {
@@ -20,12 +20,11 @@
     "rules": [
       "isolated_left_room@res_stan"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
-    "seed": 1,
+    "seed": 37,
     "hours": 35,
-    "command": "pnpm --filter @vch/sim-engine sim --seed 1 --hours 35 --scenario ../../docs/workstreams/sim-audit/cases/isolated-left-room.json --report",
+    "command": "pnpm --filter @vch/sim-engine sim --seed 37 --hours 35 --scenario ../../docs/workstreams/sim-audit/cases/isolated-left-room.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/isolated-left-room.json"
   }
 }

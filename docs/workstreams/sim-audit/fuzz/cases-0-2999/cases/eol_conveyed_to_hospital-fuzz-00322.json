@@ -26,7 +26,7 @@
     "hours": 4,
     "rule": "eol_conveyed_to_hospital",
     "severity": "unrealistic",
-    "firstAt": "Tue 03 Nov 08:09:20",
+    "firstAt": "Tue 03 Nov 08:14:20",
     "details": "Stan Brooks taken to hospital (serious_fall) during a planned end-of-life decline",
     "command": "pnpm --filter @vch/sim-engine sim --seed 9 --hours 4 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/eol_conveyed_to_hospital-fuzz-00322.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/eol_conveyed_to_hospital-fuzz-00322.json"

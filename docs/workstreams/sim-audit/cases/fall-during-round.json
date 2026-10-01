@@ -17,16 +17,14 @@
     "gaps": [
       "U5"
     ],
-    "rules": [],
-    "fixed": [
+    "rules": [
       "dose_skipped_unrecorded@res_win"
     ],
-    "expect": "passes",
+    "expect": "fails",
     "fixIn": "B",
     "seed": 16,
     "hours": 28,
     "command": "pnpm --filter @vch/sim-engine sim --seed 16 --hours 28 --scenario ../../docs/workstreams/sim-audit/cases/fall-during-round.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/fall-during-round.json",
-    "fixedIn": "B"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/fall-during-round.json"
   }
 }

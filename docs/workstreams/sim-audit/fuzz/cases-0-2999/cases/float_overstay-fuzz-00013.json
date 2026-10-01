@@ -18,8 +18,8 @@
     "hours": 310,
     "rule": "float_overstay",
     "severity": "unrealistic",
-    "firstAt": "Mon 16 Nov 02:09:05",
-    "details": "Lorna Mitchell on the wing for 240 min (since 22.15 h)",
+    "firstAt": "Mon 16 Nov 02:10:05",
+    "details": "Lorna Mitchell on the wing for 240 min (since 22.17 h)",
     "command": "pnpm --filter @vch/sim-engine sim --seed 10 --hours 310 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/float_overstay-fuzz-00013.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/float_overstay-fuzz-00013.json"
   }

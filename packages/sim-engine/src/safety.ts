@@ -65,7 +65,7 @@ export const SAFETY_RULES = {
   meal_for_comfort_only: { severity: "integrity", text: "A meal served to a resident on comfort feeding only" },
   bed_bound_out_of_bed: { severity: "unsafe", text: "A bed-bound resident out of bed (not after a fall)" },
   seated_too_long: { severity: "unsafe", text: "A resident who can't change position themselves (hoisted) sitting out of bed more than 6 hours at a stretch (NICE CG179: at least every 6 hours if at risk)" },
-  escort_apart: { severity: "unsafe", text: "A resident walked by a carer (an escort) is walking with the carer more than 2 m away and not closing the gap, for two ticks (10 s) or more than 3 m" },
+  escort_apart: { severity: "unsafe", text: "A resident walked by a carer (an escort) is walking with the carer more than 2 m away" },
   need_unmet_staff_idle: { severity: "unsafe", text: "A resident's hunger, thirst or toileting over 0.9 for more than an hour while enough carers who could help are idle" },
   request_unanswered_2h: { severity: "unsafe", text: "A resident's request for help not started 2 hours after they asked (the target is 30 minutes)" },
   no_woman_for_female_only: { severity: "unsafe", text: "Female-only personal care waiting over an hour with no woman on shift on the wing" },
@@ -161,7 +161,6 @@ export function createSafetyMonitor(): SafetyMonitor {
   const extSince = new Map<string, number>();
   const lastTurn = new Map<string, number>();
   const outOfBedSince = new Map<string, number>();
-  const escortGap = new Map<string, { gap: number; ticks: number }>();
 
   return {
     check(world, events) {
@@ -197,23 +196,17 @@ export function createSafetyMonitor(): SafetyMonitor {
           if (outbreakOn(world)) v("admission_during_outbreak", rid!, `${world.people.get(rid!)?.name ?? rid} moved in during an outbreak`);
         }
         const gone = (id: string) => absent.has(id) || leftThisTick.has(id);
-        // A dose recorded as not given because they've left is a record, not care.
-        const record = e.type === "med.missed" && typeof p.reason === "string";
-        if (CARE_EVENTS.has(e.type) && rid && gone(rid) && !record) v("care_for_absent_resident", `${e.type}:${rid}:${t}`, `${e.type} for ${r?.name ?? rid}, who is ${r?.resident?.away ?? "away"}`);
+        if (CARE_EVENTS.has(e.type) && rid && gone(rid)) v("care_for_absent_resident", `${e.type}:${rid}:${t}`, `${e.type} for ${r?.name ?? rid}, who is ${r?.resident?.away ?? "away"}`);
         if (e.type === "task.started") for (const a of e.actors) if (world.people.get(a)?.resident && gone(a)) v("care_for_absent_resident", `task:${a}:${t}`, `a task started with ${world.people.get(a)!.name}, who is ${world.people.get(a)!.resident!.away}`);
 
         if (e.type === "med_round.started") {
           const key = `${String(p.round)}@${dayIndex(t)}`;
           rounds.set(key, { residents: new Set(residents.filter((q) => q.onMap).map((q) => q.id)), dosed: new Set() });
         }
-        // A delay recorded with its reason is on the chart too (the dose follows, or is recorded as missed).
-        if (e.type === "med.delayed") rounds.get(`${String(p.round)}@${dayIndex(t)}`)?.dosed.add(rid!);
         if (e.type === "med.administered" || e.type === "med.missed") {
           rounds.get(`${String(p.round)}@${dayIndex(t)}`)?.dosed.add(rid!);
           const card = r?.resident?.data.care;
-          // Missed because they were taken to hospital (or died) first: the hospital gives it from then on.
-          const leftFirst = e.type === "med.missed" && gone(rid!);
-          if (card?.time_critical_meds && !leftFirst && (e.type === "med.missed" || Number(p.lateMins) > 30)) {
+          if (card?.time_critical_meds && (e.type === "med.missed" || Number(p.lateMins) > 30)) {
             v("time_critical_dose_late", `${rid}:${String(p.round)}:${dayIndex(t)}`, `${r!.name}'s ${String(p.round)} dose ${e.type === "med.missed" ? "missed" : `${String(p.lateMins)} min late`} (time-critical: within 30 minutes)`);
           }
         }
@@ -272,7 +265,7 @@ export function createSafetyMonitor(): SafetyMonitor {
         if (e.type === "rota.cover_booked" && (p.slot === "office" || p.slot === "reception")) v("office_covered_by_carer", `${String(p.staffId)}:${t}`, `${world.people.get(String(p.staffId))?.name ?? p.staffId} (${String(p.cover)}) booked for the ${String(p.slot)} slot of ${world.people.get(String(p.forStaffId))?.name ?? p.forStaffId}`);
         if (e.type === "shift.started") {
           const s = world.people.get(String(p.staffId));
-          if (s?.infection?.isolated && s.infection.symptomaticFromT < t) v("sick_staff_on_wing", `${s.id}:start:${t}`, `${s.name} started a ${String(p.shift)} shift while off sick with ${s.infection.disease}`);
+          if (s?.infection?.isolated) v("sick_staff_on_wing", `${s.id}:start:${t}`, `${s.name} started a ${String(p.shift)} shift while off sick with ${s.infection.disease}`);
         }
       }
       for (const id of leftThisTick) absent.add(id);
@@ -378,13 +371,7 @@ export function createSafetyMonitor(): SafetyMonitor {
           const r = world.people.get(task.residentId);
           if (r?.move) {
             const near = Math.min(...task.assigned.map((id) => world.people.get(id)).filter((q): q is Person => !!q).map((q) => Math.hypot(q.x - r.x, q.y - r.y)));
-            // Walking on alone: over 2 m from the carer and not closing the gap (not walking up to a carer waiting for them).
-            // Allowing for 5-second ticks: one tick held at a busy door is a moment, not walking alone.
-            const before = escortGap.get(task.id);
-            const apart = before !== undefined && near > 2 && near >= before.gap - 0.01;
-            const ticks = apart ? (before?.ticks ?? 0) + 1 : 0;
-            escortGap.set(task.id, { gap: near, ticks });
-            if (apart && (ticks >= 2 || near > 3)) v("escort_apart", `${r.id}:${task.id}`, `${r.name} walking (${task.label}) with the carer ${near.toFixed(1)} m away`);
+            if (near > 2) v("escort_apart", `${r.id}:${task.id}`, `${r.name} walking (${task.label}) with the carer ${near.toFixed(1)} m away`);
           }
         }
         // Toast for someone on a soft, bite-sized diet (tea and toast for an early riser).

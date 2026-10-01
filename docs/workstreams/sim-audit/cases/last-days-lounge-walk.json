@@ -20,7 +20,6 @@
     "rules": [
       "bed_bound_out_of_bed@res_peggy"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 37,

@@ -16,19 +16,16 @@
     "rules": [
       "diet_texture@res_raj",
       "fluid_limit_exceeded@res_win",
+      "escort_apart",
       "seated_too_long@res_raj",
       "turn_repeated@res_dennis",
       "meds_while_asleep"
-    ],
-    "fixed": [
-      "escort_apart"
     ],
     "expect": "fails",
     "fixIn": "B,D,F",
     "seed": 1,
     "hours": 48,
     "command": "pnpm --filter @vch/sim-engine sim --seed 1 --hours 48 --scenario ../../docs/workstreams/sim-audit/cases/calm-seed-1.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/calm-seed-1.json",
-    "fixedIn": "B"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/calm-seed-1.json"
   }
 }

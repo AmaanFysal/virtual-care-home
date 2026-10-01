@@ -22,7 +22,6 @@
       "excessive_hours",
       "office_covered_by_carer"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "C,F",
     "seed": 12,

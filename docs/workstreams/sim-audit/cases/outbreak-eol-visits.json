@@ -36,7 +36,6 @@
     "rules": [
       "eol_visit_cancelled"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 5,

@@ -15,11 +15,11 @@ import {
 } from "@vch/shared-types";
 import { emit } from "./emit.js";
 import { coveredWithout } from "./floor.js";
-import { isCareStaff, unwell, type Person, type ShiftAssignment, type World } from "./state.js";
-import { ON_CALL_RN_ID, mainCarerArrived, mainCarerDeparted, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
+import { isCareStaff, type Person, type ShiftAssignment, type World } from "./state.js";
+import { ON_CALL_RN_ID, PARAMEDICS_ID, mainCarerArrived, mainCarerDeparted, onCallRnArrived, onCallRnDeparted, paramedicsArrived } from "./falls.js";
 import { floatArrived, floatDeparted } from "./float.js";
-import { coverableOnSite, isNight } from "./nightcover.js";
-import { createHandover, idleStaff, pullOff, relieveUnwell } from "./tasks.js";
+import { coverableOnSite } from "./nightcover.js";
+import { createHandover, idleStaff, pullOff } from "./tasks.js";
 import { depart, placeAt, walkTo } from "./world/movement.js";
 
 /** Where each slot waits on the floor when there's nothing to do. */
@@ -300,18 +300,7 @@ export function rotaLeaving(world: World): void {
     const s = p.staff;
     if (!s || s.duty !== "staying") continue;
     if (s.taskId && world.tasks.get(s.taskId)?.kind === "idle") pullOff(world, p, "end of shift");
-    // Taken ill in the middle of work that can't be left: relieved in place as soon as someone is free.
-    if (s.taskId && unwell(p) && !relieveUnwell(world, p)) continue;
     if (s.taskId) continue;
-    // Taken ill: home as soon as someone covers the floor who isn't about to go into a handover (at
-    // night the floating carer counts: she stays until the cover comes), owing nothing.
-    if (unwell(p)) {
-      const meeting = new Set([...world.tasks.values()].filter((t) => t.kind === "handover").flatMap((t) => t.members!));
-      if (isCareStaff(p) && !coveredWithout(world, p, false, meeting, !isNight(world.t))) continue;
-      for (const t of [...world.tasks.values()].filter((t) => t.kind === "handover" && t.members!.includes(p.id))) t.members = t.members!.filter((id) => id !== p.id);
-      leave(world, p);
-      continue;
-    }
     const handovers = [...world.tasks.values()].filter((t) => t.kind === "handover");
     // Still owed to a handover (as a member, or as its floor cover): stay until it's done.
     if (handovers.some((t) => (t.members!.includes(p.id) && !t.assigned.includes(p.id)) || t.data.cover === p.id)) continue;
@@ -325,18 +314,13 @@ export function rotaLeaving(world: World): void {
     // Covered by someone who isn't about to go into a handover.
     const inHandover = new Set(handovers.flatMap((t) => t.members!));
     if (isCareStaff(p) && !coveredWithout(world, p, false, inHandover, true)) continue;
-    leave(world, p);
+    if (s.pausedBreakId) world.tasks.delete(s.pausedBreakId);
+    s.pausedBreakId = null;
+    s.duty = "leaving";
+    p.badges = [];
+    p.task = null;
+    walkTo(world, p, "ExitDoor");
   }
-}
-
-function leave(world: World, p: Person): void {
-  const s = p.staff!;
-  if (s.pausedBreakId) world.tasks.delete(s.pausedBreakId);
-  s.pausedBreakId = null;
-  s.duty = "leaving";
-  p.badges = [];
-  p.task = null;
-  walkTo(world, p, "ExitDoor");
 }
 
 /** Idle on-shift staff wait at their floor post or workplace. */
@@ -373,7 +357,7 @@ export function rotaArrivals(world: World, spawned: string[], arrived: string[])
       floatArrived(world, person);
       continue;
     }
-    if (person.staff?.role === "paramedic") {
+    if (person.id === PARAMEDICS_ID) {
       paramedicsArrived(world, person);
       continue;
     }

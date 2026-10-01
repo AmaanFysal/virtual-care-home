@@ -24,7 +24,6 @@
       "float_overstay",
       "two_person"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "C,F",
     "seed": 10,

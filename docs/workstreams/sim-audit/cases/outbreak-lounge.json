@@ -28,7 +28,6 @@
     "rules": [
       "outbreak_lounge_use@res_peggy"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 23,

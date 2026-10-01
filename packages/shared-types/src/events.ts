@@ -49,8 +49,6 @@ export interface EventPayloads {
   "task.assigned": { taskId: string; kind: string; staffIds: string[] };
   "task.started": { taskId: string; kind: string };
   "task.interrupted": { taskId: string; kind: string; reason: string };
-  /** Someone taken ill in the middle of work that can't be left is relieved in place by a colleague. */
-  "task.handed_over": { taskId: string; kind: string; fromStaffId: string; toStaffId: string; reason: string };
   "task.resumed": { taskId: string; kind: string };
   "task.completed": { taskId: string; kind: string; residentId: string | null; waitMins: number };
 
@@ -76,10 +74,7 @@ export interface EventPayloads {
   "med_round.completed": { round: string; staffId: string; interruptions: number };
   "med.administered": { residentId: string; round: string; staffId: string; lateMins: number };
   "med.late": { residentId: string; round: string; lateMins: number };
-  /** Not given: an interrupted round's error, or a delayed dose that can't be given (the reason says which). */
-  "med.missed": { residentId: string; round: string; reason?: string };
-  /** Not given on the round, recorded with why (on the floor after a fall); given when they can take it, or missed. */
-  "med.delayed": { residentId: string; round: string; reason: string };
+  "med.missed": { residentId: string; round: string };
   "med.prn_requested": { residentId: string; via: "on_call_rn" | "rn" };
 
   "resident.fell": { residentId: string; severity: FallSeverity; roomId: string };
@@ -90,8 +85,6 @@ export interface EventPayloads {
   "fall.made_comfortable": { residentId: string; staffId: string; reason: string };
   /** A look-in on a resident left waiting on the floor (at least every 5 minutes until lifted). */
   "fall.checked": { residentId: string; staffId: string; sinceMins: number };
-  /** The nurse waiting with a resident for an ambulance hands over to a carer, so she can assess others. */
-  "fall.handed_over": { residentId: string; fromStaffId: string; toStaffId: string; reason: string };
   "fall.rn_called": { residentId: string; staffId: string; onCall: boolean };
   "fall.assessed": { residentId: string; by: string; outcome: "cleared_to_move" | "wait_for_ambulance" };
   "fall.lifted": { residentId: string; staffIds: string[]; to: string };

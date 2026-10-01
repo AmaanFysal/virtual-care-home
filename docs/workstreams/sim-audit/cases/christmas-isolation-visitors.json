@@ -36,7 +36,6 @@
     "rules": [
       "isolated_visitors_over_limit@res_stan"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 37,

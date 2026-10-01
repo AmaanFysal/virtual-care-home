@@ -20,7 +20,6 @@
     "rules": [
       "isolated_in_lounge@res_arthur"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 35,

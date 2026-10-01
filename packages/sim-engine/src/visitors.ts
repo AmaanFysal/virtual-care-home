@@ -253,15 +253,7 @@ function mustWait(world: World, visitor: Person): boolean {
 function spotBy(world: World, visitor: Person): string {
   const r = world.people.get(visitor.visitor!.residentId)!;
   if (r.resident!.inBed || !r.atPoint || r.atPoint === r.resident!.data.room) return `${r.resident!.data.room}.Side2`;
-  // In (or on the way to) their en-suite: the visitor waits by the bed, never in the en-suite (privacy).
-  if (inEnsuite(world, r)) return `${r.resident!.data.room}.Side2`;
   return r.atPoint;
-}
-
-function inEnsuite(world: World, r: Person): boolean {
-  const kind = (id: string | null | undefined) => (id ? world.data.floorplan.rooms.find((x) => x.id === id)?.kind : undefined);
-  const dest = r.move ? world.points.get(r.move.destPointId) : undefined;
-  return kind(r.roomId) === "ensuite" || world.points.get(r.atPoint ?? "")?.kind === "wc" || dest?.kind === "wc";
 }
 
 function goHome(world: World, p: Person): void {

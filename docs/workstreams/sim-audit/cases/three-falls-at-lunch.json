@@ -58,16 +58,14 @@
       "U17",
       "R17"
     ],
-    "rules": [],
-    "fixed": [
+    "rules": [
       "long_lie@res_win"
     ],
-    "expect": "passes",
+    "expect": "fails",
     "fixIn": "B",
     "seed": 18,
     "hours": 12,
     "command": "pnpm --filter @vch/sim-engine sim --seed 18 --hours 12 --scenario ../../docs/workstreams/sim-audit/cases/three-falls-at-lunch.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/three-falls-at-lunch.json",
-    "fixedIn": "B"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/three-falls-at-lunch.json"
   }
 }

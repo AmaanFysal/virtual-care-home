@@ -353,10 +353,10 @@ export function minimise(c: FuzzCase, sig: string, data: WorldData): { c: FuzzCa
 
 /**
  * A saved scenario file with its `audit` block: the seed and hours to run it for, the gaps it shows
- * (docs/workstreams/sim-audit/report.md), the rules it still breaks ("rule" or "rule@person"), the
- * rules it broke before a fix and mustn't again (`fixed`), whether anything still fails, and the PRs.
+ * (docs/workstreams/sim-audit/report.md), the rules it breaks ("rule" or "rule@person"), whether it
+ * still does ("fails") or no longer should ("passes", once fixed), and the PR that fixes it.
  */
-export type AuditScenario = Scenario & { audit?: { seed: number; hours: number; gaps?: string[]; rules?: string[]; fixed?: string[]; expect?: "fails" | "passes"; fixIn?: string; fixedIn?: string } };
+export type AuditScenario = Scenario & { audit?: { seed: number; hours: number; gaps?: string[]; rules?: string[]; expect?: "fails" | "passes"; fixIn?: string } };
 
 /** Whether a run broke a rule written as "rule" or "rule@person". */
 export function broke(r: CaseResult, rule: string): boolean {

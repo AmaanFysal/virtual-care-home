@@ -131,15 +131,12 @@ describe("golden: night falls (on-call RN by phone)", () => {
     expect(one(run, "fall.assessed").payload.outcome).toBe("wait_for_ambulance");
     const called = one(run, "ambulance.called");
     const conveyed = one(run, "resident.conveyed_to_hospital");
-    // 999 as soon as the carer finds them (a serious injury is plain; the full scenario audit, PR B),
-    // then the on-call RN, after assessing by phone, comes over and stays until the paramedics have gone.
-    const assessed = one(run, "fall.assessed");
-    expect(called.t).toBeLessThanOrEqual(one(run, "fall.found").t);
+    // The on-call RN comes over from the main building and stays until the paramedics have gone.
     const rnCalled = one(run, "on_call_rn.called");
-    expect(rnCalled.t).toBe(assessed.t);
+    expect(rnCalled.t).toBe(called.t);
     const rnArrived = ofType(run.events, "on_call_rn.arrived")[0]!;
-    expect(rnArrived.t - rnCalled.t).toBeGreaterThanOrEqual(8 * 60);
-    expect(rnArrived.t - rnCalled.t).toBeLessThanOrEqual(13 * 60);
+    expect(rnArrived.t - called.t).toBeGreaterThanOrEqual(8 * 60);
+    expect(rnArrived.t - called.t).toBeLessThanOrEqual(13 * 60);
     const paramedicsLeft = ofType(run.events, "person.departed").find((e) => e.actors[0] === "ext_paramedics")!;
     expect(ofType(run.events, "on_call_rn.departed")[0]!.t).toBeGreaterThanOrEqual(paramedicsLeft.t);
     // While one carer waits with them, someone else (the floating carer, the night carer or the

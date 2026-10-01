@@ -33,16 +33,14 @@
     "gaps": [
       "U6"
     ],
-    "rules": [],
-    "fixed": [
+    "rules": [
       "time_critical_dose_late@res_arthur"
     ],
-    "expect": "passes",
+    "expect": "fails",
     "fixIn": "B",
     "seed": 37,
     "hours": 28,
     "command": "pnpm --filter @vch/sim-engine sim --seed 37 --hours 28 --scenario ../../docs/workstreams/sim-audit/cases/time-critical-late.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/time-critical-late.json",
-    "fixedIn": "B"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/time-critical-late.json"
   }
 }

@@ -16,11 +16,8 @@ import {
 } from "@vch/shared-types";
 import { emit } from "./emit.js";
 import { addAgencyWorker, holder } from "./rota.js";
-import { criticalWork, mainBuildingCarer } from "./falls.js";
-import { comeIn } from "./float.js";
-import { pullOff } from "./tasks.js";
-import { walkTo } from "./world/movement.js";
-import { isCareStaff, type Absence, type Person, type ShiftAssignment, type World } from "./state.js";
+import { mainBuildingCarer } from "./falls.js";
+import type { Absence, Person, ShiftAssignment, World } from "./state.js";
 
 const REST_HOURS = 11;
 
@@ -48,25 +45,7 @@ export function shiftNoShow(world: World, slot: string, cover: CoverChoice, sour
  * they're clear. Shifts are planned a day at a time, so this runs every minute (from infection.ts).
  */
 export function excludeUpcoming(world: World, staffId: string, untilT: number): void {
-  for (const a of world.shifts.filter((s) => s.personId === staffId && !s.started && !s.stayOn && s.startT < untilT)) {
-    // Already on their way in or in the staff room: sent home before the shift starts.
-    if (a.spawned) sendHomeArriving(world, world.people.get(staffId)!, a);
-    else markAbsent(world, a, "sick", "auto", world.t, "engine");
-  }
-}
-
-/** Someone with symptoms who has arrived for a shift that hasn't started: a sick call now, and home. */
-function sendHomeArriving(world: World, p: Person, arriving: ShiftAssignment): void {
-  if (p.staff!.shift === arriving) p.staff!.shift = null;
-  const queued = world.spawnQueue.indexOf(p.id);
-  if (queued >= 0) world.spawnQueue.splice(queued, 1);
-  markAbsent(world, arriving, "went_home_sick", "auto", world.t, "engine");
-  if (!p.onMap) p.staff!.duty = "off";
-  else {
-    p.staff!.duty = "leaving";
-    p.task = null;
-    walkTo(world, p, "ExitDoor");
-  }
+  for (const a of world.shifts.filter((s) => s.personId === staffId && !s.spawned && !s.stayOn && s.startT < untilT)) markAbsent(world, a, "sick", "auto", world.t, "engine");
 }
 
 /**
@@ -74,22 +53,8 @@ function sendHomeArriving(world: World, p: Person, arriving: ShiftAssignment): v
  * covered, as anyone whose shift has ended does), and the rest of it is covered like a sick call.
  */
 export function sendHomeSick(world: World, p: Person): void {
-  // Arrived but not started yet (symptoms in the staff room before the shift): a sick call now, and home.
-  const arriving = world.shifts.find((s) => s.personId === p.id && s.spawned && !s.started && !s.stayOn);
-  if (arriving) return sendHomeArriving(world, p, arriving);
   const a = world.shifts.find((s) => s.personId === p.id && s.started && !s.ended);
   if (!a) return;
-  // No more hands-on care: what they're doing goes back on the queue, unless it can't be left (a
-  // two-person transfer under way, walking a resident), which they finish first.
-  const doing = p.staff!.taskId ? world.tasks.get(p.staff!.taskId) : undefined;
-  if (doing && !criticalWork(world, doing)) pullOff(world, p, "taken ill");
-  // The lone night carer: the floating carer comes to cover the wing until the cover arrives.
-  const others = world.order.map((id) => world.people.get(id)!).some((q) => q.id !== p.id && isCareStaff(q) && q.onMap && q.staff!.duty === "on_shift" && !!q.staff!.shift);
-  if (!others && world.float.status === "off") {
-    world.metrics.floatCallouts += 1;
-    emit(world, "second_carer.called", [world.data.rota.night_float.id], { reason: "the night carer taken ill", residentIds: [], outOfRound: true });
-    comeIn(world, false, world.rng.cover.int(8, 12));
-  }
   const endT = a.endT;
   a.endT = world.t;
   const rest: ShiftAssignment = { ...a, arriveT: world.t, startT: world.t, endT, spawned: false, started: false, ended: false, stayOn: false };
@@ -97,9 +62,7 @@ export function sendHomeSick(world: World, p: Person): void {
   world.absences = world.absences.filter((x) => x.endT > world.t - SECONDS_PER_DAY);
   const absence: Absence = { staffId: p.id, name: p.name, slot: a.slot, shift: a.shift, reason: "went_home_sick", startT: world.t, endT, cover: null };
   world.absences.push(absence);
-  // A late carer bridging the night until its cover arrives: that cover is already booked (for the
-  // end of the bridge); the floating carer covers the gap (called out above). Nothing more to book.
-  if (!a.stayOn && endT > world.t) bookCover(world, rest, absence, "auto", world.t);
+  bookCover(world, rest, absence, "auto", world.t);
   world.shifts.sort((x, y) => x.arriveT - y.arriveT || x.personId.localeCompare(y.personId));
 }
 
@@ -111,8 +74,7 @@ function markAbsent(world: World, a: ShiftAssignment, reason: AbsenceReason, cho
   const person = world.people.get(a.personId)!;
   world.shifts.splice(world.shifts.indexOf(a), 1);
   emit(world, "staff.absent", [person.id], { staffId: person.id, name: person.name, slot: a.slot, shift: a.shift, reason, shiftStartT: a.startT }, source);
-  // An agency worker who won't come is forgotten; one already here, or ill, is kept until they've gone (rota.ts pruneShifts).
-  if (person.kind === "agency" && !person.onMap && !world.spawnQueue.includes(person.id) && !person.infection) {
+  if (person.kind === "agency") {
     world.people.delete(person.id);
     world.order = world.order.filter((id) => id !== person.id);
   }

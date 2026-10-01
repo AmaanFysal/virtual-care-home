@@ -18,7 +18,7 @@
     "hours": 9,
     "rule": "bed_bound_out_of_bed",
     "severity": "unsafe",
-    "firstAt": "Tue 03 Nov 13:15:00",
+    "firstAt": "Tue 03 Nov 13:14:00",
     "details": "Peggy Holloway (bed-bound) out of bed at Room5",
     "command": "pnpm --filter @vch/sim-engine sim --seed 37 --hours 9 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/bed_bound_out_of_bed-fuzz-01180.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/bed_bound_out_of_bed-fuzz-01180.json"

@@ -43,14 +43,6 @@ export interface Move {
   /** Exact end position: the point itself, or the centre of the free cell next to it. */
   endX: number;
   endY: number;
-  /** Walking at someone else's pace (a carer beside the resident they're escorting), in m/s. */
-  pace?: number;
-  /** Walking with this person (a carer and the resident they're escorting): they follow each other through doorways. */
-  with?: string;
-  /** Kept within this many metres of `with` while they're walking: a carer and the resident they escort don't draw apart. */
-  tether?: number;
-  /** Cells at the end of the walk after the route shared with `with` (a carer's step from the resident's route to their own spot). */
-  tail?: number;
 }
 
 export interface ShiftAssignment {
@@ -370,8 +362,6 @@ export interface World {
   zoneOwner: Map<string, string>;
   /** Tick in which each doorway zone was last released; it stays closed for the rest of that tick. */
   zoneReleasedTick: Map<string, number>;
-  /** Who last left each doorway zone (their escort may follow them through in the same tick). */
-  zoneReleasedBy: Map<string, string>;
   /** Standing cells claimed by stationary people or people walking to them. */
   standClaims: Map<number, string>;
   /**
@@ -390,8 +380,6 @@ export interface World {
   onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
   /** Medication rounds nobody on the wing could give at their time: given when the on-call RN comes over. */
   pendingRounds: { round: string; roundT: number }[];
-  /** Doses not given on a round (on the floor after a fall): given once they can take it, or recorded as missed. */
-  pendingDoses: { residentId: string; round: string; roundT: number }[];
   /** A carer from the main building, asked for when every care staff member here is with a fallen resident. */
   mainCarer: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; retryT: number };
   /** Recent falls, for explaining missed service targets. */
@@ -404,8 +392,8 @@ export interface World {
   celebrations: Celebration[];
   /** Tuning rules on for this run (docs/12; all on by default). */
   tuning: Tuning;
-  /** Ambulance calls in the order they were made; each gets its own crew when it's due (off the map until then). */
-  paramedics: { taskId: string; dueT: number; crewId: string | null }[];
+  /** Ambulance calls in the order they were made; one crew answers them in turn (off the map until due). */
+  paramedics: { taskId: string; dueT: number }[];
   metrics: { floatCallouts: number; medInterruptions: number };
   /** Invariant rules currently failing, so violations are logged once when they start. */
   failing: Set<string>;
@@ -437,11 +425,6 @@ export function isCareStaff(p: Person): boolean {
 
 export function isNurse(p: Person): boolean {
   return p.staff?.role === "registered_nurse" || p.staff?.role === "agency_nurse";
-}
-
-/** A member of staff with symptoms of an infection: no hands-on care, home as soon as it's safe (docs/10). */
-export function unwell(p: Person): boolean {
-  return !!p.staff && !!p.infection?.symptomatic && !p.infection.recovered;
 }
 
 /** On shift (or staying on after it) and able to be given work. */

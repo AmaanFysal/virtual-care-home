@@ -20,7 +20,6 @@
     "rules": [
       "ecs_visit_cancelled"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 8,

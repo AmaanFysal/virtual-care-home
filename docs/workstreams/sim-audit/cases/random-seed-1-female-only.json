@@ -12,7 +12,6 @@
       "request_unanswered_2h@res_peggy",
       "no_woman_for_female_only@res_peggy"
     ],
-    "fixed": [],
     "expect": "fails",
     "fixIn": "C",
     "seed": 1,

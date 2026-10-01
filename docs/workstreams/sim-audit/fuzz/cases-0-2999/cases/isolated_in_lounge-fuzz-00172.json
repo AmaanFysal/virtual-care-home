@@ -5,6 +5,15 @@
   "random": false,
   "events": [
     {
+      "t": 165660,
+      "type": "resident_illness",
+      "params": {
+        "residentId": "res_arthur",
+        "kind": "dehydration",
+        "severity": "severe"
+      }
+    },
+    {
       "t": 451800,
       "type": "end_of_life_start",
       "params": {
@@ -26,7 +35,7 @@
     "hours": 130,
     "rule": "isolated_in_lounge",
     "severity": "unsafe",
-    "firstAt": "Sun 08 Nov 14:52:00",
+    "firstAt": "Sun 08 Nov 14:51:40",
     "details": "Peggy Holloway (isolated, norovirus) in the Lounge 22 min after isolation began",
     "command": "pnpm --filter @vch/sim-engine sim --seed 30 --hours 130 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/isolated_in_lounge-fuzz-00172.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/isolated_in_lounge-fuzz-00172.json"

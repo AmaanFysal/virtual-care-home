@@ -25,16 +25,14 @@
     "gaps": [
       "U11"
     ],
-    "rules": [],
-    "fixed": [
+    "rules": [
       "sick_staff_giving_care@stf_florin"
     ],
-    "expect": "passes",
+    "expect": "fails",
     "fixIn": "B",
     "seed": 19,
     "hours": 42,
     "command": "pnpm --filter @vch/sim-engine sim --seed 19 --hours 42 --scenario ../../docs/workstreams/sim-audit/cases/sick-carer-gives-care.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/sick-carer-gives-care.json",
-    "fixedIn": "B"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/sick-carer-gives-care.json"
   }
 }
