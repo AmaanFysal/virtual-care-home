@@ -176,6 +176,63 @@ pnpm typecheck    # every package
 pnpm test         # Vitest across the repo
 ```
 
+## Evidence and sources
+
+The wing's rules, rates and data come from UK regulation, public health guidance and published research. Each rule's source is recorded next to its value in [`data/`](data) and in the design docs ([`docs/05`](docs/05-care-operations.md), [`docs/10`](docs/10-director-and-scenarios.md)). Where no source fits, the value is marked there as a modelling assumption.
+
+### Regulation (England)
+
+| Source | Used for |
+|---|---|
+| [Health and Social Care Act 2008 (Regulated Activities) Regulations 2014, **Regulation 18**](https://www.legislation.gov.uk/uksi/2014/2936/regulation/18) | Staffing: no fixed ratio, "sufficient numbers" of suitably skilled staff, a registered nurse on duty |
+| [Regulated Activities Regulations 2014, **Regulation 9A**](https://www.legislation.gov.uk/uksi/2014/2936/regulation/9A) (in force 6 April 2024) and [CQC guidance](https://www.cqc.org.uk/guidance-regulation/providers/regulations-service-providers-and-managers/health-social-care-act/regulation-9a) | Open visiting: no set visiting hours, visits on each visitor's own pattern |
+| [CQC (Registration) Regulations 2009, **Regulation 16**](https://legislation.gov.uk/uksi/2009/3112/regulation/16) and [**Regulation 18**](https://legislation.gov.uk/uksi/2009/3112/regulation/18) | CQC notifications flagged on a death, a serious injury or a hospital conveyance |
+| [Working Time Regulations 1998, Regulation 10](https://www.legislation.gov.uk/uksi/1998/1833/regulation/10) | 11 hours' rest between shifts in the rota |
+| HM Government, [*Fire safety risk assessment: residential care premises*](https://www.gov.uk/government/publications/fire-safety-risk-assessment-residential-care-premises) | Day-room fire doors held open on hold-open devices, closed overnight |
+| HSE, [*Falls from windows or balconies in health and social care*](https://www.hse.gov.uk/healthservices/falls-windows.htm) | Window restrictors: every window opens 100 mm at most |
+
+### Infection and outbreaks
+
+| Source | Used for |
+|---|---|
+| UKHSA, [*Management of acute respiratory infection outbreaks in care homes*](https://www.gov.uk/government/publications/acute-respiratory-disease-managing-outbreaks-in-care-homes/management-of-acute-respiratory-infection-outbreaks-in-care-homes-guidance) (updated 24 July 2024) | Flu outbreaks: declared at 2 linked resident cases within 5 days, over 5 days after the last onset |
+| Norovirus Working Party, [*Guidelines for the management of norovirus outbreaks in acute and community health and social care settings*](https://www.gov.uk/government/publications/norovirus-managing-outbreaks-in-acute-and-community-health-and-social-care-settings) (2012, PHE) | Norovirus outbreaks: declared at 2 linked cases, over 48 hours after the last case is well and 72 hours after the last onset |
+
+### Base rates and clinical evidence
+
+| Source | Used for |
+|---|---|
+| Gertner et al., [*Falls among residents living in care homes using real-time data collection: a large UK case-control study*](https://pmc.ncbi.nlm.nih.gov/articles/PMC13092222/), *Health Science Reports* (2026) | Falls: 1,249 per 1,000 residents a year, peaking in the morning |
+| Shah et al., [*Mortality in older care home residents in England and Wales*](https://pubmed.ncbi.nlm.nih.gov/23305759/), *Age and Ageing* (2013) | Deaths: 26.2% of residents within a year |
+| Health Foundation, [*Emergency admissions to hospital from care homes*](https://reader.health.org.uk/emergency-admissions-to-hospital-from-care-homes/background) (2019) | Hospital admissions: 0.70 per resident a year |
+| [National Hip Fracture Database, 2024 report](https://www.nhfd.co.uk/2024report) and the [REDUCE study](https://www.thelancet.com/journals/lanhl/article/PIIS2666-7568(23)00086-7/fulltext), *Lancet Healthy Longevity* (2023) | Hospital stay after a serious fall |
+| Lim et al., [*BTS adult community acquired pneumonia audit 2009/10*](https://pubmed.ncbi.nlm.nih.gov/21502103/), *Thorax* (2011) | Hospital stay for a chest infection |
+| UKHSA UTI hospitalisations 2023–24, via [Care England](https://www.careengland.org.uk/care-england-briefing-to-members-on-the-ukhsa-report-understanding-the-burden-of-uti-hospitalisations-in-england/) | Hospital stay for a UTI |
+| [ILC-UK, *Hydration and older people in the UK*](https://ilcuk.org.uk/wp-content/uploads/2018/10/Hydration-and-older-people-in-the-UK-2.pdf) (2018) and [*Age and Ageing* (2014)](https://academic.oup.com/ageing/article/43/suppl_1/i33/88638) | Hospital stay for dehydration |
+| Barber et al., [*Care homes' use of medicines study (CHUMS)*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2762085/), *Quality and Safety in Health Care* (2009) | Medication rounds that can be interrupted, each interruption raising the chance of a missed dose |
+| Alzheimer's Society, [*Facts for the media*](https://www.alzheimers.org.uk/what-we-do/news-and-media/facts-media) | About 70% of care home residents have dementia: 4 of the 6 residents do |
+| Dementia UK, [*Sundowning*](https://www.dementiauk.org/information-and-support/health-advice/sundowning/) | Sundowning from late afternoon for residents with dementia (Peggy from 16:00, Stan from 16:30) |
+
+### Activity, workforce and weather data
+
+| Source | Used for |
+|---|---|
+| Willis et al., [*2024 Older Adult Compendium of Physical Activities*](https://pacompendium.com/older-adult-compendium/), *Journal of Sport and Health Science* (2024) | MET values for residents |
+| Herrmann et al., [*2024 Adult Compendium of Physical Activities*](https://pacompendium.com/adult-compendium/), *Journal of Sport and Health Science* (2024) | MET values for staff and visitors |
+| Skills for Care, [*The state of the adult social care sector and workforce in England*](https://www.skillsforcare.org.uk/Adult-Social-Care-Workforce-Data/workforceintelligence/resources/Reports/National/The-state-of-the-adult-social-care-sector-and-workforce-in-England-2025-Executive-Summary.pdf) (2025) | Bank and agency cover in the staff mix |
+| [Open-Meteo historical weather API](https://open-meteo.com/en/docs/historical-weather-api), from Copernicus ERA5 | 12 months of real hourly London weather |
+
+### Also reviewed
+
+Guidance read while checking the building, ventilation and infection rules. Not every recommendation is modelled.
+
+- UKHSA/DHSC, [*Infection prevention and control: resource for adult social care*](https://www.gov.uk/government/publications/infection-prevention-and-control-in-adult-social-care-settings/infection-prevention-and-control-resource-for-adult-social-care)
+- NHS England, [*National IPC Manual*, chapter 2: transmission based precautions](https://www.england.nhs.uk/national-infection-prevention-and-control-manual-nipcm-for-england/chapter-2-transmission-based-precautions-tbps/); NHS Scotland, [*Care Home IPC Manual*](https://nipcm.hps.scot.nhs.uk/care-home-infection-prevention-and-control-manual-ch-ipcm/)
+- UKHSA, [*Ventilation to reduce the spread of respiratory infections*](https://www.gov.uk/guidance/ventilation-to-reduce-the-spread-of-respiratory-infections-including-covid-19)
+- UKHSA, [*Supporting vulnerable people before and during hot weather: social care managers*](https://www.gov.uk/guidance/supporting-vulnerable-people-before-and-during-hot-weather-social-care-managers)
+- [*Approved Document F: Ventilation*, Volume 2](https://www.gov.uk/government/publications/ventilation-approved-document-f) (buildings other than dwellings)
+- NICE, [NG149 *Indoor air quality at home*](https://www.nice.org.uk/guidance/ng149)
+
 ## Roadmap
 
 - [x] **Phase 1:** the wing, its people and routines, pixel-art view

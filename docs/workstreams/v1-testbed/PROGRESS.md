@@ -11,7 +11,7 @@
   - **Checks:** director-off fingerprints unchanged (8 seeds, a week each); random director, 8 seeds × 4 weeks, identical with the building on or off; about 195 building events a day; a mutation check (no door closed for care) is caught by the tests; seen in the browser (morning care, a window aired, the room inspector, night doors).
 
 - **Care perfection removed** (#16, 2026-10-01; main before it tagged `v0.10.0-pre-simplify`): the full scenario audit reverted; the 15 tuning rules and the care-quality tests taken out; from the audit's PR B, the fixes that change who is where kept (U1, U11, U13, U16, U17/R17 and the fuzz finds around them) and the care-quality ones removed (U5, U6, the pre-round hold), docs/12. Director-off fingerprints re-recorded; no hard rule breaks in 8 calm weeks or 32 random-director weeks.
-- **PR 2** (branch `v1-testbed-2`, from main after #16): equipment and touches; schema 1 complete.
+- **PR 2** (merged, #17): equipment and touches; schema 1 complete. Decisions approved at review (project owner, 2026-10-01): keep about 650 touches a day, one per action and only within 1.5 m; the slower runs (about 65% longer with the building) are fine.
   - Engine: `src/equipment.ts` (lights, heating with set points and season, the Lounge TV, the staff-room kettle, WC and basin uses, showers described and off), `src/touches.ts` (the object registry; touches from the tick's events and from steps people start, only within reach; the last 20 by room and person); the weather looked up once an hour.
   - Data: 56 items in `floorplan.json` `equipment` (17 lights, 19 heating, the TV, the kettle, 6 WCs, basins and showers); `building.json` `lights`, `heating` (22 °C day rooms, 21 °C bedrooms and en-suites, October to April), `kettle_mins`.
   - Server and browser: equipment in snapshots and deltas; equipment and recent touches in the room and person inspectors; room lights drawn in the dark, the TV's glow; the map's darkness follows the real daylight.
@@ -20,11 +20,11 @@
 
 ## In progress
 
-- PR 2, in review.
+- Nothing. The world description (Part 1) is done.
 
 ## Next
 
-- The plug-in API: its design discussion (spec, "Part 2 sketch").
+- Nothing planned in this workstream. **The plug-in API (Part 2) is deferred** (project owner, 2026-10-01): the pipeline uses files, so external models read the activity data from files rather than running in lockstep with the engine. The spec's "Part 2 sketch" stays as the starting point if it's picked up again.
 
 ## Blockers
 
@@ -36,3 +36,4 @@
 |---|---|---|
 | 2026-10-01 | Spec, plan and PR 1 | World description with people, doors, windows and weather; behaviour unchanged; PR 1 opened for review |
 | 2026-10-01 | PR 2, after #16 | Equipment and touches; schema 1 complete; behaviour unchanged; PR 2 opened for review |
+| 2026-10-01 | Review of PR 2 | #17 merged; touch rate and run time approved; the plug-in API deferred (files instead) |
