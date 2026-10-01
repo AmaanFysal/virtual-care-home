@@ -12,6 +12,9 @@ Every movement, task, door, window, light and kettle is logged, so you get groun
 ![pnpm](https://img.shields.io/badge/pnpm-9-f69220?logo=pnpm&logoColor=white)
 ![Deterministic](https://img.shields.io/badge/runs-seeded%20%26%20replayable-6e40c9)
 ![Data](https://img.shields.io/badge/data-100%25%20synthetic-2ea44f)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+**[Live demo](#)** <sub>(coming soon)</sub>
 
 <img src="docs/images/wing.png" alt="The care home wing at lunchtime, drawn as pixel art: six bedrooms with en-suites along the top, the Lounge on the right with residents and carers, a corridor, and the waiting area, reception and staff room below" width="820">
 
@@ -39,7 +42,7 @@ It's meant as a **test bed for models that live elsewhere**, for example:
 | **Agents and LLMs in care settings** | A rich, rule-driven world to drop agents into (LLM "minds" for residents and staff are on the roadmap) |
 
 > [!NOTE]
-> Not a clinical tool. Every resident, staff member and visitor is synthetic. Care routines are modelled only as far as they change **who is where, doing what, and for how long**.
+> Not a clinical tool. All people in the simulation (residents, staff and visitors) are fictional; any resemblance to real people is coincidental. Care routines are modelled only as far as they change **who is where, doing what, and for how long**.
 
 ## What a day looks like
 
@@ -180,6 +183,9 @@ pnpm test         # Vitest across the repo
 
 Details in [`docs/roadmap.md`](docs/roadmap.md).
 
-## Credits
+## Licence and credits
 
-Pixel art by Liberated Pixel Cup contributors (CC-BY-SA 3.0 and 4.0, licensed separately from the code). Weather data by [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0), from Copernicus ERA5. Full credits in [`CREDITS.md`](CREDITS.md).
+The code is released under the [MIT License](LICENSE). The art and the weather data keep their own licences, listed in [`CREDITS.md`](CREDITS.md):
+
+- **Pixel art** by Liberated Pixel Cup contributors (CC-BY-SA 3.0 and 4.0; some parts GPL), not covered by the MIT License.
+- **Weather data** by [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0), from Copernicus ERA5.
