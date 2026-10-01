@@ -16,12 +16,13 @@ import { SECONDS_PER_DAY, type Furniture, type HospitalCause, type IllnessKind, 
 import { act, seq, until, type BtNode } from "./bt.js";
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
-import { PARAMEDICS_ID } from "./falls.js";
+import { callPoint, crewLeaves, crewOf } from "./falls.js";
 import { addPerson } from "./rota.js";
 import { residentPerson } from "./sim.js";
 import { chairFor, isCareStaff, isNurse, type Person, type Task, type World } from "./state.js";
 import { resetTask } from "./tasks.js";
 import { newBtState } from "./bt.js";
+import { joinRounds } from "./meds.js";
 import { waitMins, type Ctx } from "./trees.js";
 import { planVisitorWeek, visitorPerson } from "./visitors.js";
 import { getIntoBed, placeAt, releaseStand, walkTo } from "./world/movement.js";
@@ -53,8 +54,16 @@ function informFamily(world: World, r: Person, reason: string): void {
  * Leaves the wing for hospital (with the paramedics). The stay is drawn by cause from the tuning
  * file; without one (the director off), 3 to 10 days as before. Back between 11:00 and 16:00.
  */
-export function leaveForHospital(world: World, r: Person, cause: HospitalCause): void {
+export function leaveForHospital(world: World, r: Person, cause: HospitalCause, byTaskId: string | null = null): void {
   const res = r.resident!;
+  // Taken from the floor (an ambulance already called for an illness, after a fall): the fall is over.
+  if (res.fall) {
+    const entry = world.fallLog.findLast((f) => f.residentId === r.id && f.endT === null);
+    if (entry) entry.endT = world.t;
+    world.points.delete(`Fall.${r.id}`);
+    res.fall = null;
+    r.badges = r.badges.filter((b) => b !== "alert");
+  }
   releaseStand(world, r);
   // Leaves with the crew: logged as a departure so room occupancy stays right (docs/07).
   emit(world, "person.departed", [r.id], { pointId: res.data.room });
@@ -64,7 +73,8 @@ export function leaveForHospital(world: World, r: Person, cause: HospitalCause):
   const rng = h ? world.rng.health : world.rng.falls;
   const days = h ? rng.int(h.stay_days[cause][0], h.stay_days[cause][1]) : rng.int(3, 10);
   res.returnT = (Math.floor(world.t / DAY) + days) * DAY + rng.int(11 * 60, 16 * 60) * 60;
-  closeTasksOf(world, r, "gone to hospital", (t) => t.kind === "fall" || t.kind === "hospital_transfer");
+  // Everything else for them ends (the task taking them finishes itself), with anyone on it freed.
+  closeTasksOf(world, r, "gone to hospital", (t) => t.id === byTaskId);
 }
 
 /** A resident's work ends when they leave (hospital, death): anyone doing it is freed for other work first. */
@@ -73,6 +83,8 @@ function closeTasksOf(world: World, r: Person, reason: string, keep: (t: Task) =
     if (t.residentId !== r.id || keep(t)) continue;
     if (t.assigned.length > 0) resetTask(world, t, reason);
     world.tasks.delete(t.id);
+    // An ambulance called for it is called off; a crew already here goes back (falls.ts fallsMinute).
+    world.paramedics = world.paramedics.filter((call) => call.taskId !== t.id);
   }
 }
 
@@ -181,21 +193,23 @@ export function startIllness(world: World, r: Person, kind: IllnessKind, severit
 export const transferTree: BtNode<Ctx> = seq(
   "hospital transfer",
   until("the paramedics are with them", (c) => {
-    const crew = c.world.people.get(PARAMEDICS_ID)!;
-    return crew.onMap && crew.atPoint === String(c.task.data.point) && !crew.move;
+    const crew = crewOf(c.world, c.task.id);
+    if (!crew?.onMap || crew.staff!.duty !== "on_shift") return false;
+    // Wherever they are now: in their room, or on the floor after a fall while the crew was on its way.
+    const where = callPoint(c.world, c.task);
+    if (crew.atPoint !== where && crew.move?.destPointId !== where) walkTo(c.world, crew, where);
+    return crew.atPoint === where && !crew.move;
   }),
   waitMins("paramedics assess them", () => 10),
   act("taken to hospital", (c) => {
     const { world, task } = c;
     const r = c.resident!;
     const cause = task.data.cause as HospitalCause;
-    emit(world, "resident.conveyed_to_hospital", [r.id, PARAMEDICS_ID], { residentId: r.id, cause });
+    const crew = crewOf(world, task.id)!;
+    emit(world, "resident.conveyed_to_hospital", [r.id, crew.id], { residentId: r.id, cause });
     informFamily(world, r, `taken to hospital (${cause.replace(/_/g, " ")})`);
-    leaveForHospital(world, r, cause);
-    const crew = world.people.get(PARAMEDICS_ID)!;
-    crew.staff!.duty = "leaving";
-    walkTo(world, crew, "ExitDoor");
-    world.paramedics = world.paramedics.filter((call) => call.taskId !== task.id);
+    leaveForHospital(world, r, cause, task.id);
+    crewLeaves(world, crew, task.id);
   }),
 );
 
@@ -221,7 +235,7 @@ function callAmbulance(world: World, r: Person, cause: HospitalCause): void {
     data: { point: `${r.resident!.data.room}.Side`, cause },
   };
   world.tasks.set(task.id, task);
-  world.paramedics.push({ taskId: task.id, dueT: world.t + world.rng.health.int(30, 90) * 60 });
+  world.paramedics.push({ taskId: task.id, dueT: world.t + world.rng.health.int(30, 90) * 60, crewId: null });
   emit(world, "ambulance.called", [r.id, ...(speaker(world).startsWith("ext_") ? [] : [speaker(world)])], { residentId: r.id, staffId: speaker(world), cause });
 }
 
@@ -355,6 +369,7 @@ export function admit(world: World, cardId: string, source: Source): string | nu
     p.posture = "sitting";
   }
   p.onMap = true;
+  joinRounds(world, p.id);
   emit(world, "resident.admitted", [p.id], { residentId: p.id, roomId: bed.split(".")[0]!, cardId }, source);
   for (const v of visitors) {
     const vp = visitorPerson(v);

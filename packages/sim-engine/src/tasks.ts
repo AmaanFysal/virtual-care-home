@@ -8,10 +8,11 @@ import { newBtState, tickTree, type Status } from "./bt.js";
 import { emit } from "./emit.js";
 import { breakInterruptible, coveredWithout, onBreak, onFloor } from "./floor.js";
 import { coverableOnSite, isNight, requestDeadline } from "./nightcover.js";
-import { chairFor, isCareStaff, isNurse, onDuty, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
+import { chairFor, isCareStaff, isNurse, onDuty, unwell, type CareKind, type Person, type Task, type TaskKind, type World } from "./state.js";
 import type { Ctx } from "./trees.js";
 import { TREES } from "./treeset.js";
 import { startIdleActivity } from "./idle.js";
+import { walkTo } from "./world/movement.js";
 
 const NEED_LABEL: Record<NeedName, string> = { hunger: "Snack", thirst: "Drink", toileting: "Toilet", fatigue: "Rest", social: "Chat" };
 const STAFF_ROOM_SEATS = ["StaffRoom.Seat1", "StaffRoom.Seat2", "StaffRoom.Seat3", "StaffRoom.Seat4", "StaffRoom.Seat5", "StaffRoom.Seat6"];
@@ -249,8 +250,16 @@ export function hasCare(world: World, residentId: string, care: CareKind): boole
 
 // ---------------------------------------------------------------- running
 
+/** Someone on their way to relieve a colleague on this task (relieveUnwell) is freed when it ends. */
+function freeReliever(world: World, task: Task): void {
+  const by = task.data.relievedBy ? world.people.get(String(task.data.relievedBy)) : undefined;
+  if (by?.staff?.taskId === task.id) by.staff.taskId = null;
+  task.data.relievedBy = null;
+}
+
 export function finish(world: World, task: Task, status: Status): void {
   task.status = "done";
+  freeReliever(world, task);
   for (const id of task.assigned) {
     const p = world.people.get(id)!;
     if (p.staff?.taskId === task.id) p.staff.taskId = null;
@@ -336,8 +345,47 @@ export function pullOff(world: World, p: Person, reason: string): void {
   resetTask(world, task, reason);
 }
 
+/**
+ * A member of staff taken ill in the middle of work that can't be left (a two-person transfer or
+ * turn): a free carer comes to their side and takes over in place, so the work is never one-handed;
+ * then the one who is ill can go (rota.ts rotaLeaving). Returns true once they've been relieved.
+ */
+export function relieveUnwell(world: World, p: Person): boolean {
+  const task = p.staff?.taskId ? world.tasks.get(p.staff.taskId) : undefined;
+  if (!task || task.kind === "idle") return true;
+  // A medication round isn't taken over in place (a carer may not be meds-trained): it stops, and
+  // goes to someone else meds-trained (decideStaff).
+  if (task.kind === "med_round") {
+    pullOff(world, p, "taken ill");
+    return true;
+  }
+  const by = task.data.relievedBy ? world.people.get(String(task.data.relievedBy)) : undefined;
+  if (by && by.onMap && by.staff!.taskId === task.id) {
+    if (by.move) return false;
+    task.assigned = task.assigned.map((id) => (id === p.id ? by.id : id));
+    by.badges = [...p.badges];
+    by.task = p.task;
+    p.staff!.taskId = null;
+    Object.assign(p, { badges: [], task: null });
+    task.data.relievedBy = null;
+    emit(world, "task.handed_over", [by.id, p.id, ...(task.residentId ? [task.residentId] : [])], { taskId: task.id, kind: task.kind, fromStaffId: p.id, toStaffId: by.id, reason: "taken ill" });
+    return true;
+  }
+  task.data.relievedBy = null;
+  const reliever = world.order
+    .map((id) => world.people.get(id)!)
+    .find((q) => q.id !== p.id && isCareStaff(q) && q.onMap && q.staff!.duty === "on_shift" && !unwell(q) && idleOrFree(world, q) && !task.assigned.includes(q.id) && (!task.femaleOnly || q.gender === "female"));
+  if (!reliever) return false;
+  pullOff(world, reliever, `relieving ${p.name.split(" ")[0]}`);
+  reliever.staff!.taskId = task.id;
+  task.data.relievedBy = reliever.id;
+  walkTo(world, reliever, p.atPoint ?? String(task.data.point ?? ""));
+  return false;
+}
+
 /** Puts a task back on the queue (its people are freed; a request keeps its start time). */
 export function resetTask(world: World, task: Task, reason: string): void {
+  freeReliever(world, task);
   for (const id of task.assigned) {
     const q = world.people.get(id)!;
     if (q.staff?.taskId === task.id) q.staff.taskId = null;
@@ -543,7 +591,8 @@ export function taskScore(world: World, p: Person, task: Task): number {
 }
 
 export function decideStaff(world: World): void {
-  const staff = world.order.map((id) => world.people.get(id)!).filter((p) => p.onMap && p.staff && onDuty(p));
+  // Staff with symptoms of an infection take on no work (cover.ts sends them home).
+  const staff = world.order.map((id) => world.people.get(id)!).filter((p) => p.onMap && p.staff && onDuty(p) && !unwell(p));
   const tasks = [...world.tasks.values()];
 
   // 1. Handovers and briefings claim their members as soon as they are free, including outgoing
@@ -566,7 +615,7 @@ export function decideStaff(world: World): void {
     if (task.kind === "med_round" && task.assigned.length === 0) {
       const giver = world.people.get(task.members![0]!);
       const giverTask = giver?.staff?.taskId ? world.tasks.get(giver.staff.taskId) : undefined;
-      if (!giver || !onDuty(giver) || giverTask?.kind === "fall") {
+      if (!giver || !onDuty(giver) || unwell(giver) || giverTask?.kind === "fall") {
         const other = staff.find((p) => p.id !== giver?.id && p.staff!.duty === "on_shift" && memberFree(p) && p.staff!.competencies.includes("meds_trained"));
         if (other) {
           task.members = [other.id];

@@ -89,7 +89,7 @@
 - Roadmap: `docs/roadmap.md`, with the v1.0-testbed milestone next after (e).
 
 - (e) Tuning review, on branch `director-tuning-review` (2026-09-30):
-  - **Constitution and roadmap:** ADR-0006 amends rule 4 for v1.0-testbed (equipment in use and weather described in the world; air, heat, surfaces and energy only in external plug-ins); LLM minds placed after the test bed.
+  - **Constitution and roadmap:** ADR-0006 amends rule 4 for v1.0-testbed (equipment in use and weather described in the world; physical effects only in external plug-ins); LLM minds placed after the test bed.
   - **Method:** each tuning rule switchable (`src/tuning.ts`, `createSim({ tuning })`, `sim --tuning-off`), measured by `scripts/tuning-review.ts` on the calm-week baseline (seeds 1 to 8), then combined and checked on held-out seeds 9 to 16, the Kamala weeks, short-staffed days (4 weeks of the random director against main) and the audit.
   - **Outcome:** 15 kept (one new), 9 removed (docs/12 has the table; `reports/e-tuning-review.txt` every round). On review the breakfast-first hold and the three female-only rules were put back: the audit counts too, and female-only care is a real requirement.
   - **Dennis's turns before the morning handover:** two mechanisms, both a 20-minute wash started just before a two-person turn; fixed by a general rule (nobody starts long care a turn they're needed for would fall due during; the only people free for a pressing turn keep to short work). Over a year: 2 missed at 06:xx against 158.
@@ -106,7 +106,7 @@
 
 - **The full scenario audit** (`docs/roadmap.md`): a feature interaction review, new every-tick invariants, random stress testing and a realism review, reporting gaps before fixing them.
 - Then **the v1.0-testbed design discussion** with the project owner, then its spec and plan in a new workstream.
-- The **v1.0-testbed** milestone (project owner, 2026-09-30; `docs/roadmap.md`): a world description published every step (activity type and intensity per person, touches on objects, doors and windows with states and rules, equipment in use, outdoor weather) and a plug-in API for external models (air, heat, surfaces, energy), with lockstep and recording. ADR-0006 amends constitution rule 4 for it (equipment and weather described; physics in plug-ins). Environmental models come after it; the care routine review for the tuning review's audit regressions (docs/12) after the test bed; LLM minds (Phase 3) after the test bed.
+- The **v1.0-testbed** milestone (project owner, 2026-09-30; `docs/roadmap.md`): a world description published every step (activity type and intensity per person, touches on objects, doors and windows with states and rules, equipment in use, outdoor weather) and a plug-in API for external models, with lockstep and recording. ADR-0006 amends constitution rule 4 for it (equipment and weather described; physics in plug-ins). External models come after it, in their own repos; LLM minds (Phase 3) after the test bed.
 
 ## Blockers
 

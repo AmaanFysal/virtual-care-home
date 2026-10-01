@@ -62,6 +62,15 @@ export function medsMinute(world: World): void {
   }
 }
 
+/** A resident admitted while a round is still to come round to them joins its queue (their doses are due too). */
+export function joinRounds(world: World, residentId: string): void {
+  for (const t of world.tasks.values()) {
+    if (t.kind !== "med_round" || t.status === "done") continue;
+    const queue = t.data.queue as string[];
+    if (!queue.includes(residentId)) queue.push(residentId);
+  }
+}
+
 function createRound(world: World, round: string, roundT: number, giver: Person): void {
   const queue = world.order
     .map((id) => world.people.get(id)!)

@@ -7,13 +7,13 @@
 | Phase 1 · Rules MVP | The wing, its people and its routines: deterministic engine, rota, care, meds, falls, visitors, the Lounge, pixel-art view (`workstreams/phase-1-rules-mvp/`) | Done |
 | Phase 2 · Scenario director | Unplanned events at realistic rates and scripted scenarios, without an LLM (docs/10, ADR-0005, `workstreams/phase-2-director/`): (a) core, falls, sick calls; (b) outbreaks; (c) illness, hospital, end of life, admissions; (d) visitors' missed weeks and celebrations; (e) tuning-debt review | Done (PRs #7 to #11, 2026-09-30) |
 | **v1.0-testbed** | The care home as a test bed, before any environmental model (below) | In progress (brought forward by the project owner, 2026-10-01; `workstreams/v1-testbed/`): PR 1 (people, doors, windows, weather) in review; PR 2 (equipment, touches) next; then the plug-in API's design discussion |
-| Environmental models | External models as plug-ins: air (replacing the airborne proxy in docs/10), heat, surfaces, energy; steriliser experiments on the air model | After v1.0-testbed, built outside the engine against the plug-in API |
+| External models | Models that read the wing's activity data, each in its own repo; none are built in this repo | After v1.0-testbed, against the activity export and the plug-in API |
 | Phase 3 · LLM minds | Event-driven minds for residents, staff and visitors (docs/09) | After v1.0-testbed (project owner, 2026-09-30); parked until then |
 | Phase 4 | Branching and timeline scrubbing; richer visitors (moods, conflicts) | Later |
 
 ## Scope: activity data, not perfect care (project owner, 2026-10-01)
 
-The wing exists to produce data: an ordinary UK care home day, with day-to-day randomness, everything logged and sent out for external models (the air model first). Care rules matter only where they change who is where, doing what. The full scenario audit, its fixes and the 15 tuning rules were removed on 2026-10-01 (docs/12); occasional late turns and missed look-ins are accepted.
+The wing exists to produce data: an ordinary UK care home day, with day-to-day randomness, everything logged and sent out for external models, which live in their own repos. Care rules matter only where they change who is where, doing what. The full scenario audit, its fixes and the 15 tuning rules were removed on 2026-10-01 (docs/12); occasional late turns and missed look-ins are accepted.
 
 ## v1.0-testbed (project owner, 2026-09-30)
 
@@ -25,7 +25,7 @@ The next milestone after the scenario director. It turns the wing into a test be
   - doors and windows, with open and closed states and the rules that open and close them;
   - equipment in use, such as showers, TVs, kettles, lights and heating;
   - the outdoor weather.
-- **A plug-in API** so external models (air, heat, surfaces, energy) can connect, read the world description, react to it and send results back:
+- **A plug-in API** so external models can connect, read the world description, react to it and send results back:
   - lockstep with the engine (the sim waits for plug-ins each step when asked to), so runs stay deterministic and replayable;
   - recording of everything plug-ins send, as inputs with `source: "external"` (constitution rule 5), so a run with plug-ins replays exactly.
-- **Constitution:** ADR-0006 amends rule 4 so the world may describe equipment in use and the outdoor weather; the physical effects (air, heat, surfaces, energy) stay in external plug-in models, never in the engine.
+- **Constitution:** ADR-0006 amends rule 4 so the world may describe equipment in use and the outdoor weather; the physical effects stay in external plug-in models, never in the engine.

@@ -13,7 +13,7 @@
 ## In progress
 
 - PR 1, in review.
-- **Care perfection removed** (branch `simplify`, off PR 1, 2026-10-01): the full scenario audit and its PR B fixes reverted, the 15 tuning rules and their tests taken out (docs/12). PR 1's activity mapping no longer reads PR B's escort fields. Director-off fingerprints re-recorded; no hard rule breaks in 8 calm weeks or 32 random-director weeks; 285 tests pass.
+- **Care perfection removed** (branch `simplify`, 2026-10-01; main before it tagged `v0.10.0-pre-simplify`): the full scenario audit reverted; the 15 tuning rules and the care-quality tests taken out; from the audit's PR B, the fixes that change who is where kept (U1, U11, U13, U16, U17/R17 and the fuzz finds around them) and the care-quality ones removed (U5, U6, the pre-round hold), docs/12. Director-off fingerprints re-recorded; no hard rule breaks in 8 calm weeks or 32 random-director weeks.
 
 ## Next
 

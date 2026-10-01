@@ -170,6 +170,7 @@ export function createSim(options: SimOptions): Sim {
     spawnQueue: [],
     zoneOwner: new Map(),
     zoneReleasedTick: new Map(),
+    zoneReleasedBy: new Map(),
     standClaims: new Map(),
     trail: new Map(),
     tasks: new Map(),

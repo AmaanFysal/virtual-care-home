@@ -195,7 +195,7 @@ Code: `src/infection.ts`. Tuning: `data/director.json` `infection`. It runs only
   - **Who can catch it:** residents, staff and agency workers. Visitors and people from the main building aren't modelled.
 - **Isolation.** A resident with symptoms is isolated in their room (`infection.isolated`): care and meals there, no Lounge (someone in it is walked back), and 3 extra minutes for every visit (care, help, drinks and medication) for PPE. It ends with `infection.isolation_ended`.
 - **Staff.** A member of staff with symptoms goes home, and misses every shift until they're clear:
-  - **Taken ill at work:** they go home (`staff.absent` with reason `went_home_sick`) once the floor is covered, and the rest of the shift is covered by the cover rule. At night, Nikos comes from the main building, and they stay until he's here.
+  - **Taken ill at work:** they stop hands-on care at once and go home (`staff.absent` with reason `went_home_sick`) as soon as anyone covers the floor; the rest of the shift is covered by the cover rule. A night carer taken ill is relieved by the floating carer until the cover arrives. Symptoms just as they arrive (before the shift) send them home first (the full scenario audit, PR B).
   - **Taken ill off duty:** each shift before they're clear is a sick call, with cover.
 - **Outbreaks**, declared and ended per disease as UK guidance has it (`infection.outbreak` in `data/director.json`, with the citations):
 

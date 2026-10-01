@@ -49,6 +49,8 @@ export interface EventPayloads {
   "task.assigned": { taskId: string; kind: string; staffIds: string[] };
   "task.started": { taskId: string; kind: string };
   "task.interrupted": { taskId: string; kind: string; reason: string };
+  /** Someone taken ill in the middle of work that can't be left is relieved in place by a colleague. */
+  "task.handed_over": { taskId: string; kind: string; fromStaffId: string; toStaffId: string; reason: string };
   "task.resumed": { taskId: string; kind: string };
   "task.completed": { taskId: string; kind: string; residentId: string | null; waitMins: number };
 
@@ -85,6 +87,8 @@ export interface EventPayloads {
   "fall.made_comfortable": { residentId: string; staffId: string; reason: string };
   /** A look-in on a resident left waiting on the floor (at least every 5 minutes until lifted). */
   "fall.checked": { residentId: string; staffId: string; sinceMins: number };
+  /** The nurse waiting with a resident for an ambulance hands over to a carer, so she can assess others. */
+  "fall.handed_over": { residentId: string; fromStaffId: string; toStaffId: string; reason: string };
   "fall.rn_called": { residentId: string; staffId: string; onCall: boolean };
   "fall.assessed": { residentId: string; by: string; outcome: "cleared_to_move" | "wait_for_ambulance" };
   "fall.lifted": { residentId: string; staffIds: string[]; to: string };
