@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+runs
+.git
+.github
+.githooks
+.claude
+docs
+tools
+apps/web
+**/test
+**/*.log
+.env
+.env.*
+Dockerfile
+fly.toml

@@ -32,6 +32,7 @@ describe("settings", () => {
     expect(() => prod({ ADMIN_TOKEN: "short" })).toThrow(/24 characters/);
     expect(() => loadConfig({ VCH_MODE: "production", ADMIN_TOKEN: TOKEN })).toThrow(/ALLOWED_ORIGINS/);
     expect(() => prod({ ALLOWED_ORIGINS: "http://a.vercel.app" })).toThrow(/https/);
+    expect(prod({ ALLOWED_ORIGINS: "http://localhost:5173" }).allowedOrigins).toEqual(["http://localhost:5173"]); // trying it locally
   });
 
   it("take exact origins only: the production URL and a custom domain, no wildcards or paths", () => {

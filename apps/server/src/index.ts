@@ -150,7 +150,11 @@ if (config.production) {
 
 // The WebSocket, with the limits for a public server (limits.ts).
 const app = Fastify({ logger: { level: "warn" } });
-await app.register(websocket, { options: { maxPayload: 4096, perMessageDeflate: true } });
+await app.register(websocket, {
+  options: { maxPayload: 4096, perMessageDeflate: true },
+  // A broken or oversized message from a browser: close its socket without filling the log.
+  errorHandler: (_error, socket) => socket.terminate(),
+});
 const limiter = new ConnectionLimiter(config.maxViewers);
 const lockout = new AuthLockout();
 

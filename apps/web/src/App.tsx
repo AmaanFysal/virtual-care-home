@@ -48,8 +48,12 @@ export function App() {
         <WingCanvas />
       </main>
       <aside>
-        {adminPage && <AdminPage />}
-        <Notable />
+        {/* Four rows whoever is watching: the event log keeps the last, flexible one. */}
+        <div>
+          {adminPage && <AdminPage />}
+          <Notable />
+        </div>
+        {!admin && <div />}
         {admin && (
           <nav className="tabs">
             <button className={tab === "inspector" ? "active" : ""} onClick={() => useView.setState({ sideTab: "inspector" })}>

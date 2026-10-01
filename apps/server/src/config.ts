@@ -48,7 +48,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     .filter(Boolean);
   for (const o of allowedOrigins) if (!/^https?:\/\/[^*\s/]+$/.test(o)) throw new Error(`ALLOWED_ORIGINS: "${o}" isn't an origin like https://example.vercel.app (no paths or wildcards)`);
   if (production && allowedOrigins.length === 0) throw new Error("Production needs ALLOWED_ORIGINS (the web app's URL)");
-  if (production && allowedOrigins.some((o) => o.startsWith("http://"))) throw new Error("Production ALLOWED_ORIGINS must be https");
+  // Plain http only for trying production mode on this machine (docs/13).
+  const local = (o: string) => /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
+  if (production && allowedOrigins.some((o) => o.startsWith("http://") && !local(o))) throw new Error("Production ALLOWED_ORIGINS must be https (http only for localhost)");
   const speed = int(env, "SPEED", production ? 10 : 60) as ClockSpeed;
   if (!SPEEDS.includes(speed)) throw new Error(`SPEED must be one of ${SPEEDS.join(", ")}`);
   return {
