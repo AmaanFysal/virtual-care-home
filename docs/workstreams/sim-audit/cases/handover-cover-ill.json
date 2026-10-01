@@ -1,0 +1,56 @@
+{
+  "id": "audit-handover-cover-ill",
+  "name": "The handover's floor cover taken ill",
+  "description": "Tom, the early carer covering the floor for the 07:00 handover, gets flu at 07:06 while two falls are being dealt with. He goes home and an incoming member who is on the wing covers the floor instead; the floor is never left empty. (While building PR B the handover gathered everyone in the staff room once its cover had gone. Fuzz case 00176.)",
+  "random": false,
+  "events": [
+    {
+      "t": 111900,
+      "type": "infection_case",
+      "params": {
+        "personId": "stf_tom",
+        "disease": "flu"
+      }
+    },
+    {
+      "t": 111900,
+      "type": "inject_fall",
+      "params": {
+        "residentId": "res_dennis",
+        "severity": "minor"
+      }
+    },
+    {
+      "t": 111900,
+      "type": "visitor_week_off",
+      "params": {
+        "visitorId": "vis_sarah",
+        "cause": "holiday"
+      }
+    },
+    {
+      "t": 111900,
+      "type": "inject_fall",
+      "params": {
+        "residentId": "res_dennis",
+        "severity": "minor"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U11"
+    ],
+    "rules": [],
+    "fixed": [
+      "floor_cover"
+    ],
+    "expect": "passes",
+    "fixIn": "B",
+    "fixedIn": "B",
+    "seed": 39,
+    "hours": 4,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 39 --hours 4 --scenario ../../docs/workstreams/sim-audit/cases/handover-cover-ill.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/handover-cover-ill.json"
+  }
+}

@@ -22,6 +22,7 @@
       "need_unmet_staff_idle@res_peggy",
       "no_woman_for_female_only@res_peggy"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "C",
     "seed": 1,

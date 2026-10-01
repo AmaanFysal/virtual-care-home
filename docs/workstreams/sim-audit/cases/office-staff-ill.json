@@ -28,6 +28,7 @@
     "rules": [
       "office_covered_by_carer"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "F",
     "seed": 1,

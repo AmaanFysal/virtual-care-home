@@ -20,6 +20,7 @@
     "rules": [
       "meal_for_comfort_only@res_win"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 16,

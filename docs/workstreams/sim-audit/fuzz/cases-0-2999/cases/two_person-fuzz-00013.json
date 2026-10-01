@@ -18,8 +18,8 @@
     "hours": 306,
     "rule": "two_person",
     "severity": "unsafe",
-    "firstAt": "Sun 15 Nov 22:22:20",
-    "details": "t005319 (Toilet for Peggy) with 1 staff",
+    "firstAt": "Sun 15 Nov 22:21:20",
+    "details": "t005315 (Toilet for Peggy) with 0 staff",
     "command": "pnpm --filter @vch/sim-engine sim --seed 10 --hours 306 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/two_person-fuzz-00013.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/two_person-fuzz-00013.json"
   }

@@ -26,7 +26,7 @@
     "hours": 28,
     "rule": "eol_conveyed_to_hospital",
     "severity": "unrealistic",
-    "firstAt": "Wed 04 Nov 08:16:25",
+    "firstAt": "Wed 04 Nov 08:13:25",
     "details": "Dennis Hart taken to hospital (serious_fall) during a planned end-of-life decline",
     "command": "pnpm --filter @vch/sim-engine sim --seed 39 --hours 28 --scenario ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/eol_conveyed_to_hospital-fuzz-00324.json --report",
     "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/fuzz/cases-0-2999/cases/eol_conveyed_to_hospital-fuzz-00324.json"

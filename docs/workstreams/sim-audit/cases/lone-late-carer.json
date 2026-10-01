@@ -22,6 +22,7 @@
       "lone_carer_two_person_due",
       "no_break"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "C",
     "seed": 3,

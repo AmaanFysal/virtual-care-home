@@ -119,6 +119,31 @@ export function walkTo(world: World, person: Person, pointId: string): boolean {
 }
 
 /**
+ * Walks a person along the route someone else is walking, then on to their own point: a carer beside
+ * the resident they're escorting takes the same way round furniture and through the same doors,
+ * rather than a different route of the same length. Falls back to their own route.
+ */
+export function walkAlong(world: World, person: Person, pointId: string, leader: Person): boolean {
+  if (!walkTo(world, person, pointId)) return false;
+  const lead = leader.move;
+  const move = person.move;
+  if (!lead || !move || move.destPointId !== pointId) return true;
+  // Not through the cell the resident is in (the WC or chair they're getting up from).
+  const via = lead.cells.slice(lead.next, -1).filter((cell) => cell !== cellAt(world.grid, leader.x, leader.y));
+  if (via.length === 0) return true;
+  const head = findPath(world.grid, cellAt(world.grid, person.x, person.y), via[0]!);
+  const tail = findPath(world.grid, via[via.length - 1]!, move.cells[move.cells.length - 1]!);
+  if (!head || !tail) return true;
+  Object.assign(move, { cells: [...head, ...via.slice(1), ...tail.slice(1)], next: 0, tail: tail.length - 1 });
+  return true;
+}
+
+/** How much of a walk is left, not counting a carer's last step off the route they share (`Move.tail`). */
+export function routeLeft(q: Person): number {
+  return q.move ? q.move.cells.length - q.move.next - (q.move.tail ?? 0) : 0;
+}
+
+/**
  * Moves a person's room, logging `person.entered_room` whenever it changes (docs/07: room
  * occupancy is rebuilt from these events). The initial placement, before the first tick, is silent.
  */
@@ -158,7 +183,10 @@ export function getOutOfBed(world: World, person: Person): void {
 }
 
 function claimZone(world: World, person: Person, zone: string): boolean {
-  const free = !world.zoneOwner.has(zone) && (world.zoneReleasedTick.get(zone) ?? -1) < world.tick;
+  // A doorway left this tick stays closed until the next, except to the person walking with whoever
+  // just left it (a carer escorting a resident follows them straight through): still one at a time.
+  const following = !!person.move?.with && world.zoneReleasedBy.get(zone) === person.move.with;
+  const free = !world.zoneOwner.has(zone) && ((world.zoneReleasedTick.get(zone) ?? -1) < world.tick || following);
   if (world.zoneOwner.get(zone) !== person.id && !free) return false;
   if (person.heldZone && person.heldZone !== zone) releaseZone(world, person);
   world.zoneOwner.set(zone, person.id);
@@ -170,6 +198,7 @@ export function releaseZone(world: World, person: Person): void {
   if (person.heldZone && world.zoneOwner.get(person.heldZone) === person.id) {
     world.zoneOwner.delete(person.heldZone);
     world.zoneReleasedTick.set(person.heldZone, world.tick);
+    world.zoneReleasedBy.set(person.heldZone, person.id);
   }
   person.heldZone = null;
 }
@@ -183,10 +212,34 @@ function enterCell(world: World, person: Person, cell: number): void {
 /** Advances one person by one tick. Returns true if they arrived this tick. */
 function stepPerson(world: World, person: Person): boolean {
   const move = person.move!;
-  let budget = person.speed * TICK_SECONDS;
+  // A carer walking beside a resident keeps to the resident's pace (move.pace).
+  let budget = (move.pace ?? person.speed) * TICK_SECONDS;
+  // A carer and the resident they're escorting: whoever is ahead (less of the shared route left; the
+  // carer, when level) stops rather than step further than the tether from the other, unless in a doorway
+  // (which they clear, so the other can follow) or the other has stopped. The one behind always walks
+  // on, so they never both wait.
+  const partner = move.tether !== undefined && move.with ? world.people.get(move.with) : undefined;
+  const leash = partner?.move && partner.move.pace !== 0 ? partner : undefined;
+  const tooFar = (x: number, y: number, zone: string | null | undefined): boolean => {
+    if (!leash) return false;
+    const mine = routeLeft(person);
+    const theirs = routeLeft(leash);
+    if (mine > theirs || (mine === theirs && !person.staff)) return false;
+    // Clearing a doorway they hold (or moving on when the other waits for it) never stops them in it.
+    if (person.heldZone && (!zone || zone === person.heldZone || leash.waitingAtDoor === person.heldZone)) return false;
+    const after = Math.hypot(x - leash.x, y - leash.y);
+    return after > move.tether! && after > Math.hypot(person.x - leash.x, person.y - leash.y);
+  };
   while (budget > 1e-9 && move.next < move.cells.length) {
     const cell = move.cells[move.next]!;
     const zone = world.grid.doorZoneOf[cell];
+    const isLast = move.next === move.cells.length - 1;
+    const target = isLast ? { x: move.endX, y: move.endY } : cellCentre(world.grid, cell);
+    const dist = Math.hypot(target.x - person.x, target.y - person.y);
+    const share = dist > 0 ? Math.min(dist, budget) / dist : 0;
+    const partX = person.x + (target.x - person.x) * share;
+    const partY = person.y + (target.y - person.y) * share;
+    if (tooFar(partX, partY, zone)) break;
     if (zone && person.heldZone !== zone && !claimZone(world, person, zone)) {
       if (person.waitingAtDoor !== zone) {
         person.waitingAtDoor = zone;
@@ -195,9 +248,6 @@ function stepPerson(world: World, person: Person): boolean {
       return false;
     }
     person.waitingAtDoor = null;
-    const isLast = move.next === move.cells.length - 1;
-    const target = isLast ? { x: move.endX, y: move.endY } : cellCentre(world.grid, cell);
-    const dist = Math.hypot(target.x - person.x, target.y - person.y);
     if (dist <= budget) {
       const from = { x: person.x, y: person.y };
       person.x = target.x;
@@ -215,8 +265,8 @@ function stepPerson(world: World, person: Person): boolean {
         if (Math.abs(cross) > 1e-9 || dot < 0) noteTurn(world, person);
       }
     } else {
-      person.x += ((target.x - person.x) / dist) * budget;
-      person.y += ((target.y - person.y) / dist) * budget;
+      person.x = partX;
+      person.y = partY;
       budget = 0;
     }
   }

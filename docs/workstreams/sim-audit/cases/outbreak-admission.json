@@ -1,7 +1,7 @@
 {
   "id": "audit-outbreak-admission",
   "name": "Kamala moves in during norovirus",
-  "description": "Raj's 2-day decline begins on Tuesday; Arthur brings norovirus in at midnight and it spreads into an outbreak; Raj dies and Kamala moves into his room on Friday at 15:00, during the outbreak. (Fuzz case 00755, shrunk.)",
+  "description": "Raj's 2-day decline begins on Tuesday; Arthur and Stan bring norovirus in on Wednesday night, which declares an outbreak; Raj dies and Kamala moves into his room on Friday at 15:00, during the outbreak. (From fuzz case 00755, with a second case so the outbreak doesn't depend on spread.)",
   "random": false,
   "events": [
     {
@@ -21,6 +21,14 @@
       }
     },
     {
+      "t": 176400,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_stan",
+        "disease": "norovirus"
+      }
+    },
+    {
       "t": 399600,
       "type": "admission",
       "params": {
@@ -35,6 +43,7 @@
     "rules": [
       "admission_during_outbreak"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 28,

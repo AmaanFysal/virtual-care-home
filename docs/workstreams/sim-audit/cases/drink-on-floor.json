@@ -29,6 +29,7 @@
     "rules": [
       "drink_for_fallen@res_peggy"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "F",
     "seed": 16,

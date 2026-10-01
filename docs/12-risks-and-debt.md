@@ -63,6 +63,8 @@ The audit (docs/workstreams/sim-audit/report.md) found **45 gaps where features 
 - a resident on the floor during a round gets no dose and nothing is recorded (U5);
 - every calm day: diet texture and Win's fluid limit ignored, visitors in the en-suite, escorts walking ahead (U13 to U16).
 
+**Closed in PR B** (2026-10-01): U1 (a fall while an ambulance is coming), U5 (doses for someone on the floor), U6 (time-critical medicine within 30 minutes), U11 (staff taken ill), U13 (visitors in the en-suite), U16 (escorts), U17 and R17 (several serious falls: the nurse hands over, the on-call RN by phone after 10 minutes, a crew per call). New in PR B: when escorts walk at the resident's pace, they take more of a carer's time; on calm weeks men are sometimes free while Peggy's female-only toileting waits 20 to 30 minutes (under the target; same-sex escalation is PR C). Calm weeks after PR B (seeds 1 to 8, director off): 0 service breaches and 0 hard violations; the behaviour audit has 146 flags, against 153 on main. **Open, found while building PR B** (report.md, for a later PR): U20, a medication round left unfinished and unrecorded when its giver goes home ill with nobody else meds-trained on the wing (the monitor misses it, since it checks rounds when they complete); R20, agency cover booked to arrive after the shift has ended.
+
 Also: docs/11 lists `meds_trained` and `fall_moved_before_assessment` as engine invariants, but `checkInvariants` has neither (the safety monitor does), and the engine's `two_person` check fires falsely for two-person walks (C4, C5).
 
 ## Tuning debt: the review (sub-milestone e, 2026-09-30)
