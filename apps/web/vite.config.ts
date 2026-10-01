@@ -7,7 +7,9 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
   const url = env.VITE_SIM_URL ?? "";
   if (command === "build" && mode === "production") {
-    if (process.env.VERCEL && !url) throw new Error("Set VITE_SIM_URL (e.g. wss://your-app.fly.dev/ws) in the Vercel project's environment variables");
+    // Vercel's production deployment must know the server; previews may build without it (the
+    // server refuses their origin anyway, docs/13).
+    if (process.env.VERCEL_ENV === "production" && !url) throw new Error("Set VITE_SIM_URL (e.g. wss://your-app.fly.dev/ws) for Production in the Vercel project's environment variables");
     if (url && !url.startsWith("wss://")) throw new Error(`VITE_SIM_URL must start with wss:// in a production build (got ${url})`);
   }
   return {

@@ -128,6 +128,10 @@ SCENARIO=short-staffed-weekend pnpm dev
 START=2027-05-04 pnpm dev      # start on a date, with that season's weather
 ```
 
+## Hosting
+
+The live demo runs the wing continuously at 10x for read-only viewers, with the web app on Vercel and the sim server on Fly.io. Running it yourself with `pnpm dev` gives you every control: all speeds, pause, step, the Director tab and event injection. To host your own copy, follow [`docs/13-hosting.md`](docs/13-hosting.md): about $6 a month.
+
 ## How it works
 
 ```mermaid
