@@ -188,6 +188,12 @@ export interface EventPayloads {
   "door.locked": { doorId: string; byId: string | null; reason: string };
   "window.opened": { windowId: string; roomId: string; byId: string | null; reason: string };
   "window.closed": { windowId: string; roomId: string; byId: string | null; reason: string };
+  /** Equipment switched on (or a light's level changed: `level`), or off. */
+  "equipment.turned_on": { equipmentId: string; kind: string; roomId: string; byId: string | null; level?: "dim" | "full"; reason: string };
+  "equipment.turned_off": { equipmentId: string; kind: string; roomId: string; byId: string | null; reason: string };
+  /** An instant use: a WC flushed, a basin tap run to wash hands. */
+  "equipment.used": { equipmentId: string; kind: string; roomId: string; byId: string };
+  "heating.set_point_changed": { equipmentId: string; roomId: string; setpointC: number; reason: string };
 
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };

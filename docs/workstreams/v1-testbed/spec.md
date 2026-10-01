@@ -103,16 +103,16 @@ interface WindowState { windowId: string; roomId: string; state: "closed" | "ope
 ### Equipment
 
 ```ts
-interface EquipmentState { equipmentId: string; kind: "shower" | "tv" | "kettle" | "light" | "heating" | "wc"; roomId: string; on: boolean; level?: "dim" | "full"; setpointC?: number }
+interface EquipmentState { equipmentId: string; kind: "light" | "heating" | "tv" | "kettle" | "wc" | "basin" | "shower"; roomId: string; on: boolean; level?: "dim" | "full"; setpointC?: number }
 ```
 
 | Equipment | Where | Rule |
 |---|---|---|
 | Lights | Every room | **Bedrooms and staff room:** on while someone awake is there and it's dark outside, or always in a room without a window. **Bedrooms at night:** off while the resident sleeps; dim for a night check. **Corridor:** full by day, dim from 22:00 to 07:00 (docs/02's night lights). **Reception:** always on. **En-suites:** on while in use |
-| Heating | A radiator in every room with a window, plus the corridor | A heating season (October to April) and a set point by room type from `data/building.json`: 22 °C in day rooms (Lounge, waiting area, reception, staff room, corridor) and 21 °C in bedrooms and en-suites by default (decision 7). The engine publishes whether heating is on and the set point; whether the radiator gives out heat depends on the room's temperature, which is the heat model's job |
+| Heating | A radiator under each window, one in the corridor, and a heated towel rail in each en-suite (built in PR 2) | A heating season (October to April) and a set point by room type from `data/building.json`: 22 °C in day rooms (Lounge, waiting area, reception, staff room, corridor) and 21 °C in bedrooms and en-suites by default (decision 7). The engine publishes whether heating is on and the set point; whether the radiator gives out heat depends on the room's temperature, which is the heat model's job |
 | Lounge TV | Lounge | On while any resident there is watching (Lounge activity `tv`), off when the last one stops |
-| Kettle | Staff room | On for 3 minutes at the start of each break (tea) |
-| WC | Each en-suite | Flushed at the end of each use (an instant use: `equipment.used`) |
+| Kettle | Staff room (the tea station on the table, within reach of the seats) | On for 3 minutes at the start of each break there (tea) |
+| WC and basin | Each en-suite | Flushed, and hands washed at the basin, at the end of each visit to the WC (instant uses: `equipment.used`) |
 | Shower | Each en-suite | Described, but never on in this milestone: shower days stay in the backlog (decision 5) |
 
 Each change is logged (below). The equipment list is data (`floorplan.json` `equipment`), so a plug-in reads ids and rooms from the same place as doors.
@@ -136,7 +136,7 @@ interface Touch { personId: string; objectId: string; t: number }
   - The toilet: door handle, light switch, WC, flush, basin tap.
   - A hoist transfer: the hoist and the bed rail.
   - Visitors: the signing-in book, door handles and a chair.
-- **About 5,000 touches a day.** They're published in the description as they happen, not logged.
+- **About 650 touches a day** (PR 2, measured; the first estimate was 5,000): one touch per action as it starts, not repeated contact through it, and only within reach (1.5 m). They're published in the description as they happen, not logged.
 
 ### Weather
 

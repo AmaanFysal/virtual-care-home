@@ -24,8 +24,20 @@ function indexOf(weather: WeatherData): Map<string, number> {
   return index;
 }
 
+/** The last hour looked up, per data set: the weather changes hourly but is read every tick. */
+const lastHour = new WeakMap<WeatherData, { hour: number; at: WeatherHour }>();
+
 /** The weather at sim time `t`: the data's hour with the same month, day and hour. */
 export function weatherAt(weather: WeatherData, t: number): WeatherHour {
+  const key = Math.floor(t / 3600);
+  const cached = lastHour.get(weather);
+  if (cached?.hour === key) return cached.at;
+  const at = lookUp(weather, t);
+  lastHour.set(weather, { hour: key, at });
+  return at;
+}
+
+function lookUp(weather: WeatherData, t: number): WeatherHour {
   const { month, day } = simDate(t);
   const hour = Math.floor((t % SECONDS_PER_DAY) / 3600);
   const index = indexOf(weather);

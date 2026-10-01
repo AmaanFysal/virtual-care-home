@@ -42,6 +42,16 @@ export function nightFactor(t: number): number {
   return 0;
 }
 
+/**
+ * How dark it is outside (0 to 1), from the hour's real weather (v1.0-testbed): full dark after
+ * sunset, partly dark in a dim hour at dawn or dusk (under 60 W/m²). Without weather, the clock.
+ */
+export function darkness(t: number, weather: { isDay: boolean; shortwaveWm2: number } | null | undefined): number {
+  if (!weather) return nightFactor(t);
+  if (!weather.isDay) return 1;
+  return Math.max(0, Math.min(1, (60 - weather.shortwaveWm2) / 60)) * 0.6;
+}
+
 interface Figure {
   view: PersonView;
   entry: SpriteEntry | null;
@@ -88,7 +98,7 @@ export class WingRenderer {
   private facings = new Map<string, Dir>();
   /** The painted map, building and garden, in world pixels. */
   private mapSize = { w: 1, h: 1 };
-  private lampSpots: { x: number; y: number }[] = [];
+  private lampSpots: { x: number; y: number; roomId: string | null }[] = [];
   private clock: ClockView | null = null;
   private selectedId: string | null = null;
   private hoverId: string | null = null;
@@ -194,16 +204,21 @@ export class WingRenderer {
     drawBuilding(this.buildingLayer, this.plan, this.banding, this.building);
   }
 
+  /** A room's floor in world pixels, as the painter draws it: shifted by the wall bands above, not stretched. */
+  private roomPx(room: FloorPlan["rooms"][number]): { x: number; y: number; w: number; h: number } {
+    const b = this.banding!;
+    const x0 = b.x(room.rect.x), x1 = b.x(room.rect.x + room.rect.w);
+    const y0 = room.rect.y * 32 + b.offsetAt(room.rect.y);
+    const y1 = (room.rect.y + room.rect.h) * 32 + b.offsetAt(room.rect.y + room.rect.h - 1e-6);
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+
   private drawRoomOutline(): void {
     this.roomOutline.clear();
     const room = this.plan?.rooms.find((r) => r.id === this.selectedRoomId);
     if (!room || !this.banding) return;
-    const b = this.banding;
-    const x0 = b.x(room.rect.x), x1 = b.x(room.rect.x + room.rect.w);
-    // The room's floor as the painter draws it: shifted by the wall bands above, not stretched.
-    const y0 = room.rect.y * 32 + b.offsetAt(room.rect.y);
-    const y1 = (room.rect.y + room.rect.h) * 32 + b.offsetAt(room.rect.y + room.rect.h - 1e-6);
-    this.roomOutline.rect(x0 + 1, y0 + 1, x1 - x0 - 2, y1 - y0 - 2).stroke({ width: 2, color: 0xffd43b, alpha: 0.9 });
+    const r = this.roomPx(room);
+    this.roomOutline.rect(r.x + 1, r.y + 1, r.w - 2, r.h - 2).stroke({ width: 2, color: 0xffd43b, alpha: 0.9 });
   }
 
   /** The room under a point on the map: an en-suite before the bedroom round it. */
@@ -290,7 +305,12 @@ export class WingRenderer {
     for (const child of [...this.sorted.children]) if (child.label === "furniture") child.destroy({ texture: true, textureSource: true });
     const { base, furniture, size, lamps } = paintMap(this.plan, this.banding, this.images, this.facings);
     this.mapSize = size;
-    this.lampSpots = lamps;
+    // Each bedside lamp belongs to the room it's drawn in, so it follows that room's light (v1.0-testbed).
+    this.lampSpots = lamps.map((l) => {
+      const m = this.banding!.toWorld(l);
+      const room = this.plan!.rooms.filter((r) => r.kind === "bedroom" && m.x >= r.rect.x && m.x <= r.rect.x + r.rect.w && m.y >= r.rect.y - 1 && m.y <= r.rect.y + r.rect.h);
+      return { ...l, roomId: room[0]?.id ?? null };
+    });
     this.mapLayer.addChild(new Sprite(Texture.from(base)));
     for (const piece of furniture) {
       const s = new Sprite(Texture.from(piece.canvas));
@@ -558,19 +578,39 @@ export class WingRenderer {
     const b = this.banding!;
     this.night.clear();
     this.lights.clear();
-    const k = this.clock ? nightFactor(this.clock.t) : 0;
+    const k = this.clock ? darkness(this.clock.t, this.building?.weather) : 0;
+    // Room lights from the server (v1.0-testbed); without them, every lamp is lit at night as before.
+    const lightOf = new Map((this.building?.equipment ?? []).filter((e) => e.kind === "light").map((e) => [e.roomId, e.on ? (e.level ?? "full") : "off"]));
+    const level = (roomId: string | null) => (roomId && lightOf.size > 0 ? (lightOf.get(roomId) ?? "off") : "dim");
+    const tv = this.building?.equipment.find((e) => e.kind === "tv");
+    if (tv?.on) {
+      // The TV's glow, by day and night.
+      const set = plan.furniture.find((f) => f.kind === "tv");
+      if (set) {
+        const at = b.toScreen({ x: set.rect.x + set.rect.w / 2, y: set.rect.y + set.rect.h / 2 });
+        for (const [rad, a] of [[34, 0.06], [20, 0.1], [10, 0.16]] as const) this.lights.circle(at.x - 6, at.y, rad).fill({ color: 0x9fd4ff, alpha: a + 0.1 * k });
+      }
+    }
     if (k <= 0) return;
     this.night.rect(0, 0, this.mapSize.w, this.mapSize.h).fill({ color: 0x0b1a33, alpha: 0.55 * k });
-    // Bedside lamps.
+    // Rooms with the main light on: a warm wash over the floor.
+    for (const room of plan.rooms) {
+      if (room.kind === "corridor" || level(room.id) !== "full" || lightOf.size === 0) continue;
+      const r = this.roomPx(room);
+      this.lights.rect(r.x, r.y, r.w, r.h).fill({ color: 0xffe2a8, alpha: 0.2 * k });
+    }
+    // Bedside lamps: lit when the room's light is on (dim for a night check).
     for (const l of this.lampSpots) {
+      if (level(l.roomId) === "off") continue;
       for (const [rad, a] of [[20, 0.1], [11, 0.16], [5, 0.3]] as const) this.lights.circle(l.x, l.y, rad).fill({ color: 0xffd98a, alpha: a * k });
     }
     const corridor = plan.rooms.find((r) => r.kind === "corridor");
     if (!corridor) return;
+    const bright = level(corridor.id) === "full" && lightOf.size > 0 ? 1.8 : 1;
     const y = b.y(corridor.rect.y + corridor.rect.h / 2);
     for (let x = corridor.rect.x + 2; x < corridor.rect.x + corridor.rect.w; x += 4) {
       const cx = b.x(x);
-      for (const [rad, a] of [[40, 0.06], [26, 0.07], [14, 0.09]] as const) this.lights.ellipse(cx, y, rad, rad * 0.6).fill({ color: 0xffd98a, alpha: a * k });
+      for (const [rad, a] of [[40, 0.06], [26, 0.07], [14, 0.09]] as const) this.lights.ellipse(cx, y, rad, rad * 0.6).fill({ color: 0xffd98a, alpha: a * k * bright });
       this.lights.rect(cx - 3, y - 1, 6, 2).fill({ color: 0xfff1c9, alpha: 0.9 * k });
     }
   }

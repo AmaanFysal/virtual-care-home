@@ -70,6 +70,19 @@ Six **single en-suite bedrooms** (Room 1 to Room 6) sit along the north side, wi
   - A carer airs a resident's room after morning care, and the first member of staff into the Lounge after 10:00 opens one of its windows, if it's daytime, dry, at least 12 °C and the wind below 10 m/s (the weather is London's real hourly data, docs/03). At most once a window a day.
   - A member of staff in the room closes it once it's been open 30 minutes or the weather turns; bedtime care closes the resident's; any still open at 20:00 are closed on the evening round.
 
+## Equipment (v1.0-testbed PR 2)
+
+Equipment is listed in `floorplan.json` (`equipment`: id, kind, room and position; validated: in its room, a light in every room, a WC, basin and shower in every en-suite) and its state set by the building's rules (`src/equipment.ts`, `data/building.json`). The engine says what's on; heat, light and energy are for external models (ADR-0006). Like the doors, it never changes what anyone does.
+
+| Equipment | Where | Rule |
+|---|---|---|
+| Lights (17) | Every room | **Bedrooms:** full for personal care, dim for a night check while the resident sleeps, full when someone awake is there and it's dark; otherwise off. **En-suites:** on while in use. **Lounge, waiting area, staff room:** on when someone awake is there and it's dark. **Corridor:** full, dimmed (night lights) 22:00 to 07:00. **Reception:** always on. "Dark" is the weather's night, or less than 50 W/m² of daylight |
+| Heating (19) | A radiator under each window, one in the corridor, a heated towel rail in each en-suite | On from 1 October to 30 April with its set point: 22 °C in day rooms, 21 °C in bedrooms and en-suites (spec decision 7). The engine gives the set point; whether a radiator gives out heat is the heat model's to say |
+| Lounge TV | Lounge | On while a resident there is watching it, off when nobody is |
+| Kettle | Staff room (the tea station on the table) | On for 3 minutes at the start of a break in the staff room |
+| WC and basin | Each en-suite | Used (an instant `equipment.used`) at the end of every visit to the WC: flushed, and hands washed |
+| Shower | Each en-suite | Never on: shower days aren't modelled (spec decision 5) |
+
 ## Furniture
 
 Furniture is a labelled rectangle of kind `bed`, `desk`, `table`, `chair`, `armchair`, `sofa`, `wc`, `tv` or `bookshelf`.

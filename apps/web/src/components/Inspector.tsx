@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { formatSimTime, type NeedName, type PersonActivity, type PersonView, type RoomDetail } from "@vch/shared-types";
+import { formatSimTime, type EquipmentState, type NeedName, type PersonActivity, type PersonView, type RoomDetail, type Touch } from "@vch/shared-types";
 import { send } from "../net";
 import { select, selectRoom } from "../selection";
 import { useView } from "../store";
@@ -77,6 +77,37 @@ export function weatherLine(w: NonNullable<RoomDetail["weather"]>): string {
   return `${Math.round(w.tempC)} °C, ${sky}${rain}, wind ${w.windMps.toFixed(1)} m/s`;
 }
 
+/** "light: dim", "heating: on, set to 21 °C", "TV: off". */
+function equipmentLine(e: EquipmentState): string {
+  const name = e.kind === "tv" ? "TV" : e.kind;
+  if (e.kind === "heating") return `${name}: ${e.on ? "on" : "off"}, set to ${e.setpointC} °C`;
+  return `${name}: ${e.on ? (e.level ?? "on") : "off"}`;
+}
+
+/** "the cup", "Room 5 door handle": an object id in words. */
+function objectName(id: string, names: Record<string, string>): string {
+  const own = /^(res_\w+)\.(\w+)$/.exec(id);
+  if (own) return `${names[own[1]!]?.split(" ")[0] ?? own[1]}'s ${own[2]!.replace(/_/g, " ")}`;
+  return id.replace(/^D_/, "door ").replace(/^Window_/, "window ").replace(/\.(handle|keypad)$/, " $1").replace(/\.Bed\.bed$/, " bed").replace(/[._]/g, " ").toLowerCase();
+}
+
+/** Recent touches, newest first: time, who, what. */
+function Touches({ touches, showWho }: { touches: Touch[]; showWho: boolean }) {
+  const people = useView((s) => s.people);
+  const names = Object.fromEntries(Object.values(people).map((p) => [p.id, p.name]));
+  if (touches.length === 0) return <p className="muted">None yet.</p>;
+  return (
+    <ul className="building touches">
+      {touches.map((t, i) => (
+        <li key={`${t.t}-${t.personId}-${t.objectId}-${i}`}>
+          <time>{formatSimTime(t.t).slice(11)}</time> {showWho && <>{names[t.personId]?.split(" ")[0] ?? t.personId}: </>}
+          {objectName(t.objectId, names)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** A room's slice of the world description (v1.0-testbed), refreshed every second. */
 function RoomInspector({ roomId }: { roomId: string }) {
   const room = useView((s) => s.roomDetail);
@@ -135,6 +166,20 @@ function RoomInspector({ roomId }: { roomId: string }) {
         ))}
         {room.people.length === 0 && <li className="muted">Nobody.</li>}
       </ul>
+      <h3>Equipment</h3>
+      <ul className="building">
+        {room.equipment
+          // Things that are on or off (a WC or basin is only ever used: see the touches).
+          .filter((e) => e.kind === "light" || e.kind === "heating" || e.kind === "tv" || e.kind === "kettle")
+          .map((e) => (
+            <li key={e.equipmentId}>
+              <span className={`state ${e.on ? "open" : "closed"}`}>{e.on ? "on" : "off"}</span> {equipmentLine(e)}
+              {e.roomId !== room.roomId && <span className="muted"> (en-suite)</span>}
+            </li>
+          ))}
+      </ul>
+      <h3>Recent touches</h3>
+      <Touches touches={room.touches} showWho />
       {room.weather && (
         <p className="status">
           Outside: {weatherLine(room.weather)} <span className="muted">({room.weather.time} GMT data)</span>
@@ -232,6 +277,12 @@ function PersonInspector() {
           <button onClick={() => send({ type: "inject_fall", residentId: person.id, severity: "minor" })}>minor</button>
           <button onClick={() => send({ type: "inject_fall", residentId: person.id, severity: "serious" })}>serious</button>
         </p>
+      )}
+      {detail && detail.touches.length > 0 && (
+        <>
+          <h3>Recent touches</h3>
+          <Touches touches={detail.touches.slice(0, 8)} showWho={false} />
+        </>
       )}
       <h3>Recent</h3>
       <ul className="recent">

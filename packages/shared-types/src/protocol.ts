@@ -3,7 +3,7 @@
 
 import type { FloorPlan, Gender } from "./data.js";
 import type { AnySimEvent, FallSeverity, InputPayloads, InputType, NeedName } from "./events.js";
-import type { BuildingView, PersonActivity, RoomDetail } from "./world.js";
+import type { BuildingView, PersonActivity, RoomDetail, Touch } from "./world.js";
 
 export type PersonKind = "resident" | "staff" | "agency" | "visitor" | "external";
 /** "dozing": asleep in a Lounge armchair (a nap away from their room). */
@@ -62,6 +62,8 @@ export interface PersonDetail {
   schedule: { t: number; label: string }[];
   /** What they're doing now, from the world description (v1.0-testbed); null when off the map. */
   activity: PersonActivity | null;
+  /** Their last 20 touches, newest first (v1.0-testbed). */
+  touches: Touch[];
 }
 
 /** How this run uses the scenario director (docs/10), for the Director panel. */
@@ -75,7 +77,7 @@ export interface DirectorView {
 
 export type ServerMessage =
   | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[]; director: DirectorView; building: BuildingView }
-  /** `building`: only the doors and windows that changed, and the weather when its hour changed. */
+  /** `building`: only the doors, windows and equipment that changed, and the weather when its hour changed. */
   | { type: "delta"; clock: ClockView; people: PersonView[]; events: AnySimEvent[]; building?: Partial<BuildingView> }
   | { type: "clock"; clock: ClockView }
   | { type: "detail"; detail: PersonDetail }

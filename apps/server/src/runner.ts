@@ -108,7 +108,7 @@ export class Runner {
   /** The building part of the world description: doors, windows and the weather. */
   private building(): BuildingView {
     const d = this.sim.describe();
-    return { doors: d.doors, windows: d.windows, weather: d.weather };
+    return { doors: d.doors, windows: d.windows, equipment: d.equipment, weather: d.weather };
   }
 
   /** The doors and windows that changed since the last delta, and the weather if its hour changed. */
@@ -122,9 +122,10 @@ export class Runner {
     };
     const doors = now.doors.filter((d) => changed(`door:${d.doorId}`, d));
     const windows = now.windows.filter((w) => changed(`window:${w.windowId}`, w));
+    const equipment = now.equipment.filter((e) => changed(`equipment:${e.equipmentId}`, e));
     const weather = changed("weather", { time: now.weather?.time ?? null });
-    if (doors.length === 0 && windows.length === 0 && !weather) return undefined;
-    return { ...(doors.length ? { doors } : {}), ...(windows.length ? { windows } : {}), ...(weather ? { weather: now.weather } : {}) };
+    if (doors.length === 0 && windows.length === 0 && equipment.length === 0 && !weather) return undefined;
+    return { ...(doors.length ? { doors } : {}), ...(windows.length ? { windows } : {}), ...(equipment.length ? { equipment } : {}), ...(weather ? { weather: now.weather } : {}) };
   }
 
   private broadcastDelta(): void {
@@ -237,6 +238,7 @@ export class Runner {
       btNode: task?.bt.node ?? null,
       schedule,
       activity: this.sim.describe().people.find((p) => p.personId === personId) ?? null,
+      touches: [...(this.sim.world.building?.recentByPerson.get(personId) ?? [])],
     };
   }
 }

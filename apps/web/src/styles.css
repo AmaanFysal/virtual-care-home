@@ -129,3 +129,5 @@ time { font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 4p
 .inspector button.link { border: none; background: none; padding: 0; color: inherit; font: inherit; text-decoration: underline dotted; cursor: pointer; }
 .inspector details.json summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 6px; }
 .inspector details.json pre { font-size: 11px; max-height: 240px; overflow: auto; background: #f6f4f0; padding: 6px; border-radius: 4px; }
+.inspector ul.touches li { font-size: 12px; }
+.inspector ul.touches time { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 4px; }

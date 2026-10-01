@@ -88,6 +88,7 @@ function mergeBuilding(current: BuildingView, change: Partial<BuildingView>): Bu
   return {
     doors: byId(current.doors, change.doors, (d) => d.doorId),
     windows: byId(current.windows, change.windows, (w) => w.windowId),
+    equipment: byId(current.equipment, change.equipment, (e) => e.equipmentId),
     weather: change.weather !== undefined ? change.weather : current.weather,
   };
 }

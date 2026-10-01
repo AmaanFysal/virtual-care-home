@@ -3,7 +3,7 @@
 
 import { WORLD_SCHEMA, type RoomDetail, type WorldDescription } from "@vch/shared-types";
 import { activityOf } from "./activity.js";
-import { doorStates, windowStates } from "./building.js";
+import { doorStates, equipmentStates, windowStates } from "./building.js";
 import type { World } from "./state.js";
 import { weatherAt } from "./weather.js";
 
@@ -16,8 +16,8 @@ export function describeWorld(world: World): WorldDescription {
     people,
     doors: doorStates(world),
     windows: windowStates(world),
-    equipment: [],
-    touches: [],
+    equipment: equipmentStates(world),
+    touches: [...world.building!.touches],
     weather: world.data.weather ? weatherAt(world.data.weather, world.t) : null,
   };
 }
@@ -38,8 +38,13 @@ export function describeRoom(world: World, roomId: string): RoomDetail | null {
     t: world.t,
     doors: description.doors.filter((d) => d.rooms.includes(roomId)),
     windows: description.windows.filter((w) => w.roomId === roomId),
+    equipment: description.equipment.filter((e) => inside.has(e.roomId)),
     // A bedroom includes its en-suite (a room inside it): each person keeps their own roomId.
     people: description.people.filter((p) => p.roomId !== null && inside.has(p.roomId)).map((p) => ({ ...p, name: world.people.get(p.personId)!.name })),
     weather: description.weather,
+    touches: [...inside]
+      .flatMap((id) => world.building!.recentByRoom.get(id) ?? [])
+      .sort((a, b) => b.t - a.t)
+      .slice(0, 20),
   };
 }

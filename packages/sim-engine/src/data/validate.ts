@@ -86,6 +86,7 @@ function validateFloorPlan(fp: FloorPlan, errors: string[]): void {
     ["wall", fp.walls],
     ["door", fp.doors],
     ["window", fp.windows],
+    ["equipment", fp.equipment],
     ["furniture", fp.furniture],
     ["point", fp.points],
   ] as const) {
@@ -509,6 +510,25 @@ function validateBuilding(data: WorldData, errors: string[]): void {
       if (overlap > EPS) errors.push(`floorplan: window ${w.id} overlaps door ${d.id}`);
     }
   }
+
+  // Equipment (PR 2): in its room; every room has a light; every en-suite its WC, basin and shower.
+  const KINDS = new Set(["light", "heating", "tv", "kettle", "wc", "basin", "shower"]);
+  for (const e of fp.equipment) {
+    const room = rooms.get(e.room);
+    if (!KINDS.has(e.kind)) errors.push(`floorplan: equipment ${e.id} has unknown kind "${e.kind}"`);
+    if (!room) errors.push(`floorplan: equipment ${e.id} is in unknown room "${e.room}"`);
+    else if (!inside(e.x, e.y, room.rect)) errors.push(`floorplan: equipment ${e.id} is not inside ${e.room}`);
+  }
+  for (const r of fp.rooms) {
+    if (!fp.equipment.some((e) => e.kind === "light" && e.room === r.id)) errors.push(`floorplan: room ${r.id} has no light`);
+    if (r.kind === "ensuite") for (const k of ["wc", "basin", "shower"]) if (!fp.equipment.some((e) => e.kind === k && e.room === r.id)) errors.push(`floorplan: en-suite ${r.id} has no ${k}`);
+    if (fp.equipment.some((e) => e.kind === "heating" && e.room === r.id) && !(data.building.heating.setpoint_c[r.kind] > 0)) errors.push(`building: no heating set point for ${r.kind} rooms (${r.id})`);
+  }
+  const md = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  for (const d of data.building.heating.season) if (!md.test(d)) errors.push(`building: heating.season "${d}" must be MM-DD`);
+  for (const c of data.building.lights.corridor_dim) checkClock(c, "building: lights.corridor_dim", errors);
+  if (!(data.building.lights.dark_below_wm2 >= 0)) errors.push("building: lights.dark_below_wm2 must be 0 or more");
+  if (!(data.building.kettle_mins > 0)) errors.push("building: kettle_mins must be more than 0");
 
   // Every door is a bedroom or en-suite door, or in exactly one list in data/building.json.
   const b = data.building;
