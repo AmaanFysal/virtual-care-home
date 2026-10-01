@@ -14,7 +14,7 @@ Every movement, task, door, window, light and kettle is logged, so you get groun
 ![Data](https://img.shields.io/badge/data-100%25%20synthetic-2ea44f)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**[Live demo](#)** <sub>(coming soon)</sub>
+**[Live demo: virtual-care-home.vercel.app](https://virtual-care-home.vercel.app/)** <sub>(read-only, running at 10x)</sub>
 
 <img src="docs/images/wing.png" alt="The care home wing at lunchtime, drawn as pixel art: six bedrooms with en-suites along the top, the Lounge on the right with residents and carers, a corridor, and the waiting area, reception and staff room below" width="820">
 
@@ -130,7 +130,7 @@ START=2027-05-04 pnpm dev      # start on a date, with that season's weather
 
 ## Hosting
 
-The live demo runs the wing continuously at 10x for read-only viewers, with the web app on Vercel and the sim server on Fly.io. Running it yourself with `pnpm dev` gives you every control: all speeds, pause, step, the Director tab and event injection. To host your own copy, follow [`docs/13-hosting.md`](docs/13-hosting.md): about $6 a month.
+The [live demo](https://virtual-care-home.vercel.app/) runs the wing continuously at 10x for read-only viewers, with the web app on Vercel and the sim server on Fly.io, both deployed from this repository's `main` branch. Running it yourself with `pnpm dev` gives you every control: all speeds, pause, step, the Director tab and event injection. To host your own copy, follow [`docs/13-hosting.md`](docs/13-hosting.md): about $6 a month.
 
 ## How it works
 
