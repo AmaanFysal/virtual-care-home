@@ -1,0 +1,46 @@
+{
+  "id": "audit-christmas-isolation-visitors",
+  "name": "Christmas, then flu",
+  "description": "Christmas Day (a Wednesday) brings Stan's family for tea; Stan's flu starts at 15:30 and he's isolated with three of them in his room at once. (Fuzz case 00011, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 174600,
+      "type": "celebration",
+      "params": {
+        "kind": "festival",
+        "name": "Christmas",
+        "residentIds": [
+          "res_arthur",
+          "res_dennis",
+          "res_peggy",
+          "res_raj",
+          "res_stan",
+          "res_win"
+        ]
+      }
+    },
+    {
+      "t": 228600,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_stan",
+        "disease": "flu"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U8"
+    ],
+    "rules": [
+      "isolated_visitors_over_limit@res_stan"
+    ],
+    "expect": "fails",
+    "fixIn": "E",
+    "seed": 37,
+    "hours": 35,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 37 --hours 35 --scenario ../../docs/workstreams/sim-audit/cases/christmas-isolation-visitors.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/christmas-isolation-visitors.json"
+  }
+}

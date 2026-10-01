@@ -1,0 +1,40 @@
+{
+  "id": "audit-symptoms-on-arrival",
+  "name": "Flu symptoms as Blessing arrives",
+  "description": "Raj brings flu in; Blessing catches it and her symptoms start at 06:52 as she arrives for the early shift; she works the whole shift. (Fuzz case 00010, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 251940,
+      "type": "resident_illness",
+      "params": {
+        "residentId": "res_arthur",
+        "kind": "dehydration",
+        "severity": "mild"
+      }
+    },
+    {
+      "t": 254520,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_raj",
+        "disease": "flu"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U11"
+    ],
+    "rules": [
+      "sick_staff_on_wing@stf_blessing",
+      "sick_staff_giving_care@stf_blessing"
+    ],
+    "expect": "fails",
+    "fixIn": "B",
+    "seed": 15,
+    "hours": 218,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 15 --hours 218 --scenario ../../docs/workstreams/sim-audit/cases/symptoms-on-arrival.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/symptoms-on-arrival.json"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "audit-fall-during-round",
+  "name": "A fall during the 08:00 round",
+  "description": "Win falls (minor) at 08:01 as the round starts: the round skips her while she's on the floor, never comes back, and records nothing. (Fuzz case 00014, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 201660,
+      "type": "inject_fall",
+      "params": {
+        "residentId": "res_win",
+        "severity": "minor"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U5"
+    ],
+    "rules": [
+      "dose_skipped_unrecorded@res_win"
+    ],
+    "expect": "fails",
+    "fixIn": "B",
+    "seed": 16,
+    "hours": 28,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 16 --hours 28 --scenario ../../docs/workstreams/sim-audit/cases/fall-during-round.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/fall-during-round.json"
+  }
+}

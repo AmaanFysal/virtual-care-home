@@ -1,0 +1,38 @@
+{
+  "id": "audit-office-staff-ill",
+  "name": "The manager and the receptionist taken ill",
+  "description": "Joanne (norovirus) and Sanjay (flu) are taken ill at work on Tuesday morning. The cover rule books a bank carer for the manager's office shift and an agency carer for reception; both then work as extra carers on the floor, and nobody is at the desk.",
+  "random": false,
+  "events": [
+    {
+      "t": 122400,
+      "type": "infection_case",
+      "params": {
+        "personId": "stf_joanne",
+        "disease": "norovirus"
+      }
+    },
+    {
+      "t": 122460,
+      "type": "infection_case",
+      "params": {
+        "personId": "stf_sanjay",
+        "disease": "flu"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "R4"
+    ],
+    "rules": [
+      "office_covered_by_carer"
+    ],
+    "expect": "fails",
+    "fixIn": "F",
+    "seed": 1,
+    "hours": 24,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 --scenario ../../docs/workstreams/sim-audit/cases/office-staff-ill.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/office-staff-ill.json"
+  }
+}

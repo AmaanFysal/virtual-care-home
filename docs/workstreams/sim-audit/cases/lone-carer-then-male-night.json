@@ -1,0 +1,32 @@
+{
+  "id": "audit-lone-carer-then-male-night",
+  "name": "A lone late carer, then a man on nights",
+  "description": "Wednesday's late lead (Dave) doesn't come and nobody covers: Aisha is alone from 19:30, held for Dennis's two-person turn, and Peggy's toilet request waits 2 hours while Aisha tidies. At 21:30 a man takes over the night and Peggy waits on for Lorna's round, 188 minutes in all. (Fuzz case 00035, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 175260,
+      "type": "shift_no_show",
+      "params": {
+        "slot": "late.lead",
+        "cover": "bank"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U3",
+      "U2"
+    ],
+    "rules": [
+      "need_unmet_staff_idle@res_peggy",
+      "no_woman_for_female_only@res_peggy"
+    ],
+    "expect": "fails",
+    "fixIn": "C",
+    "seed": 1,
+    "hours": 41,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 1 --hours 41 --scenario ../../docs/workstreams/sim-audit/cases/lone-carer-then-male-night.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/lone-carer-then-male-night.json"
+  }
+}
