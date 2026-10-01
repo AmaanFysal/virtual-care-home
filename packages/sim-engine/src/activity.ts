@@ -44,7 +44,7 @@ function residentActivity(world: World, p: Person): Activity {
 function staffTaskActivity(world: World, p: Person, task: Task): Activity {
   const resident = task.residentId ? world.people.get(task.residentId) : undefined;
   if (p.move) {
-    const escorting = !!p.move.with && resident?.speed === 0 && resident.move;
+    const escorting = task.kind === "care" && task.data.care === "escort" && resident?.speed === 0 && !!resident.move;
     return escorting ? "pushing_wheelchair" : "walking";
   }
   const care = String(task.data.care ?? "");
@@ -105,7 +105,7 @@ function otherActivity(world: World, p: Person): Activity {
 
 /** The first entry that fits: by walking aid, speed, or whether they're in bed. */
 function entryFor(entries: ActivityEntry[], p: Person): ActivityEntry {
-  const speed = p.move?.pace ?? p.speed;
+  const speed = p.speed;
   const aid = p.resident?.data.mobility.aid ?? "";
   return (
     entries.find(

@@ -79,7 +79,7 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 | 06:30–10:00 | Waking: tea on waking for each resident (its own short visit), then morning personal care, staggered by wake time |
 | 07:00 | Handover |
 | 07:30–10:30 | Breakfast at the chair (or in bed, first, for anyone whose care is more than 30 minutes away) |
-| 08:00 | Morning med round (RN; time-critical medication first); Win's blood glucose check before breakfast (on her card; not yet modelled, see below) |
+| 08:00 | Morning med round (RN; time-critical medication first); Win's blood glucose check before breakfast |
 | 10:30 | Mid-morning drinks |
 | 10:45–11:45 | Bev's music and reminiscence session in the Lounge (days she's on: Monday to Thursday) |
 | 11:50 | Lunch-goers to the Lounge (Peggy and Stan walked by a carer; Win alone) |
@@ -106,11 +106,6 @@ The RN's evening handover to the on-call RN at 19:30 happens off the map (event 
 | Raj | Room3.Bed | Non-ambulant, hoist | **2 staff** for all transfers and personal care | 06:30 / 20:00 | 120 / 120 min | 4-hourly at night | Aphasia; soft diet, needs help to eat |
 | Stan | Room4.Bed | Walks unaided, shuffling, 0.6 m/s, high falls risk | 1 staff, prompting | 08:00 / 22:00 | 60 / 60 min | — | Lewy body: night wandering, hallucinations; sundowns from 16:30 |
 | Dennis | Room6.Bed | Bed-bound | **2 staff** in bed | — (in bed) | 60 / 60 min | 2-hourly day and night | End of life: comfort feeding only (no hunger need, no meals; mouth care and sips at least every 120 min, usually at checks and turns); cannot ask for help |
-
-**Not yet modelled** (the full scenario audit, docs/workstreams/sim-audit/report.md, R15, U14, U15). Some of what the cards and this doc describe isn't in the engine yet:
-
-- **In the sim-audit workstream's PR D:** diet texture (Raj is on a soft, bite-sized IDDSI level 6 diet, but gets biscuits, toast and a supper sandwich), fluid limits (Win's 1,500 ml isn't applied; she's given about 1,650 ml a day) and Win's glucose check before breakfast.
-- **In the realism batch (PR F):** Arthur's independence (helped only on his shower day; he gets daily morning care instead), Stan's night wandering and hallucinations, sundowning behaviour (it only raises falls at dusk), and shower days.
 
 **Lounge habits** (`care.lounge` on each card; Raj and Dennis stay in their room for now):
 
@@ -160,7 +155,7 @@ Staff walk at 1.2 m/s; most visitors at 1.0 m/s, older visitors at 0.6 to 0.9 m/
 
 Full node-level trees are in [04](04-agents-and-behaviour.md). The care content they must follow:
 
-1. **Morning personal care.** Roughly in wake-time order, a carer goes to the bedside, helps with washing and dressing (20 minutes; 25 for Raj with two staff and the hoist; 30 for Dennis in bed with two staff), then helps the resident to their chair (Raj via the hoist). Peggy gets female carers only. Arthur's card says he is prompted and only helped on his shower day (Monday); the engine gives him 15 minutes of morning care every day (not yet modelled, see below).
+1. **Morning personal care.** Roughly in wake-time order, a carer goes to the bedside, helps with washing and dressing (20 minutes; 25 for Raj with two staff and the hoist; 30 for Dennis in bed with two staff), then helps the resident to their chair (Raj via the hoist). Peggy gets female carers only. Arthur is prompted and only helped on his shower day (Monday).
 2. **Medication round** (M5, `src/meds.ts`). The meds-trained giver (the day RN at 08:00, 13:00 and 17:00; the late lead at 21:00) gives time-critical medication first (Arthur's Parkinson's), then goes bed to bed, 3 minutes per resident; anyone busy is visited at the end, wherever they are (the Lounge included). From 07:45 until the 08:00 round is done the day RN doesn't start any resident care, so the round starts on time (on seeds 1 to 8: on time on 48 of 56 mornings, never more than 8 minutes late). A fall, or a help request within 10 minutes of its limit that nobody else can take, pauses the round; it resumes where it stopped (`task.interrupted`, `task.resumed`). Each interruption adds 5 percentage points to the chance each remaining dose is **missed** (capped at 40%); a dose given more than 60 minutes after the round time is **late**. Both are logged (`med.missed`, `med.late`) and counted in the handover summary. If nobody meds-trained is on the wing at a round's time (only when a scenario leaves a lead's slot uncovered), the on-call RN comes over from the main building (25 to 35 minutes, `med_round.no_giver`, `on_call_rn.called`) and gives the round; doses more than 60 minutes after the round time count as late. The 21:15 handover waits for the 21:00 round to finish. Night PRN requests (`med.prn_requested`) are defined but not generated in Phase 1: nothing yet causes pain.
 3. **Meal service.** At meal times a carer takes a tray (badge) to each resident where they are: their chair, bed (breakfast first), or the Lounge dining table. Raj needs a carer with him for about 15 minutes to eat. Peggy needs prompting. Dennis has no meals (comfort care). Intake is recorded for Peggy and Win, and Dennis's sips.
 4. **Fall response** (M5, `src/falls.ts`; falls come only from `inject_fall`).

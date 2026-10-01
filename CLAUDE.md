@@ -20,7 +20,6 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm --filter @vch/sim-engine tuning-review [--rule <name>|--off a,b] [--seeds 1-8]`: each tuning rule (`src/tuning.ts`) switched off against the calm-week baseline (docs/12)
 - `pnpm --filter @vch/sim-engine describe --seed 1 --at "Wed 07:40" [--room Room5] [--start 2027-05-04]`: the world description (v1.0-testbed) at a moment of a run, as JSON
 - `pnpm --filter @vch/sim-engine fetch-weather 2025-10-01 2026-09-30`: refetch London's hourly weather into `data/weather/` (Open-Meteo; run by hand, the engine never uses the network)
-- `pnpm --filter @vch/sim-engine fuzz --cases 3000 --workers 10` (or `--baseline`, `--replay <case.json>`, `--dump <i>`): the simulation audit's fuzz runner, every tick checked by the safety monitor (`src/safety.ts`); report in `docs/workstreams/sim-audit/report.md`
 - `DIRECTOR=random pnpm dev` (or `SCENARIO=short-staffed-weekend pnpm dev`): run the server with the director on; `DEATHS=off` for the public demo; `START=2027-05-04` to start on a date (its season's weather)
 
 ## Layout
@@ -71,7 +70,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 | Tests, invariants, golden scenarios | `docs/11-testing.md` |
 | Risks, caveats, tech debt | `docs/12-risks-and-debt.md` |
 | Background and evidence | `docs/research/` (plan-v2.md wins over v1) |
-| Current work | `docs/workstreams/v1-testbed/` (the world description: doors, windows, equipment, activity, touches, weather; then the plug-in API). Paused: `docs/workstreams/sim-audit/` (the full scenario audit, resumes at PR C). History: `docs/workstreams/phase-2-director/`, `docs/workstreams/phase-1-rules-mvp/` |
+| Current work | `docs/workstreams/v1-testbed/` (the world description: doors, windows, equipment, activity, touches, weather; then the plug-in API). History: `docs/workstreams/phase-2-director/`, `docs/workstreams/phase-1-rules-mvp/` |
 
 Path-scoped rules in `.claude/rules/` load automatically for `packages/sim-engine/**` and `apps/web/**`.
 
