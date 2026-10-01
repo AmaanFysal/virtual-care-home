@@ -20,6 +20,7 @@
     "rules": [
       "need_unmet_staff_idle@res_dennis"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "C",
     "seed": 3,

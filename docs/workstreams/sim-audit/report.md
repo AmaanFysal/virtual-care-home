@@ -31,6 +31,7 @@ Each file's `audit` block holds the gaps it shows, the rules it breaks (`rule@pe
   4. **U17.** The nurse ends up waiting with the first serious fall, so other fallen residents wait up to 2 hours to be assessed and for their 999 call.
   5. **U5.** A resident on the floor during a medication round gets no dose and nothing is recorded (298 fuzz cases).
 - **Where it bites:** short staffing against female-only and two-person care; illness against falls; end of life against hospital, turns and the Lounge; outbreaks against visiting, admissions and end of life; isolation against visitors and celebrations.
+- **PR B** fixed U1, U5, U6, U11, U13, U16, U17 and R17 (section 4, "Re-run for PR B"). Building it found two more gaps, logged for a later PR: a medication round left unfinished and unrecorded when its giver goes home ill (U20, unsafe; the monitor misses it), and agency cover booked to arrive after the shift ends (R20).
 - **Decided** (section 7, ADR-0007): visiting follows UKHSA 2024 (up to 2 visitors with an isolated resident); an advance care plan on each card; escalation for same-sex care and for a lone carer; diet, fluids and glucose modelled now; the monitor wired in as the gaps close. Fixes in PRs B to F.
 
 ## 1. Feature inventory
@@ -291,6 +292,17 @@ Every case is checked by `validateScenario` before it runs. Inputs that can't ap
 | `died_on_return` | 2 | illness_mix | R2 |
 | `bed_bound_out_of_bed` | 1 | eol_chain | U18 |
 
+**Re-run for PR B** (2026-10-01, on branch `sim-audit-b` before the four changes listed below; same 3,000 cases, baselines now seeds 1 to 40, 21 days each, calm and random director):
+
+- **0 crashes, 0 hangs.**
+- **Gone or nearly gone:** `long_lie` 0 (was 20), `stuck_external` 0 (14), `sick_staff_on_wing` 0 (66), `visitor_in_ensuite` 0 (296; and 0 of 80 baselines, was 12 of 16), `dose_skipped_unrecorded` 1 (298), `excessive_hours` 19 (28).
+- **Down:** `time_critical_dose_late` 104 (157; Arthur, mostly short-staffed and outbreak days; not traced in PR B), `sick_staff_giving_care` 16 (65; all within the first minutes of symptoms, during a turn or transfer that can't be left until a colleague takes over in place, as designed), `escort_apart` 52 cases and 7 of 80 baselines (every calm baseline before; the rest were all walks across the Lounge, fixed after the run).
+- **New in PR B's own changes, each fixed after the run and replayed clean:** `escort_apart` across the Lounge (the carer and resident took different routes round the furniture: the carer now takes the resident's route, then steps to their spot); `dose_skipped_unrecorded` 1 (Kamala admitted at 08:04, after the 08:00 round was drawn up: a resident admitted during a round now joins it); `meds_trained` 1 (PR B's relief handed a round to a carer who isn't meds-trained: a round is now stopped instead, which leaves U20); `floor_cover` 1 (the handover's floor cover went home ill while the others gathered: the cover is now replaced then too).
+- **Unchanged** (fixed in later PRs): the rest of the table above, within a few cases.
+- **Calm weeks** (director off, seeds 1 to 8, final code): 0 service breaches, 0 hard violations; the behaviour audit has 146 flags (153 on main). During escorts the carer is at most 2.0 m from the resident (while one clears a doorway) and over 1.5 m on about 7% of walking ticks.
+
+The fuzz run wasn't repeated after those last changes; the folder `fuzz/cases-0-2999/` holds this run.
+
 Run it again:
 
 ```sh
@@ -332,6 +344,7 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 - **The engine's own checks don't see it:** `sim --report` on this run gives 0 hard violations and 1 service breach.
 - Fuzz: `long_lie` 20, `stuck_external` 14, `excessive_hours` 28 (most of them this).
 - Case: `cases/illness-ambulance-then-fall.json`.
+- **Fixed in PR B.** The ambulance task isn't reset by a fall; the crew goes to wherever the resident is; a serious fall takes over the call already made (one call, whichever crew is sooner). Dennis is taken from the floor at 12:57.
 
 **U2. Cover can leave no woman on shift, and female-only care then waits for hours.**
 - The cover rule picks agency workers from the pool regardless of gender (`cover.ts` `bookCover`); the rota's "a woman on every shift" holds only for the planned rota. On seed 1 (random director, 20 November), Shanice is off sick; the agency carer and the agency nurse are both men, and Dave leads. From 14:40 to 21:30 there is no woman on the wing, and Peggy (female carers only) waits **404 minutes** for the toilet, her need at its maximum for 6 hours. Nothing escalates it: the floating carer and the main building are night-time help only, and the manager (a woman, on the wing until 17:00) isn't care staff in the model.
@@ -356,12 +369,14 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 - Practice: NICE SC1 (Managing medicines in care homes): record when and why a medicine wasn't given; a blank on the MAR chart is treated as an error. A dose delayed by a fall would be given once the resident is up, or the omission recorded and escalated.
 - Fuzz: `dose_skipped_unrecorded` 298.
 - Case: `cases/fall-during-round.json`.
+- **Fixed in PR B.** A resident on the floor at their turn has the dose recorded as delayed (`med.delayed`, with the reason) and given once they're up as a dose on its own; if they leave the wing first it's recorded as missed with the reason. In the fuzz run, `dose_skipped_unrecorded` fell from 298 cases to 0.
 
 **U6. Arthur's time-critical Parkinson's medicine counts as late only after 60 minutes.**
 - `meds.ts` uses one 60-minute "late" threshold for everyone. Arthur is first on each round, but if he's busy he is moved to the end; interruptions (falls, short staffing) push his doses 35 to 50 minutes late or make them missed.
 - Practice: NICE NG71 and quality standard QS164 (statement 4): levodopa within 30 minutes of the individually prescribed time, in hospital or a care home.
 - Fuzz: `time_critical_dose_late` 157.
 - Case: `cases/time-critical-late.json`.
+- **Fixed in PR B.** Late after 30 minutes for time-critical medicine; it isn't put off for care in progress; it's given undisturbed (no interruption errors); and whoever gives a round starts no long care in the 15 minutes before it.
 
 **U7. In the last days, turns (which include a pad change) aren't female-only, so men turn Peggy and Kamala.**
 - `lastDays` makes the resident bed-bound with 2-hourly turns; `createCare` marks only morning, bedtime and pad-change care as personal, so turns go to anyone. Turns also include a pad change (`careEffects`). Separately, a resident who becomes bed-bound keeps `personal_care_staff: 1`, so in-bed pad changes and washes are done single-handed (Dennis's plan has two).
@@ -393,6 +408,7 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 - Practice: UKHSA (ARI outbreaks): staff who become unwell should leave work as soon as it is safe to do so; norovirus guidance is to stop work immediately and stay off until 48 hours symptom-free. At night someone comes in, but the ill carer stops hands-on care.
 - Fuzz: `sick_staff_on_wing` 66, `sick_staff_giving_care` 65.
 - Cases: `cases/symptoms-on-arrival.json`, `cases/night-carer-ill.json`, `cases/sick-carer-gives-care.json`.
+- **Fixed in PR B.** Symptoms stop hands-on care at once (work that can't be left is finished, or a free colleague takes over in place); no new work; a round they were giving stops and goes to someone else meds-trained on the wing (if nobody is, it waits: U20); they leave once someone not about to go into a handover covers the floor (at night the floating carer, who stays until the cover comes). Symptoms on arriving, or just before, send them home before the shift.
 
 **U12. Isolated residents stay in the Lounge, and the Lounge stays in use when an outbreak closes it.**
 - Residents are moved only when "free" (`lounge.ts`: not asleep, not busy): someone dozing in an armchair, or waiting for an escort, stays. An isolated resident can still be in the Lounge 20 to 35 minutes after symptoms begin, and isolated residents are seen in the corridor on the way back. Residents remain in a "closed" Lounge 30 minutes and more into an outbreak.
@@ -405,6 +421,7 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 - Practice: CQC Regulation 10 (dignity, privacy).
 - Every calm week on 6 of 8 seeds; fuzz 296.
 - Case: `cases/calm-seed-3.json`.
+- **Fixed in PR B.** While the resident is in their en-suite (or on the way), a visitor waits by the bed. Calm weeks: 0 (was every week on 6 of 8 seeds).
 
 **U14. Raj, on a soft, bite-sized diet for dysphagia, is given biscuits, toast and a supper sandwich.**
 - The drinks rounds give everyone awake a biscuit (10:30, 15:00) and toast or a sandwich (20:00); early risers get tea and toast. Nothing reads `nutrition.diet`.
@@ -423,12 +440,14 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 - Practice: standby assistance means walking beside the resident.
 - Every calm day.
 - Case: `cases/calm-seed-1.json`.
+- **Fixed in PR B.** The carer keeps to the resident's pace and takes the resident's route (then steps to their own spot); each follows the other straight through a doorway. Whoever is ahead never steps more than 1.5 m from the other, checked step by step within the tick (otherwise a resident clear of a busy door walked a whole tick, 3 m, before the carer could follow); the one in a doorway clears it, and the one behind always walks on, so they never both wait. On calm weeks (8 seeds) the gap is at most 2.0 m, while one clears a doorway, and over 1.5 m on about 7% of walking ticks (was up to 12 m, and over 1.5 m 74% of the time). The rule allows for 5-second ticks: it flags a gap over 2 m that isn't closing for two ticks, or over 3 m.
 
 **U17. The nurse ends up waiting with the first serious fall, so other falls wait to be assessed and for 999.**
 - In a cluster (seed 18, 13:00, three falls, two serious), Maria reaches Arthur first, so she is the one who stays with him for his ambulance (`dial 999` keeps `staff[0]`). As the only assessor on the wing, Dennis waits 1¾ hours on the floor to be assessed and Win (serious) waits **2 hours** before anyone calls 999 for her. By day the on-call RN isn't asked for, and one ambulance crew answers all calls in turn (R17), so the third fall waits longest.
 - Practice: the nurse triages, calls 999 for every serious fall at once, and leaves a carer with the first.
 - Fuzz: `long_lie` (cluster theme) and the falls cases above.
 - Case: `cases/three-falls-at-lunch.json`.
+- **Fixed in PR B.** The one who waits for the ambulance is a carer, not the nurse, and a nurse waiting hands over as soon as a carer is free (`fall.handed_over`); a fall waits at most 10 minutes for the nurse, then the on-call RN assesses by phone; and the carer who finds a serious fall calls 999 at once. In the three-falls case Win's 999 is at 13:13 (was 15:01).
 
 **U18. When the last days begin, the resident is put straight into bed from wherever they are, and a queued Lounge walk then takes them out again.**
 - `lastDays` calls `getIntoBed` at once, so Peggy goes from the corridor to her bed with nobody helping. The "walk to the Lounge" already queued isn't cancelled, so six minutes later a carer gets her out of bed and walks her, now bed-bound and dying, to the TV. Her 2-hourly toilet prompts also continue (`prompted_toileting_hours` stays on the card).
@@ -439,6 +458,12 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 - Hoisted to his wheelchair after morning care (07:30) and back to bed at 20:00; his card has no day repositioning and he naps in the chair. (Found in the realism review: not a rule on his card.)
 - Practice: NICE CG179: at risk adults change position at least every 6 hours (4 if high risk); a stroke survivor who can't move himself would usually have a rest on the bed after lunch.
 - Every calm day.
+
+**U20. A medication round is never finished, or recorded, when its giver goes home ill.** *(Found while building PR B; for a later PR.)*
+- Seed 1, Tuesday: Dave is giving the 21:00 round and has norovirus from 21:05. Aisha covers the floor, so he goes home at once (`cover.ts` `sendHomeSick` pulls him off the round). The round pauses for him, and nobody else on the wing is meds-trained (the night RN is on call). Nothing calls the on-call RN, so Raj, Stan, Peggy, Dennis and Win get no 21:00 dose, and nothing records it as given or missed. The same happens when PR B's relief stops a round (`tasks.ts` `relieveUnwell`: a round isn't handed to a carer who may not be meds-trained).
+- **The safety monitor misses it:** `dose_skipped_unrecorded` is checked when a round completes, and this one never does.
+- Practice: the doses are given by someone meds-trained (here the on-call RN, as for a round with no giver, `med_round.no_giver`), or recorded as missed with the reason, and the GP or pharmacist asked about any time-critical dose.
+- Reproduce: seed 1, 18 hours, `infection_case` for `stf_dave` (norovirus) at t = 162300 (Tue 21:05). A case file comes with the fix, with a rule that sees a paused round nobody is giving.
 
 ### Unrealistic
 - Case: `cases/calm-seed-1.json`.
@@ -475,11 +500,13 @@ Each gap: what happens, why (the code), what practice expects, how often, and th
 
 **R16. Dennis is "end of life (weeks)" for about a year.** With the end-of-life weight of 10, his decline begins on average about a year into a run, so for months he is a man with weeks to live. Director tuning (`end_of_life_weight`).
 
-**R17. One ambulance crew answers every call in turn.** Two or three serious falls at once queue for one crew, so the last waits for the others to be conveyed (with U17, Win's third fall in the cluster). Each 999 call would get its own response (whatever the delay). `falls.ts` `nextCall`. Case: `cases/three-falls-at-lunch.json`.
+**R17. One ambulance crew answers every call in turn.** Two or three serious falls at once queue for one crew, so the last waits for the others to be conveyed (with U17, Win's third fall in the cluster). Each 999 call would get its own response (whatever the delay). `falls.ts` `nextCall`. Case: `cases/three-falls-at-lunch.json`. **Fixed in PR B.** Every call gets its own crew when it's due.
 
 **R18. The floating night carer, shared with the main building, sometimes stays over 4 hours.** Mostly when Peggy needs two women after a hospital stay (U2) or with a fall. Fuzz `float_overstay` 14. Case: `cases/peggy-two-women-after-fall.json`.
 
 **R19. Cover and staying on break the rest rules.** Carers are kept on the wing 14 hours (mostly U1), and a bank carer booked for a reception shift came back after 10.5 hours (`restedFor` checks planned shifts, not when someone actually left). Fuzz `excessive_hours` 28.
+
+**R20. Agency cover is booked to arrive after the shift has ended.** *(Found while building PR B; for a later PR.)* In U20's run, Dave goes home ill at 21:05 and an agency lead is booked for the rest of his late shift, arriving at 22:12, after it ends at 21:30. The worker arrives, starts and ends the shift in the same minute, and the 21:15 handover lists them as handing over (`from: ["agy_002"]`) though they never arrived, so Florin takes it alone. `cover.ts` `bookCover` only checks that the shift hasn't ended when it's booked. Practice: no cover is booked for the last hour or so of a shift; the handover is given by the staff on the wing. Reproduce as U20.
 
 ### Cosmetic Case: `cases/cover-rest.json`.
 

@@ -26,15 +26,17 @@
     "gaps": [
       "U1"
     ],
-    "rules": [
+    "rules": [],
+    "fixed": [
       "long_lie@res_dennis",
       "stuck_external"
     ],
-    "expect": "fails",
+    "expect": "passes",
     "fixIn": "B",
     "seed": 25,
     "hours": 16,
     "command": "pnpm --filter @vch/sim-engine sim --seed 25 --hours 16 --scenario ../../docs/workstreams/sim-audit/cases/illness-ambulance-then-fall.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/illness-ambulance-then-fall.json"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/illness-ambulance-then-fall.json",
+    "fixedIn": "B"
   }
 }

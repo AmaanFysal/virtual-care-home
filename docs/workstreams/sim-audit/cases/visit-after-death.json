@@ -20,6 +20,7 @@
     "rules": [
       "care_for_absent_resident@res_stan"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 27,

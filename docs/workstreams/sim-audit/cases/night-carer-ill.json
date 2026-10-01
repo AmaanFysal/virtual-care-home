@@ -17,14 +17,16 @@
     "gaps": [
       "U11"
     ],
-    "rules": [
+    "rules": [],
+    "fixed": [
       "sick_staff_on_wing@stf_florin"
     ],
-    "expect": "fails",
+    "expect": "passes",
     "fixIn": "B",
     "seed": 21,
     "hours": 19,
     "command": "pnpm --filter @vch/sim-engine sim --seed 21 --hours 19 --scenario ../../docs/workstreams/sim-audit/cases/night-carer-ill.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/night-carer-ill.json"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/night-carer-ill.json",
+    "fixedIn": "B"
   }
 }

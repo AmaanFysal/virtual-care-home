@@ -20,6 +20,7 @@
     "rules": [
       "isolation_too_short@res_stan"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 3,

@@ -5,23 +5,6 @@
   "random": false,
   "events": [
     {
-      "t": 126120,
-      "type": "infection_case",
-      "params": {
-        "personId": "res_raj",
-        "disease": "flu"
-      }
-    },
-    {
-      "t": 127200,
-      "type": "resident_illness",
-      "params": {
-        "residentId": "res_arthur",
-        "kind": "uti",
-        "severity": "severe"
-      }
-    },
-    {
       "t": 128700,
       "type": "infection_case",
       "params": {

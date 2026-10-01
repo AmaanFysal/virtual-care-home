@@ -4,7 +4,7 @@
 
 ## Status
 
-**PR A in review** (2026-10-01): the audit tooling and report. Fixes follow in PRs B to F ([plan.md](plan.md)), each stopping for review.
+**PR A merged** (#13). **PR B in review** (2026-10-01): the engine bugs. PRs C to F follow ([plan.md](plan.md)), each stopping for review.
 
 ## Done
 
@@ -19,20 +19,26 @@
   - **Checks:** `pnpm typecheck` clean; `pnpm test` 306 passed (the 272 before, plus 34 audit tests); no clock, randomness or I/O in `packages/sim-engine/src`; no attribution in docs.
   - **Fuzz re-run** for PR A (3,000 cases, 40 seeds, 15,496 days): 0 crashes, 0 hangs; the same gaps as the report, with `isolated_visitors_over_limit` at 139 cases at the limit of 2 (174 at 1). The two new rules fire every calm day (baseline).
 
+- **PR B** (branch `sim-audit-b`): U1 (a fall while an ambulance is coming: one call, taken from the floor), U5 (doses delayed by a fall recorded and given later, `med.delayed`), U6 (time-critical doses within 30 minutes), U11 (staff taken ill stop care and leave once it's safe; symptoms on arrival send them home), U13 (visitors wait by the bed), U16 (escorts walk beside the resident on the resident's route, `Move.tether`), U17 and R17 (999 at once for a serious fall, the nurse hands over the wait, a crew per call).
+  - Also fixed, found while building it: a night bridge taken ill no longer double-books cover; a handover's floor cover taken ill is replaced (before it starts or while the others gather); a round isn't handed to a carer who may not be meds-trained; a resident admitted during a round joins it.
+  - Tests: `test/audit-b.test.ts` (9); named cases flipped to fixed, plus `night-bridge-ill.json` and `handover-cover-ill.json`; `isolated-left-room.json` moved to seed 1 (escort timing changed); the golden night-fall test expects 999 at the find; the director-off fixture re-recorded on purpose.
+  - Fuzz (3,000 cases, before the last four fixes): 0 crashes, 0 hangs; `long_lie`, `stuck_external`, `sick_staff_on_wing`, `visitor_in_ensuite` 0; the rest in report.md section 4. Calm weeks: 0 breaches, 0 hard violations, 146 audit flags (153 on main).
+
 ## In progress
 
-- PR A, in review.
+- PR B, in review.
 
 ## Next
 
-- **PR B:** the engine bugs (U1, U5, U11, U17, escorts and en-suite visitors; U6 and R17 proposed).
+- PR C (staffing escalation), after PR B's review.
 
 ## Blockers
 
-- None. To confirm at PR A's review: the placement of the gaps marked * in plan.md.
+- None. To confirm at PR B's review: where U20 and R20 go (found while building PR B, logged in report.md; C proposed).
 
 ## Session log
 
 | Date | Session | Outcome |
 |---|---|---|
 | 2026-10-01 | The audit and PR A: tooling, report, named cases as tests, decisions recorded (ADR-0007) | 45 gaps (19 unsafe), 31 named cases as tests, 306 tests pass; PR A opened for review |
+| 2026-10-01 | PR B: the engine bugs | 8 gaps fixed, 4 more found in its fuzz run fixed, 2 logged for later (U20, R20); 317 tests; PR B opened for review |

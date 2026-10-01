@@ -1,0 +1,49 @@
+{
+  "id": "audit-night-bridge-ill",
+  "name": "The late carer bridging the night taken ill",
+  "description": "Wednesday's night carer doesn't come and nobody covers: Aisha stays on until Nikos arrives from the main building at 22:42, but her norovirus starts at 22:00. The floating carer covers until Nikos comes, and Nikos works the night; Stan's minor fall at 01:44 is lifted promptly. While building PR B, the cover rule booked Nikos twice (for a gap ending before it began) and he stopped working, so Stan lay on the floor for hours. (Fuzz case 02728.)",
+  "random": false,
+  "events": [
+    {
+      "t": 247500,
+      "type": "shift_no_show",
+      "params": {
+        "slot": "night.carer",
+        "cover": "none"
+      }
+    },
+    {
+      "t": 252000,
+      "type": "infection_case",
+      "params": {
+        "personId": "stf_aisha",
+        "disease": "norovirus"
+      }
+    },
+    {
+      "t": 265440,
+      "type": "inject_fall",
+      "params": {
+        "residentId": "res_stan",
+        "severity": "minor"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U11"
+    ],
+    "rules": [],
+    "fixed": [
+      "long_lie@res_stan",
+      "floor_cover"
+    ],
+    "expect": "passes",
+    "fixIn": "B",
+    "fixedIn": "B",
+    "seed": 13,
+    "hours": 48,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 13 --hours 48 --scenario ../../docs/workstreams/sim-audit/cases/night-bridge-ill.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/night-bridge-ill.json"
+  }
+}

@@ -30,6 +30,7 @@
     "rules": [
       "absent_resident_state@res_raj"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "F",
     "seed": 32,

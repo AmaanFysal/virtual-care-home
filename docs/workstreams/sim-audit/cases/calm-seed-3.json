@@ -8,14 +8,16 @@
     "gaps": [
       "U13"
     ],
-    "rules": [
+    "rules": [],
+    "fixed": [
       "visitor_in_ensuite"
     ],
-    "expect": "fails",
+    "expect": "passes",
     "fixIn": "B",
     "seed": 3,
     "hours": 72,
     "command": "pnpm --filter @vch/sim-engine sim --seed 3 --hours 72 --scenario ../../docs/workstreams/sim-audit/cases/calm-seed-3.json --report",
-    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/calm-seed-3.json"
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/calm-seed-3.json",
+    "fixedIn": "B"
   }
 }

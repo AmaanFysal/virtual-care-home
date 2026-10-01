@@ -30,6 +30,7 @@
       "eol_conveyed_to_hospital@res_raj",
       "died_on_return@res_raj"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "E",
     "seed": 2,

@@ -1,8 +1,8 @@
 // The simulation audit (docs/workstreams/sim-audit/): the safety monitor (src/safety.ts) and the
 // fuzz runner's library (scripts/fuzz-lib.ts). Every named case in docs/workstreams/sim-audit/cases/
-// is replayed with every safety rule checked on every tick: a known gap ("expect": "fails") must
-// still break its rules, so the monitor keeps catching it; a fixed one ("expect": "passes") must
-// not break them again. Each fix flips its cases to "passes" (the workstream's plan.md).
+// is replayed with every safety rule checked on every tick: the rules of a gap still open (`rules`)
+// must still break, so the monitor keeps catching it; the rules of a fixed one (`fixed`) mustn't
+// break again. Each fix moves its rules from `rules` to `fixed` (the workstream's plan.md).
 
 import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -47,24 +47,26 @@ describe("the fuzz runner's cases", () => {
 describe("the audit's named cases", () => {
   const files = readdirSync(casesDir).filter((f) => f.endsWith(".json")).sort();
 
-  it("each names its gaps, known rules, and whether it still fails", () => {
+  it("each names its gaps, its rules (open and fixed), and whether it still fails", () => {
     expect(files.length).toBeGreaterThan(0);
     for (const f of files) {
       const s = loadAuditScenario(casesDir + f);
       expect(validateScenario(s, data), f).toEqual([]);
       expect(s.audit?.gaps?.length, f).toBeGreaterThan(0);
-      for (const rule of s.audit?.rules ?? []) expect(Object.keys(SAFETY_RULES), `${f}: ${rule}`).toContain(rule.split("@")[0]);
-      expect(["fails", "passes"], f).toContain(s.audit?.expect);
+      for (const rule of [...(s.audit?.rules ?? []), ...(s.audit?.fixed ?? [])]) expect(Object.keys(SAFETY_RULES), `${f}: ${rule}`).toContain(rule.split("@")[0]);
+      expect(s.audit?.expect, f).toBe((s.audit?.rules ?? []).length > 0 ? "fails" : "passes");
     }
   });
 
   for (const f of files) {
     const s = loadAuditScenario(casesDir + f);
-    const { gaps = [], rules = [], expect: state } = s.audit ?? {};
-    it(`${gaps.join(", ")} ${f}: ${state === "fails" ? "still breaks" : "no longer breaks"} ${rules.join(", ")}`, () => {
+    const { gaps = [], rules = [], fixed = [] } = s.audit ?? {};
+    const says = [rules.length ? `still breaks ${rules.join(", ")}` : "", fixed.length ? `no longer breaks ${fixed.join(", ")}` : ""].filter(Boolean).join("; ");
+    it(`${gaps.join(", ")} ${f}: ${says}`, () => {
       const r = runScenarioFile(s, data);
       expect(r.crash).toBeNull();
-      for (const rule of rules) expect(broke(r, rule), rule).toBe(state === "fails");
+      for (const rule of rules) expect(broke(r, rule), `${rule} should still break`).toBe(true);
+      for (const rule of fixed) expect(broke(r, rule), `${rule} is fixed`).toBe(false);
     }, 120_000);
   }
 });

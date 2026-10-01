@@ -6,7 +6,12 @@
 // (e44f98f) with it blanked, 2026-09-30; re-recorded again for the tuning review (sub-milestone e,
 // 2026-09-30), which deliberately changes director-off runs: 9 tuning rules removed, the only
 // people free for a pressing turn keep to short work, and a day break or going home counts only
-// staff on a shift as floor cover.
+// staff on a shift as floor cover. Re-recorded for the full scenario audit's PR B (2026-10-01),
+// which deliberately changes calm days: escorting carers walk at the resident's pace (and follow them
+// straight through a doorway, on the resident's route; neither draws more than 1.5 m ahead of the
+// other), visitors wait by the bed rather than in the en-suite, Arthur's
+// time-critical dose isn't put off for care in progress, and whoever gives the next medication round
+// starts no long care in the 15 minutes before it.
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";

@@ -20,6 +20,7 @@
     "rules": [
       "female_only_by_man@res_peggy"
     ],
+    "fixed": [],
     "expect": "fails",
     "fixIn": "C",
     "seed": 37,

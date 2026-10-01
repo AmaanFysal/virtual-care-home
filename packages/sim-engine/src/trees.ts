@@ -1,6 +1,6 @@
 // Behaviour trees for every task kind (docs/04 "Behaviour trees", docs/05 "Procedures").
 
-import type { Badge, DrinkOutcome, DrinkRound, MealName, NeedName } from "@vch/shared-types";
+import { TICK_SECONDS, type Badge, type DrinkOutcome, type DrinkRound, type MealName, type NeedName } from "@vch/shared-types";
 import { act, leaf, sel, seq, until, type BtNode } from "./bt.js";
 import { emit } from "./emit.js";
 import { needsHelpToDrink } from "./needs.js";
@@ -8,7 +8,7 @@ import { chairFor, onDuty, type CareKind, type Person, type Task, type World } f
 import { onFloor } from "./floor.js";
 import { isNight } from "./nightcover.js";
 import { absorbInto, createBriefing, finish } from "./tasks.js";
-import { getIntoBed, getOutOfBed, placeAt, walkTo } from "./world/movement.js";
+import { getIntoBed, getOutOfBed, placeAt, routeLeft, walkAlong, walkTo } from "./world/movement.js";
 import { ppeMins } from "./infection.js";
 
 export interface Ctx {
@@ -51,6 +51,48 @@ export function goTo(name: string, who: (ctx: Ctx) => Person[], points: (ctx: Ct
     });
     return moving ? "running" : "success";
   });
+}
+
+/**
+ * Walks a resident somewhere with their carers beside them: like `goTo` for the resident and then
+ * the staff, but the staff keep to the resident's pace instead of going on ahead (an escort).
+ */
+export function walkWith(name: string, points: (ctx: Ctx) => string[]): BtNode<Ctx> {
+  return leaf(name, (ctx) => {
+    const r = ctx.resident!;
+    const targets = points(ctx);
+    let moving = false;
+    [r, ...ctx.staff].forEach((p, i) => {
+      const target = targets[Math.min(i, targets.length - 1)]!;
+      if (p.atPoint === target) return;
+      if (!p.move || p.move.destPointId !== target) {
+        // Carers take the resident's route (set first), then step to their own spot.
+        if (!(p === r ? walkTo(ctx.world, p, target) : walkAlong(ctx.world, p, target, r))) return; // unreachable: treat as arrived
+      }
+      if (p !== r && p.move && r.speed > 0) Object.assign(p.move, { pace: besidePace(p, r), with: r.id, tether: BESIDE_M });
+      moving = true;
+    });
+    // Each keeps within reach of the other: neither walks on while the other is held at a door.
+    const carer = [...ctx.staff].sort((a, b) => Math.hypot(a.x - r.x, a.y - r.y) - Math.hypot(b.x - r.x, b.y - r.y))[0];
+    if (r.move && carer) Object.assign(r.move, { with: carer.id, tether: BESIDE_M });
+    return moving ? "running" : "success";
+  });
+}
+
+/** How far a carer walking with a resident may get from them before waiting (or catching up). */
+const BESIDE_M = 1.5;
+
+/**
+ * A carer's pace beside a resident: the resident's pace; if they've drawn ahead (the resident held at
+ * a door, or slower round a corner), they wait; if behind, they catch up at their own speed. Never
+ * stopped in a doorway, which would block the resident.
+ */
+function besidePace(p: Person, r: Person): number {
+  const together = Math.min(p.speed, r.speed);
+  if (Math.hypot(p.x - r.x, p.y - r.y) <= BESIDE_M || p.heldZone || !r.move) return together;
+  // Behind: catch up within a tick (5 s) without overshooting.
+  const gap = Math.hypot(p.x - r.x, p.y - r.y);
+  return routeLeft(p) <= routeLeft(r) ? 0 : Math.min(p.speed, together + Math.max(0, gap - 0.5) / TICK_SECONDS);
 }
 
 export function setBadges(people: Person[], badges: Badge[], label: string | null): void {
@@ -187,10 +229,11 @@ const assistTree: BtNode<Ctx> = seq(
         if (r.resident!.inBed) getOutOfBed(c.world, r);
         walkTo(c.world, r, wcFor(r));
       }),
-      goTo("walk with them", (c) => [c.resident!, ...c.staff], (c) => [wcFor(c.resident!)]),
+      walkWith("walk with them", (c) => [wcFor(c.resident!)]),
       waitMins("at the WC", () => 5),
       act("done at the WC", relieve),
-      goTo("walk back", (c) => [c.resident!, ...c.staff], (c) => [returnPoint(c), ...bedsides(c.resident!)]),
+      // Back to bed (carers at the bedsides) or to where they were sitting (carers beside them).
+      walkWith("walk back", (c) => (c.task.data.returnTo === "bed" ? [returnPoint(c), ...bedsides(c.resident!)] : [returnPoint(c)])),
       act("settle", (c) => {
         if (c.task.data.returnTo === "bed") getIntoBed(c.world, c.resident!);
       }),
@@ -410,7 +453,7 @@ const escortTree: BtNode<Ctx> = seq(
     if (r.resident!.inBed) getOutOfBed(c.world, r);
     walkTo(c.world, r, String(c.task.data.to));
   }),
-  goTo("walk with them", (c) => [c.resident!, ...c.staff], (c) => [String(c.task.data.to)]),
+  walkWith("walk with them", (c) => [String(c.task.data.to)]),
   act("settle", (c) => {
     c.resident!.posture = "sitting";
     careEffects(c);
@@ -579,13 +622,31 @@ function coveredByOthers(c: Ctx): boolean {
   return c.world.order.some((id) => !c.task.members!.includes(id) && onFloor(c.world, c.world.people.get(id)!));
 }
 
+/** The handover's floor cover; if they've gone (taken ill), an incoming member who is here covers instead and reads the notes. */
+function replaceGoneCover(c: Ctx): Person | undefined {
+  const cover = c.task.data.cover ? c.world.people.get(String(c.task.data.cover)) : undefined;
+  if (!cover || (cover.onMap && onDuty(cover))) return cover;
+  const here = (c.task.data.to as string[]).map((id) => c.world.people.get(id)!).filter((p) => p.onMap && onDuty(p)).at(-1);
+  if (!here) return cover;
+  c.task.members = c.task.members!.filter((id) => id !== here.id);
+  c.task.data.to = (c.task.data.to as string[]).filter((id) => id !== here.id);
+  if (c.task.assigned.includes(here.id)) {
+    c.task.assigned = c.task.assigned.filter((id) => id !== here.id);
+    here.staff!.taskId = null;
+    Object.assign(here, { badges: [], task: null });
+  }
+  c.task.data.cover = here.id;
+  return here;
+}
+
 const handoverTree: BtNode<Ctx> = seq(
   "handover",
   until("floor covered", (c) => {
-    const cover = c.task.data.cover ? c.world.people.get(String(c.task.data.cover)) : undefined;
+    const cover = replaceGoneCover(c);
     return !cover || !onDuty(cover) || onFloor(c.world, cover) || coveredByOthers(c);
   }),
   leaf("gather in the staff room", (c) => {
+    replaceGoneCover(c); // the cover may be taken ill while the others gather
     c.staff.forEach((p, i) => {
       const seat = STAFF_ROOM_SEATS[i % STAFF_ROOM_SEATS.length]!;
       if (p.atPoint !== seat && p.move?.destPointId !== seat) walkTo(c.world, p, seat);
