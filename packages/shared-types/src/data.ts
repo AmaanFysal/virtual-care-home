@@ -54,6 +54,17 @@ export interface Door {
   rooms: [string, string];
 }
 
+/** A window in an outer wall (v1.0-testbed). Opens only as far as its restrictor allows (data/building.json). */
+export interface Window {
+  id: string;
+  room: string;
+  wall: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
 export type FurnitureKind = "bed" | "desk" | "table" | "chair" | "armchair" | "sofa" | "wc" | "tv" | "bookshelf";
 
 export interface Furniture {
@@ -85,6 +96,7 @@ export interface FloorPlan {
   rooms: Room[];
   walls: Wall[];
   doors: Door[];
+  windows: Window[];
   furniture: Furniture[];
   points: NamedPoint[];
 }
@@ -133,6 +145,10 @@ export interface ResidentCare {
   shower_day?: Weekday;
   glucose_check_before_breakfast?: boolean;
   night_wandering?: boolean;
+  /** Their bedroom door at night (v1.0-testbed decision 6); closed when absent. */
+  door_at_night?: "open" | "ajar" | "closed";
+  /** Why, when it isn't closed: their preference, or a best-interests decision. */
+  door_at_night_reason?: string;
   /** Medication that must be given on time (Parkinson's): first on every round. */
   time_critical_meds?: boolean;
   /** End-of-life comfort care (mouth care and sips) at least this often; required for mouth_care_only. */
@@ -313,4 +329,89 @@ export interface WorldData {
   visitors: Visitor[];
   relationships: Relationship[];
   rota: Rota;
+  /** data/building.json: the rules for doors and windows (v1.0-testbed). */
+  building: BuildingSettings;
+  /** data/activities.json: MET for each activity (v1.0-testbed). */
+  activities: ActivityTable;
+  /** data/weather/: an hourly year of real weather; absent means no weather (windows stay shut). */
+  weather?: WeatherData;
+}
+
+// ---------------------------------------------------------------- the building (v1.0-testbed)
+
+/** data/building.json. Doors between a bedroom and the corridor, and en-suite doors, follow their own rules. */
+export interface BuildingSettings {
+  version: number;
+  doors: {
+    /** Held open on door holders by day, closed overnight (fire doors). */
+    held_open_by_day: string[];
+    /** When they're closed: [from, until], e.g. ["22:00", "07:00"]. */
+    closed_overnight: [ClockTime, ClockTime];
+    /** Always closed (the staff room). */
+    closed: string[];
+    /** Always locked (the exit, on a keypad). */
+    locked: string[];
+    note: string;
+  };
+  windows: {
+    /** Window restrictors: no window opens further than this. */
+    max_opening_mm: number;
+    /** Staff open a window only at or above this outdoor temperature, when dry, and below this wind speed. */
+    open_min_temp_c: number;
+    open_max_wind_mps: number;
+    /** Closed by the next member of staff in the room once it's been open this long. */
+    close_after_mins: number;
+    /** Any still open are closed at this time, and none opened after it. */
+    close_by: ClockTime;
+    /** The Lounge's windows can be opened from this time. */
+    lounge_from: ClockTime;
+    sources: Record<string, string>;
+  };
+}
+
+/** One Compendium entry. `aid` (part of the card's mobility aid), `below_mps` (walking speed) and `in_bed` narrow it. */
+export interface ActivityEntry {
+  book: "older" | "adult";
+  code: string;
+  met: number;
+  description: string;
+  aid?: string;
+  below_mps?: number;
+  in_bed?: boolean;
+}
+
+/** data/activities.json: for each activity, the entries for residents and for everyone else, first match wins. */
+export interface ActivityTable {
+  version: number;
+  sources: { older: string; adult: string };
+  resident: Record<string, ActivityEntry[]>;
+  other: Record<string, ActivityEntry[]>;
+}
+
+/** One hour of weather (hours are GMT: the sim has no daylight saving). */
+export interface WeatherHour {
+  /** The data's own timestamp, e.g. "2026-03-14T07:00". */
+  time: string;
+  tempC: number;
+  humidityPct: number;
+  dewPointC: number;
+  precipMm: number;
+  cloudPct: number;
+  windMps: number;
+  windDirDeg: number;
+  shortwaveWm2: number;
+  pressureHpa: number;
+  isDay: boolean;
+}
+
+/** data/weather/<place>.json and .csv: 12 months of hourly weather, in time order from `from` 00:00. */
+export interface WeatherData {
+  place: string;
+  latitude: number;
+  longitude: number;
+  from: string;
+  to: string;
+  source: string;
+  licence: string;
+  hours: WeatherHour[];
 }

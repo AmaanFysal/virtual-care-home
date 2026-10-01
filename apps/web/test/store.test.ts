@@ -5,14 +5,31 @@ import { nightFactor } from "../src/canvas/renderer";
 
 const person = (id: string, x: number): PersonView => ({ id, kind: "staff", name: id, initials: "X", gender: "female", onMap: true, x, y: 1, roomId: "Corridor", posture: "standing", badges: [], task: null });
 const clock = { t: 108000, tick: 0, paused: false, speed: 60 as const };
+const door = (doorId: string, state: "open" | "closed") => ({ doorId, rooms: ["Room1", "Corridor"] as [string, string], state, heldBy: null });
+const building = { doors: [door("D_Room1", "closed"), door("D_Room2", "open")], windows: [{ windowId: "Window_Room1", roomId: "Room1", state: "closed" as const, openingMm: 0 }], weather: null };
 
 describe("store", () => {
   it("replaces state on snapshot and merges deltas", () => {
-    let state = { ...initialState, ...reduce(initialState, { type: "snapshot", clock, floorplan: {} as never, people: [person("a", 1), person("b", 2)], events: [], director: { mode: "off", scenario: null, deaths: true } }) };
+    let state = { ...initialState, ...reduce(initialState, { type: "snapshot", clock, floorplan: {} as never, people: [person("a", 1), person("b", 2)], events: [], director: { mode: "off", scenario: null, deaths: true }, building }) };
     state = { ...state, ...reduce(state, { type: "delta", clock: { ...clock, tick: 1 }, people: [person("b", 3)], events: [] }) };
     expect(state.people.a!.x).toBe(1);
     expect(state.people.b!.x).toBe(3);
     expect(state.clock!.tick).toBe(1);
+  });
+});
+
+describe("the building in the store (v1.0-testbed)", () => {
+  it("takes the building from the snapshot and applies only what a delta changed", () => {
+    let state = { ...initialState, ...reduce(initialState, { type: "snapshot", clock, floorplan: {} as never, people: [], events: [], director: { mode: "off", scenario: null, deaths: true }, building }) };
+    state = { ...state, ...reduce(state, { type: "delta", clock, people: [], events: [], building: { doors: [door("D_Room1", "open")] } }) };
+    expect(state.building!.doors.map((d) => d.state)).toEqual(["open", "open"]);
+    expect(state.building!.windows).toEqual(building.windows);
+  });
+
+  it("keeps a room's detail only while that room is selected", () => {
+    const room = { roomId: "Room5", name: "Room 5", kind: "bedroom", areaM2: 19, ceilingM: 2.4, t: 1, doors: [], windows: [], people: [], weather: null };
+    expect(reduce({ ...initialState, selectedRoomId: "Room5" }, { type: "room", room })).toEqual({ roomDetail: room });
+    expect(reduce({ ...initialState, selectedRoomId: "Lounge" }, { type: "room", room })).toEqual({});
   });
 });
 

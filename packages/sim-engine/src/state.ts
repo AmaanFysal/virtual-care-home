@@ -328,6 +328,29 @@ export interface Person {
   infection: Infection | null;
 }
 
+/** How a door's set state is decided (v1.0-testbed, building.ts). */
+export type DoorRule =
+  | { kind: "bedroom"; roomId: string }
+  | { kind: "ensuite"; roomId: string }
+  | { kind: "held_open" }
+  | { kind: "closed" }
+  | { kind: "locked" };
+
+/**
+ * The building's state (v1.0-testbed): doors and windows as the building's rules set them. Written
+ * only by `observeBuilding`, last in each tick, and read by nothing that decides what people do.
+ */
+export interface BuildingState {
+  doors: Map<string, { rule: DoorRule; state: "open" | "ajar" | "closed" | "locked"; rooms: [string, string] }>;
+  windows: Map<string, { roomId: string; open: boolean; openedT: number | null }>;
+  /** Residents whose night has begun (from going to bed until they wake for the day). */
+  night: Set<string>;
+  /** Residents moved by hoist this tick (the transfer is instant): their activity this tick. */
+  hoisted: Set<string>;
+  /** The day (index since the epoch) each window was last opened: at most once a day. */
+  openedToday: Map<string, number>;
+}
+
 export interface World {
   seed: string;
   startT: number;
@@ -389,6 +412,8 @@ export interface World {
   inputs: SimInput[];
   /** The scenario director (docs/10); null when it's off. */
   director: DirectorState | null;
+  /** Doors and windows (v1.0-testbed); set by `initBuilding`. */
+  building: BuildingState | null;
   /** data/director.json: used by the director and by the rules it triggers (cover, infection), also when it's off. */
   config: DirectorConfig | null;
   /** New residents' cards (data/personas/admissions.json); only reviewed ones move in. */

@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "sources": {
+    "older": "2024 Older Adult Compendium of Physical Activities (Willis EA et al., Journal of Sport and Health Science, 2024), MET60 values (https://pacompendium.com/older-adult-compendium/). Used for residents where it has an entry.",
+    "adult": "2024 Adult Compendium of Physical Activities (Herrmann SD et al., Journal of Sport and Health Science, 2024) (https://pacompendium.com/adult-compendium/). Used for staff and visitors, and for residents where the Older Adult Compendium has no entry (sleeping, reading, talking, eating, toileting)."
+  },
+  "note": "First matching entry wins: `aid` matches part of the card's mobility aid, `below_mps` the walking speed, `in_bed` whether they're in bed. Receiving care and being hoisted are passive (lying or sitting quietly); a hoist transfer is instant in the engine, so hoisting shows on that tick only.",
+  "resident": {
+    "sleeping": [
+      {"book": "adult", "code": "07030", "met": 1.0, "description": "Sleeping"}
+    ],
+    "lying": [
+      {"book": "older", "code": "0701160", "met": 1.3, "description": "Lying quietly, doing nothing, lying in bed awake"}
+    ],
+    "on_floor": [
+      {"book": "older", "code": "0701160", "met": 1.3, "description": "Lying quietly, doing nothing, lying in bed awake"}
+    ],
+    "sitting": [
+      {"book": "older", "code": "0702160", "met": 1.3, "description": "Sitting quietly, general"}
+    ],
+    "standing": [
+      {"book": "older", "code": "0704060", "met": 1.5, "description": "Standing quietly, standing in a line"}
+    ],
+    "watching_tv": [
+      {"book": "older", "code": "0702060", "met": 1.3, "description": "Sitting quietly and watching television"}
+    ],
+    "reading": [
+      {"book": "adult", "code": "09030", "met": 1.0, "description": "Sitting: reading, book, newspaper, magazine"}
+    ],
+    "puzzles": [
+      {"book": "adult", "code": "09000", "met": 1.3, "description": "Board game playing, sitting"}
+    ],
+    "chatting": [
+      {"book": "adult", "code": "09055", "met": 1.3, "description": "Sitting: talking in person, on the phone, computer, or text messaging, light effort"}
+    ],
+    "eating": [
+      {"book": "adult", "code": "13030", "met": 1.5, "description": "Eating, sitting"}
+    ],
+    "toileting": [
+      {"book": "adult", "code": "13009", "met": 2.3, "description": "Sitting on toilet, eliminating while standing or squatting"}
+    ],
+    "walking": [
+      {"book": "older", "code": "1734060", "met": 3.5, "description": "Walking, with standard walker", "aid": "zimmer"},
+      {"book": "older", "code": "1735060", "met": 3.5, "description": "Walking, with wheeled walker", "aid": "rollator"},
+      {"book": "older", "code": "1733060", "met": 3.5, "description": "Walking, with a cane", "aid": "stick"},
+      {"book": "older", "code": "1715160", "met": 3.0, "description": "Walking, less than 1.0 mph, level, strolling, very slow", "below_mps": 0.447},
+      {"book": "older", "code": "1715260", "met": 4.0, "description": "Walking, 1.0 to 1.9 mph, level, slow pace, firm surface"}
+    ],
+    "in_wheelchair": [
+      {"book": "older", "code": "0702160", "met": 1.3, "description": "Sitting quietly, general"}
+    ],
+    "receiving_care": [
+      {"book": "older", "code": "0701160", "met": 1.3, "description": "Lying quietly, doing nothing, lying in bed awake", "in_bed": true},
+      {"book": "older", "code": "0702160", "met": 1.3, "description": "Sitting quietly, general"}
+    ],
+    "being_hoisted": [
+      {"book": "older", "code": "0702160", "met": 1.3, "description": "Sitting quietly, general"}
+    ]
+  },
+  "other": {
+    "walking": [
+      {"book": "adult", "code": "17151", "met": 2.3, "description": "Walking, less than 2.0 mph, level, strolling, very slow", "below_mps": 0.894},
+      {"book": "adult", "code": "17152", "met": 2.8, "description": "Walking, 2.0 to 2.4 mph, level, slow pace, firm surface", "below_mps": 1.118},
+      {"book": "adult", "code": "17170", "met": 3.0, "description": "Walking, 2.5 mph, firm, level surface", "below_mps": 1.252},
+      {"book": "adult", "code": "17190", "met": 3.8, "description": "Walking, 2.8 to 3.4 mph, level, moderate pace, firm surface"}
+    ],
+    "pushing_wheelchair": [
+      {"book": "adult", "code": "11805", "met": 3.8, "description": "Walking, pushing a wheelchair (occupation)"}
+    ],
+    "standing": [
+      {"book": "adult", "code": "07040", "met": 1.3, "description": "Standing quietly (standing in a line)"}
+    ],
+    "sitting": [
+      {"book": "adult", "code": "07021", "met": 1.0, "description": "Sitting quietly, general"}
+    ],
+    "talking": [
+      {"book": "adult", "code": "09050", "met": 1.3, "description": "Standing: talking in person, on the phone, computer, text messaging, writing"}
+    ],
+    "desk_work": [
+      {"book": "adult", "code": "11580", "met": 1.5, "description": "Sitting tasks, light effort (e.g., office work, reading, desk work)"}
+    ],
+    "tidying": [
+      {"book": "adult", "code": "11125", "met": 2.3, "description": "Custodial work, light effort (e.g., cleaning sink and toilet, dusting, light cleaning)"}
+    ],
+    "personal_care": [
+      {"book": "adult", "code": "05200", "met": 3.0, "description": "Elder care, disabled adult, bathing, dressing, moving into and out of bed, only active periods"}
+    ],
+    "hoisting": [
+      {"book": "adult", "code": "05200", "met": 3.0, "description": "Elder care, disabled adult, bathing, dressing, moving into and out of bed, only active periods"}
+    ],
+    "assisting_meal": [
+      {"book": "adult", "code": "05205", "met": 1.8, "description": "Elder care, disabled adult, feeding, combing hair, light effort, only active periods"}
+    ],
+    "serving": [
+      {"book": "adult", "code": "05052", "met": 2.3, "description": "Serving food, setting/cleaning table, implied walking or standing"}
+    ],
+    "checking": [
+      {"book": "adult", "code": "11650", "met": 2.3, "description": "Patient care, healthcare activities"}
+    ],
+    "med_round": [
+      {"book": "adult", "code": "11650", "met": 2.3, "description": "Patient care, healthcare activities"}
+    ],
+    "leading_activity": [
+      {"book": "adult", "code": "21015", "met": 1.8, "description": "Standing, light work (filing, talking, assembling)"}
+    ],
+    "on_break": [
+      {"book": "adult", "code": "13030", "met": 1.5, "description": "Eating, sitting"}
+    ],
+    "handover": [
+      {"book": "adult", "code": "11585", "met": 1.3, "description": "Sitting meetings, light effort, general, and/or with talking involved"}
+    ],
+    "fall_response": [
+      {"book": "adult", "code": "11650", "met": 2.3, "description": "Patient care, healthcare activities"}
+    ],
+    "visiting": [
+      {"book": "adult", "code": "09055", "met": 1.3, "description": "Sitting: talking in person, on the phone, computer, or text messaging, light effort"}
+    ]
+  }
+}

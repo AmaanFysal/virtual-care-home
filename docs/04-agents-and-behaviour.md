@@ -65,6 +65,15 @@ Result over a week on seeds 1 to 8: about 13 requests a day; toileting 45 to 50%
 
 A small hand-rolled runtime: `seq` and `sel` composites with memory (a sequence resumes at the child it was on), and leaves (`act` instant, `cond` check, `until` wait for a condition, custom leaves with their own memory). A tree definition is static TypeScript; each running task stores only plain data (child cursors, per-leaf memory, last node name), so state stays serialisable. The inspector shows the current node.
 
+## Activity and intensity (v1.0-testbed, `src/activity.ts`)
+
+Each person on the map has an activity and its MET, for the world description (docs/03). The activity comes from what the engine already knows, and changes nothing:
+
+- **Residents:** sleeping (asleep in bed, a chair or dozing), lying (in bed awake), on the floor, sitting, standing, a Lounge activity (watching TV, reading, puzzles, chatting), eating (a meal or tea being served), toileting, walking, in their wheelchair (moved by staff), receiving care (passive: lying or sitting quietly), being hoisted.
+- **Staff, visitors and responders:** walking (by speed), pushing a wheelchair, standing, sitting, talking, desk work, tidying, personal care, hoisting, assisting with a meal, serving, checking, a medication round, leading an activity (Bev's session), on a break, handover, fall response, visiting.
+- **MET** from `data/activities.json`, each entry with its book and code: the **2024 Older Adult Compendium** (Willis et al.) for residents where it has an entry (lying, sitting, standing, watching TV, walking with a walker, rollator or stick, or by speed), the **2024 Adult Compendium** (Herrmann et al.) for everyone else and for residents' sleeping, reading, talking, eating and toileting. The first entry that fits wins (by walking aid, speed, or in bed). Intensity follows the Compendium's bands: sedentary up to 1.5, light to 2.9, moderate to 5.9, vigorous from 6.
+- **Caveat:** a hoist transfer is instant in the engine, so hoisting and being hoisted show on that tick only; the care around it shows as personal care.
+
 ## Movement (decided, `packages/sim-engine/src/world/`)
 
 - **Pathfinding:** hand-written A* on the 0.5 m grid (`pathfind.ts`): 8-connected, no corner-cutting, octile heuristic, ties broken by f, then h, then cell index, so paths are reproducible. Chosen over easystar.js, whose async API fights determinism.

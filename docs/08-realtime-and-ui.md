@@ -16,17 +16,18 @@
 
 | Message | When | Contents |
 |---|---|---|
-| `snapshot` | On connect | Clock, floor plan, every person, the last 300 events, and how the run uses the director (mode, scenario, deaths) |
-| `delta` | Up to 10 Hz, only when something changed | Clock, **only the people whose view changed**, the new events |
+| `snapshot` | On connect | Clock, floor plan, every person, the last 300 events, how the run uses the director (mode, scenario, deaths), and the building (doors, windows, weather) |
+| `delta` | Up to 10 Hz, only when something changed | Clock, **only the people whose view changed**, the new events, and `building` with only the doors and windows that changed and the weather when its hour changed |
 | `clock` | After pause, resume or a speed change | Clock (so the UI reflects the server, not a guess) |
-| `detail` | Reply to `inspect` | Person, persona card, schedule (needs, BT node and workload arrive in M4a) |
+| `detail` | Reply to `inspect` | Person, persona card, schedule, needs, BT node, workload, and their activity with MET (v1.0-testbed) |
+| `room` | Reply to `inspect_room` | The room's slice of the world description: doors, windows, who is there with activity and MET, the weather (v1.0-testbed) |
 | `error` | Bad or refused command | Message |
 
 Each person view (`PersonView`) carries their id, kind, name, initials, position, room, posture, badges and task. It also carries two display-only fields for choosing a sprite: `gender`, and `role` (staff role) for staff, agency workers and responders. In deltas it may carry `via`: the turning points (path corners, doorway cells, arrivals, placements) the person passed since the previous update, in order, collected by the server from the engine's per-tick trail.
 
-**Browser → server** (`ClientCommand`): `pause`, `resume`, `step` (only while paused; one 5 s tick), `set_speed` (1, 10, 60, 360), `inspect`, `inject_fall`, and `inject {input, params}` (any director event from the Director panel). Commands are validated by `parseCommand`, and `inject` params by the engine's `validateInput` against the data; unknown or malformed ones get an `error`. Every command is written to the `commands` table; `inject_fall` and `inject` also become logged inputs with `source: "user"` (docs/07).
+**Browser → server** (`ClientCommand`): `pause`, `resume`, `step` (only while paused; one 5 s tick), `set_speed` (1, 10, 60, 360), `inspect`, `inspect_room`, `inject_fall`, and `inject {input, params}` (any director event from the Director panel). Commands are validated by `parseCommand`, and `inject` params by the engine's `validateInput` against the data; unknown or malformed ones get an `error`. Every command is written to the `commands` table; `inject_fall` and `inject` also become logged inputs with `source: "user"` (docs/07).
 
-The server takes `DIRECTOR=off|random|scenario|both`, `SCENARIO=<id or path>` and `DEATHS=off` (docs/10).
+The server takes `DIRECTOR=off|random|scenario|both`, `SCENARIO=<id or path>` and `DEATHS=off` (docs/10), and `START=YYYY-MM-DD` to start at 06:00 on that date (its season's weather, docs/03).
 
 ## Browser (`apps/web`)
 
@@ -34,13 +35,14 @@ The server takes `DIRECTOR=off|random|scenario|both`, `SCENARIO=<id or path>` an
 - **State:** `store.ts` is a pure fold of server messages (`reduce`). No optimistic updates: buttons change only when the server's `clock` message arrives.
 - **Canvas:** LPC pixel art (ADR-0004), described under "Pixel-art map" below. Everything drawn is derived from server state.
 - **Smooth movement:** each update starts a slide from where the person is drawn now, through any turning points not yet reached, through the update's `via` points, to the new position, at a steady pace over the real time until the next update is expected (`5000 / speed` ms, at least 100 ms). Between turning points it's a straight line. The engine moves people in 5-second ticks of up to about 6 m, and one update can span several ticks, so without `via` about half of all moves were drawn cutting a corner through a wall or furniture at every speed. A test replays the server's pacing at 10x, 60x and 360x and checks every drawn segment stays on walkable floor or in a doorway.
-- **Clock bar:** sim date and time, Play/Pause, Step (enabled while paused), 1x/10x/60x/360x, tick counter, connection status.
+- **Clock bar:** sim date and time, the weather (temperature, sky, rain, wind; sun or moon), Play/Pause, Step (enabled while paused), 1x/10x/60x/360x, tick counter, connection status.
 - **Layout:** the canvas on the left; a sidebar with the Notable feed, then Inspector and Director tabs, then the event log. On narrow screens the sidebar goes below the canvas.
 - **Notable feed (Phase 2):** the few things that matter, newest first: falls, 999 and hospital, sick calls and their cover, infection cases, outbreaks declared and over, missed rounds, inputs that couldn't apply, service breaches and hard violations, each with its time and a source tag (director, user). Click a row to select the person. The director's plans for later in the day stay out of it.
 - **Director tab (Phase 2):** the run's director mode, scenario (name and description) and deaths setting; "Trigger now" for a fall (resident, severity), a sick call (staff member, cover), a no-show (rota slot, cover), an infection case (resident or staff member, disease), an illness (resident, kind, mild or severe), end of life (resident, expected days; hidden when deaths are off) or an admission (reviewed cards), a visitor's week off (visitor, cause), a birthday (resident) or a festival (a name, for everyone on the wing), sent as `inject` commands. Inputs are checked against the run's own data, so a resident who moved in can be picked. Nothing changes until the server's events arrive.
-- **Selecting and following:** click a person to select them (yellow ring); click empty floor to clear. Hovering shows a white ring and their name tag. **Follow** zooms in one step and keeps them centred, easing as they move. Drag to pan, scroll to zoom in whole steps. `?select=<id>&follow=1` opens on someone (demos, links), `?view=<roomId>&zoom=<n>` opens on a room, and `?tags=0` hides name tags (screenshots).
-- **Inspector:** name and kind; posture, room (or "In hospital"), current task and behaviour-tree step; needs bars for residents and a workload bar for staff (green, amber over 0.5, red over 0.75); key persona facts (age, conditions, mobility, personal-care rules, check intervals, likes; role and competencies; who a visitor visits and when); today's schedule with past items struck through; for residents on the map, **inject a fall** (minor or serious); their last ten events. Refreshed from the server every second while open.
-- **Event log:** the latest 200 matching events, newest first, filtered by category (All, Care, Meds, Falls, Health, Staff, Visitors, Director, Alerts, Movement; "All" hides movement; Director is everything the director planned or did, Health is illness, hospital, infection, outbreaks, end of life and admissions; Visitors includes weeks off and celebrations), by source (any, engine, director, user), free-text search over the description and names, and "selected" (only the selected person). Rows are colour-coded by category; hard violations and service breaches are highlighted as alerts; non-engine sources are tagged. Clicking a person chip selects them.
+- **Selecting and following:** click a person to select them (yellow ring); click a room's floor to select the room (yellow outline; an en-suite before its bedroom); click outside the wing to clear. Hovering shows a white ring and their name tag. **Follow** zooms in one step and keeps them centred, easing as they move. Drag to pan, scroll to zoom in whole steps. `?select=<id>&follow=1` opens on someone (demos, links), `?view=<roomId>&zoom=<n>` opens on a room, and `?tags=0` hides name tags (screenshots).
+- **Inspector:** name and kind; posture, room (or "In hospital"), current task and behaviour-tree step; needs bars for residents and a workload bar for staff (green, amber over 0.5, red over 0.75); key persona facts (age, conditions, mobility, personal-care rules, check intervals, likes; role and competencies; who a visitor visits and when); today's schedule with past items struck through; for residents on the map, **inject a fall** (minor or serious); their last ten events. Refreshed from the server every second while open. With a person selected it also shows their activity and MET (hover for the Compendium code).
+- **Room inspector (v1.0-testbed):** the room's name, kind, floor area and ceiling height; its doors (open, ajar, closed or locked, and who is holding one open), its windows (open to the restrictor's 100 mm, or closed), who is there (a bedroom includes its en-suite) with their activity and MET, the weather outside, and the room's world description as JSON. Refreshed every second.
+- **Event log:** the latest 200 matching events, newest first, filtered by category (All, Care, Meds, Falls, Health, Staff, Visitors, Building, Director, Alerts, Movement; "All" hides movement; Director is everything the director planned or did, Health is illness, hospital, infection, outbreaks, end of life and admissions; Visitors includes weeks off and celebrations), by source (any, engine, director, user), free-text search over the description and names, and "selected" (only the selected person). Rows are colour-coded by category; hard violations and service breaches are highlighted as alerts; non-engine sources are tagged. Clicking a person chip selects them.
 - Reconnects automatically with backoff if the server restarts.
 
 ## Character sprites
@@ -74,7 +76,7 @@ The server takes `DIRECTOR=off|random|scenario|both`, `SCENARIO=<id or path>` an
   - One mapping serves drawing, click-to-select, hover, Follow and the camera. Clicks pick the front-most drawn figure under the pointer (`figures.pickPerson`), so someone drawn over a wall face is still picked.
 - **Map (`canvas/mapPainter.ts`):** painted once to a canvas from the floor plan:
   - grass, floors (largest room first, so each en-suite's tiles lie over its bedroom), rugs, wall faces (inside faces for rooms, light brick outside), doorways and wall tops;
-  - windows on outer walls (over each bed, otherwise every 3 m);
+  - windows where the floor plan has them (v1.0-testbed): the LPC window on the north wall faces, a small pane on the short front wall;
   - pictures on inner walls, clear of doors;
   - a garden in the space outside the plan, with a path from the exit.
 - **Furniture and decor:** one sprite each, y-sorted with people.
@@ -89,6 +91,8 @@ The server takes `DIRECTOR=off|random|scenario|both`, `SCENARIO=<id or path>` an
   - Each has a soft shadow; the selected person has a yellow ring, the hovered person a white one.
 - **Name tags** (header toggle): initials on the kind colour (the legend), with an icon: meal, drink, meds, care, asleep, notes, chatting, visiting, break, fall (red, only while someone is on the floor, or for the carer with them), unwell (a green virus: ill with an infection, or isolated) or observe (a calm blue eye during a resident's post-fall observations). The inspector shows the infection's status ("Norovirus: symptomatic, isolated in their room"). The icon comes from badges, posture and task. Overlapping tags are nudged apart; with tags off, the selected and hovered person still show theirs.
 - **Night:** a navy overlay (up to 55%) from 22:00 to 06:00, ramping 20:00–22:00 and 06:00–07:30, with warm lights along the corridor and at the bedside lamps.
+
+- **Doors and windows (v1.0-testbed, `canvas/buildingLayer.ts`):** an overlay above the map, redrawn when the building view changes. A closed door is a wooden leaf with panels and a handle across its doorway (a thin leaf in a vertical wall), ajar is a little under half a leaf, locked adds a keypad, open is the bare doorway. An open window shows its lower sash pushed out: a dark gap and a pale edge across the pane. The painter and the overlay share one geometry, so they always line up.
 
 ## To be decided
 

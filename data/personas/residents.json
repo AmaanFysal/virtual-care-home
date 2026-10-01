@@ -306,6 +306,8 @@
       "toileting": "independent",
       "eating_support": "independent",
       "night_wandering": true,
+      "door_at_night": "ajar",
+      "door_at_night_reason": "His card: the corridor light left on at night, and dark rooms upset him",
       "lounge": { "lunch": true, "tea": true, "escort": true, "likes": ["tv", "chatting"] },
       "next_of_kin": "vis_maureen"
     }
@@ -362,6 +364,8 @@
       "bed_bound": true,
       "female_carers_only": false,
       "check_interval_mins": { "day": 60, "night": 60 },
+      "door_at_night": "ajar",
+      "door_at_night_reason": "Best-interests decision (project owner, 2026-10-01): end of life, regular night turns, and he can't call for help",
       "reposition_interval_mins": { "day": 120, "night": 120 },
       "can_request_help": false,
       "toileting": "in_bed",

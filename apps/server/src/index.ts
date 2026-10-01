@@ -2,12 +2,13 @@
 //   PORT (default 8787), SEED (default "1"), RUNS_DIR (default <repo>/runs)
 //   DIRECTOR=off|random|scenario|both (default off), SCENARIO=<id in data/scenarios or a path>,
 //   DEATHS=off for the public demo (docs/10; deaths arrive in sub-milestone c)
+//   START=YYYY-MM-DD starts the run at 06:00 on that date (default Tue 3 Nov 2026), for its season's weather
 
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
-import { DEFAULT_START_T, type DirectorSettings, type DirectorView } from "@vch/shared-types";
+import { DEFAULT_START_T, simTimeAt, type DirectorSettings, type DirectorView } from "@vch/shared-types";
 import { createSim, dataVersion, hashString, validateData, validateScenario } from "@vch/sim-engine";
 import { loadAdmissions, loadDirectorConfig, loadScenario, loadWorldData } from "@vch/sim-engine/load-data";
 import { EventLog } from "./eventlog.js";
@@ -16,6 +17,8 @@ import { Runner, parseCommand } from "./runner.js";
 const port = Number(process.env.PORT ?? 8787);
 const seed = process.env.SEED ?? "1";
 const runsDir = process.env.RUNS_DIR ?? fileURLToPath(new URL("../../../runs/", import.meta.url));
+// START=2027-05-04 starts the run at 06:00 on that date, so the weather is that season's (v1.0-testbed).
+const startT = process.env.START ? simTimeAt(process.env.START) : DEFAULT_START_T;
 
 const data = loadWorldData();
 const errors = validateData(data);
@@ -59,7 +62,7 @@ mkdirSync(runsDir, { recursive: true });
 const log = new EventLog(`${runsDir}/${runId}.sqlite`, {
   runId,
   seed,
-  startT: DEFAULT_START_T,
+  startT,
   dataVersion: dataVersion(data),
   createdWallclock: created.toISOString(),
   director: director
@@ -67,7 +70,7 @@ const log = new EventLog(`${runsDir}/${runId}.sqlite`, {
     : "off",
 });
 // The tuning is passed even with the director off, for manual triggers (a sick call, an infection).
-const sim = createSim({ seed, data, config, admissions, deaths, ...(director ? { director } : {}) });
+const sim = createSim({ seed, data, config, admissions, deaths, startT, ...(director ? { director } : {}) });
 const runner = new Runner(sim, data, log, directorView);
 
 const app = Fastify({ logger: { level: "warn" } });

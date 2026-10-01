@@ -58,8 +58,17 @@ Six **single en-suite bedrooms** (Room 1 to Room 6) sit along the north side, wi
 ## Walls and doors
 
 - **Walls** are line segments along room edges (outer boundary plus internal walls). Doors are gaps on a wall; the renderer draws the wall minus its door gaps.
-- **Doors** have an id, the wall they sit on, the gap (x1, y1, x2, y2) and the two rooms they connect. All doors are 1 m wide except the waiting-area opening (2 m) and the Lounge door (`D_Lounge`, 1.5 m, for zimmer frames and wheelchairs). Door state (open / locked) is not modelled in Phase 1: all internal doors are open; the exit door is where people enter and leave the map.
+- **Doors** have an id, the wall they sit on, the gap (x1, y1, x2, y2) and the two rooms they connect. All doors are 1 m wide except the waiting-area opening (2 m) and the Lounge door (`D_Lounge`, 1.5 m, for zimmer frames and wheelchairs).
 - `ExitDoor` connects Reception to `Outside`. `Outside` is not a room; it is where off-map people are.
+- **Door states (v1.0-testbed).** Each door is open, ajar, closed or locked, set by the building's rules (`src/building.ts`, `data/building.json`). The rules only describe: a closed or locked door never slows or stops anyone (spec decision 2).
+  - **Bedroom doors** are closed during personal care (washing, dressing, pad changes, turns, help with the toilet) and while the resident is settled afterwards. At night, from going to bed until they wake for the day, they follow the card's `care.door_at_night`, closed when absent. Stan's and Dennis's are ajar, each with its reason on the card (`door_at_night_reason`; Dennis's is a best-interests decision). An empty room's door is closed. Otherwise open.
+  - **En-suite doors** are closed while someone is inside, otherwise ajar.
+  - **The day-room doors** (Lounge, waiting area, reception) are fire doors on hold-open devices: open by day, closed 22:00 to 07:00. The staff room is always closed; the exit is locked (keypad).
+  - **Passing through** a closed, ajar or locked door: whoever holds its doorway zone holds it open (`heldBy` in the world description). This isn't logged.
+- **Windows (v1.0-testbed)** sit on outer walls (`windows` in `floorplan.json`, validated: on an outer wall of their room, clear of doors): one over each bed, three along the Lounge's north wall, and one each in the waiting area, reception and staff room on the front wall. The corridor and en-suites have none.
+  - Restrictors limit every window to 100 mm (HSE, `data/building.json`).
+  - A carer airs a resident's room after morning care, and the first member of staff into the Lounge after 10:00 opens one of its windows, if it's daytime, dry, at least 12 °C and the wind below 10 m/s (the weather is London's real hourly data, docs/03). At most once a window a day.
+  - A member of staff in the room closes it once it's been open 30 minutes or the weather turns; bedtime care closes the resident's; any still open at 20:00 are closed on the evening round.
 
 ## Furniture
 

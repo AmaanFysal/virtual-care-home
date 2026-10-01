@@ -1,6 +1,7 @@
 import { formatSimTime, type ClockSpeed } from "@vch/shared-types";
 import { send } from "../net";
 import { useView } from "../store";
+import { weatherLine } from "./Inspector";
 
 const SPEEDS: ClockSpeed[] = [1, 10, 60, 360];
 
@@ -8,10 +9,16 @@ const SPEEDS: ClockSpeed[] = [1, 10, 60, 360];
 export function ClockBar() {
   const clock = useView((s) => s.clock);
   const status = useView((s) => s.status);
+  const weather = useView((s) => s.building?.weather ?? null);
   if (!clock) return <div className="clock">{status === "open" ? "Waiting for the sim..." : "Connecting to the sim server..."}</div>;
   return (
     <div className="clock">
       <span className="time">{formatSimTime(clock.t)}</span>
+      {weather && (
+        <span className="weather" title={`London, hourly data for ${weather.time} GMT (Open-Meteo, ERA5)`}>
+          {weather.isDay ? "☀" : "☾"} {weatherLine(weather)}
+        </span>
+      )}
       {clock.paused ? (
         <button onClick={() => send({ type: "resume" })} title="Play">
           ▶ Play

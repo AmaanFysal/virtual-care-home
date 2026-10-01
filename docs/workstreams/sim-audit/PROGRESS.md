@@ -26,11 +26,11 @@
 
 ## In progress
 
-- PR B, in review.
+- Paused after PR B (merged, #14) on 2026-10-01: the project owner brought the v1.0-testbed forward (`../v1-testbed/spec.md`).
 
 ## Next
 
-- PR C (staffing escalation), after PR B's review.
+- PR C (staffing escalation), once the v1.0-testbed is done.
 
 ## Blockers
 

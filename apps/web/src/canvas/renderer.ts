@@ -7,10 +7,11 @@
 // select, hover, Follow and the camera.
 
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, TextureSource } from "pixi.js";
-import { timeOfDay, type ClockView, type FloorPlan, type PersonKind, type PersonView } from "@vch/shared-types";
+import { timeOfDay, type BuildingView, type ClockView, type FloorPlan, type PersonKind, type PersonView } from "@vch/shared-types";
 import { spriteFor, sprites, type SpriteEntry } from "../sprites";
 import { makeBanding, type Banding } from "./banding";
 import { SIT_DY, activityIcon, directionOf, facingFixture, figureBox, makeSlide, pickPerson, seatAt, seatFacings, slideAt, slideRest, type Dir, type FigureBox, type IconName, type Slide } from "./figures";
+import { drawBuilding } from "./buildingLayer";
 import { paintMap, type Images } from "./mapPainter";
 import tileset from "./tileset.json";
 
@@ -70,6 +71,12 @@ export class WingRenderer {
   /** Everything in world pixels, scaled by a whole-number zoom. */
   private camera = new Container();
   private mapLayer = new Container();
+  /** Door leaves and open windows, from the server's building view (v1.0-testbed). */
+  private buildingLayer = new Graphics();
+  /** An outline round the selected room. */
+  private roomOutline = new Graphics();
+  private building: BuildingView | null = null;
+  private selectedRoomId: string | null = null;
   private sorted = new Container();
   private night = new Graphics();
   private lights = new Graphics();
@@ -100,7 +107,11 @@ export class WingRenderer {
   private destroyed = false;
   private initialised = false;
 
-  constructor(private onSelect: (id: string | null) => void) {}
+  constructor(
+    private onSelect: (id: string | null) => void,
+    /** A click on empty floor selects the room under it (v1.0-testbed). */
+    private onSelectRoom: (roomId: string | null) => void = () => {},
+  ) {}
 
   async init(host: HTMLElement): Promise<void> {
     TextureSource.defaultOptions.scaleMode = "nearest";
@@ -119,7 +130,7 @@ export class WingRenderer {
     this.initialised = true;
     host.appendChild(this.app.canvas);
     this.sorted.sortableChildren = true;
-    this.camera.addChild(this.mapLayer, this.sorted, this.night, this.lights, this.labels, this.tags);
+    this.camera.addChild(this.mapLayer, this.buildingLayer, this.roomOutline, this.sorted, this.night, this.lights, this.labels, this.tags);
     this.app.stage.addChild(this.camera);
     // Picking is done here, on the drawn figures (figures.pickPerson), not by Pixi's hit testing.
     this.camera.eventMode = "none";
@@ -165,6 +176,43 @@ export class WingRenderer {
 
   setSelected(id: string | null): void {
     this.selectedId = id;
+  }
+
+  /** Doors and windows as the server last sent them. */
+  setBuilding(building: BuildingView | null): void {
+    this.building = building;
+    this.drawBuildingLayer();
+  }
+
+  setSelectedRoom(roomId: string | null): void {
+    this.selectedRoomId = roomId;
+    this.drawRoomOutline();
+  }
+
+  private drawBuildingLayer(): void {
+    if (!this.initialised || !this.plan || !this.banding || !this.building) return;
+    drawBuilding(this.buildingLayer, this.plan, this.banding, this.building);
+  }
+
+  private drawRoomOutline(): void {
+    this.roomOutline.clear();
+    const room = this.plan?.rooms.find((r) => r.id === this.selectedRoomId);
+    if (!room || !this.banding) return;
+    const b = this.banding;
+    const x0 = b.x(room.rect.x), x1 = b.x(room.rect.x + room.rect.w);
+    // The room's floor as the painter draws it: shifted by the wall bands above, not stretched.
+    const y0 = room.rect.y * 32 + b.offsetAt(room.rect.y);
+    const y1 = (room.rect.y + room.rect.h) * 32 + b.offsetAt(room.rect.y + room.rect.h - 1e-6);
+    this.roomOutline.rect(x0 + 1, y0 + 1, x1 - x0 - 2, y1 - y0 - 2).stroke({ width: 2, color: 0xffd43b, alpha: 0.9 });
+  }
+
+  /** The room under a point on the map: an en-suite before the bedroom round it. */
+  private roomAt(sx: number, sy: number): string | null {
+    if (!this.plan || !this.banding) return null;
+    const m = this.banding.toWorld(this.toWorldPx(sx, sy));
+    const hits = this.plan.rooms.filter((r) => m.x >= r.rect.x && m.x <= r.rect.x + r.rect.w && m.y >= r.rect.y && m.y <= r.rect.y + r.rect.h);
+    hits.sort((a, b) => a.rect.w * a.rect.h - b.rect.w * b.rect.h);
+    return hits[0]?.id ?? null;
   }
 
   /** Takes the latest people from the server and starts interpolating towards them. */
@@ -252,6 +300,8 @@ export class WingRenderer {
       this.sorted.addChild(s);
     }
     this.drawRoomLabels();
+    this.drawBuildingLayer();
+    this.drawRoomOutline();
     this.fit();
     this.applyPendingView();
   }
@@ -588,7 +638,13 @@ export class WingRenderer {
     const drag = this.drag;
     this.drag = null;
     if (drag?.moved) return;
-    this.onSelect(this.pick(sx, sy));
+    const person = this.pick(sx, sy);
+    if (person) this.onSelect(person);
+    else {
+      const room = this.roomAt(sx, sy);
+      if (room) this.onSelectRoom(room);
+      else this.onSelect(null);
+    }
   }
 
   private wheel(e: WheelEvent): void {

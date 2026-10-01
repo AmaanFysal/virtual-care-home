@@ -74,6 +74,20 @@
     {"id": "D_Exit", "wall": "W_South", "x1": 10.5, "y1": 13, "x2": 11.5, "y2": 13, "rooms": ["Reception", "Outside"]},
     {"id": "D_Waiting_Reception", "wall": "W_Waiting_Reception", "x1": 8, "y1": 11.5, "x2": 8, "y2": 12.5, "rooms": ["WaitingArea", "Reception"]}
   ],
+  "windows": [
+    {"id": "Window_Room1", "room": "Room1", "wall": "W_North", "x1": 1.4, "y1": 0, "x2": 2.6, "y2": 0},
+    {"id": "Window_Room2", "room": "Room2", "wall": "W_North", "x1": 5.4, "y1": 0, "x2": 6.6, "y2": 0},
+    {"id": "Window_Room3", "room": "Room3", "wall": "W_North", "x1": 9.4, "y1": 0, "x2": 10.6, "y2": 0},
+    {"id": "Window_Room4", "room": "Room4", "wall": "W_North", "x1": 13.4, "y1": 0, "x2": 14.6, "y2": 0},
+    {"id": "Window_Room5", "room": "Room5", "wall": "W_North", "x1": 17.4, "y1": 0, "x2": 18.6, "y2": 0},
+    {"id": "Window_Room6", "room": "Room6", "wall": "W_North", "x1": 21.4, "y1": 0, "x2": 22.6, "y2": 0},
+    {"id": "Window_Lounge1", "room": "Lounge", "wall": "W_North", "x1": 24.75, "y1": 0, "x2": 26.25, "y2": 0},
+    {"id": "Window_Lounge2", "room": "Lounge", "wall": "W_North", "x1": 28, "y1": 0, "x2": 29.5, "y2": 0},
+    {"id": "Window_Lounge3", "room": "Lounge", "wall": "W_North", "x1": 31.25, "y1": 0, "x2": 32.75, "y2": 0},
+    {"id": "Window_WaitingArea", "room": "WaitingArea", "wall": "W_South", "x1": 3.4, "y1": 13, "x2": 4.6, "y2": 13},
+    {"id": "Window_Reception", "room": "Reception", "wall": "W_South", "x1": 12.15, "y1": 13, "x2": 13.35, "y2": 13},
+    {"id": "Window_StaffRoom", "room": "StaffRoom", "wall": "W_South", "x1": 16.4, "y1": 13, "x2": 17.6, "y2": 13}
+  ],
   "furniture": [
     {"id": "Room1.Bed.bed", "kind": "bed", "room": "Room1", "rect": {"x": 1.5, "y": 0, "w": 1, "h": 2}, "blocks": true, "label": "Bed"},
     {"id": "Room1.Bed.chair", "kind": "chair", "room": "Room1", "rect": {"x": 2.5, "y": 2.5, "w": 0.5, "h": 0.5}, "blocks": false},

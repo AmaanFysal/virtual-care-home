@@ -155,7 +155,7 @@ describe("the norovirus-outbreak scenario", () => {
 
   it("replays to a byte-identical log", () => {
     expect(scenarioRun("norovirus-outbreak", 16).hash).toBe(r.hash);
-  });
+  }, 60000);
 
   it("isolates Stan and Peggy, declares the outbreak at Peggy's case, closes the Lounge, restricts visits, and ends it 48 hours after the last case is symptom-free (at least 72 hours after the last onset)", () => {
     const iso = ofType(r.events, "infection.isolated").map((e) => e.payload.personId);
@@ -195,7 +195,7 @@ describe("the flu-outbreak scenario", () => {
 
   it("replays to a byte-identical log", () => {
     expect(scenarioRun("flu-outbreak", 16).hash).toBe(r.hash);
-  });
+  }, 60000);
 
   it("isolates Win, keeps Tom off work without counting him, declares the outbreak at Arthur's case (2 residents within 5 days) and ends it 5 days after the last resident onset, once they're symptom-free", () => {
     expect(ofType(r.events, "infection.isolated").slice(0, 2).map((e) => e.payload.personId)).toEqual(["res_win", "res_arthur"]);

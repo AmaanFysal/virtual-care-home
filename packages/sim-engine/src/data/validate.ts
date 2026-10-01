@@ -3,6 +3,8 @@
 
 import {
   AGENCY,
+  OTHER_ACTIVITIES,
+  RESIDENT_ACTIVITIES,
   WEEKDAYS,
   clockToSeconds,
   type Competency,
@@ -38,6 +40,7 @@ export function validateData(data: WorldData): string[] {
   validateFloorPlan(data.floorplan, errors);
   validatePeople(data, errors);
   validateRota(data, errors);
+  validateBuilding(data, errors);
   return errors;
 }
 
@@ -82,6 +85,7 @@ function validateFloorPlan(fp: FloorPlan, errors: string[]): void {
     ["room", fp.rooms],
     ["wall", fp.walls],
     ["door", fp.doors],
+    ["window", fp.windows],
     ["furniture", fp.furniture],
     ["point", fp.points],
   ] as const) {
@@ -455,4 +459,128 @@ function validateRota(data: WorldData, errors: string[]): void {
       if (nightCarer !== AGENCY && nextDay.includes(nightCarer)) errors.push(`${where}: ${nightCarer} works a night then a day shift`);
     }
   });
+}
+
+// ---------------------------------------------------------------- the building (v1.0-testbed)
+
+function daysIn(year: number, month: number): number {
+  if (month === 2) return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28;
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+const WEATHER_RANGES: Record<string, [number, number]> = {
+  tempC: [-40, 50],
+  humidityPct: [0, 100],
+  dewPointC: [-50, 40],
+  precipMm: [0, 200],
+  cloudPct: [0, 100],
+  windMps: [0, 70],
+  windDirDeg: [0, 360],
+  shortwaveWm2: [0, 1400],
+  pressureHpa: [850, 1100],
+};
+
+function validateBuilding(data: WorldData, errors: string[]): void {
+  const fp = data.floorplan;
+  const rooms = new Map(fp.rooms.map((r) => [r.id, r]));
+  const walls = new Map(fp.walls.map((w) => [w.id, w]));
+  const inAnyRoom = (x: number, y: number) => fp.rooms.some((r) => inside(x, y, r.rect));
+
+  for (const w of fp.windows) {
+    const room = rooms.get(w.room);
+    const wall = walls.get(w.wall);
+    if (!room) errors.push(`floorplan: window ${w.id} is in unknown room "${w.room}"`);
+    if (!wall) errors.push(`floorplan: window ${w.id} is on unknown wall "${w.wall}"`);
+    if (!room || !wall) continue;
+    const horizontal = Math.abs(w.y1 - w.y2) < EPS;
+    const span = { x: Math.min(w.x1, w.x2), y: Math.min(w.y1, w.y2), w: Math.abs(w.x2 - w.x1), h: Math.abs(w.y2 - w.y1) };
+    const wallRect = { x: Math.min(wall.x1, wall.x2), y: Math.min(wall.y1, wall.y2), w: Math.abs(wall.x2 - wall.x1), h: Math.abs(wall.y2 - wall.y1) };
+    if (!rectWithin(span, wallRect)) errors.push(`floorplan: window ${w.id} does not lie on wall ${w.wall}`);
+    if (!onRectEdge({ ...w, id: w.id, wall: w.wall, rooms: [w.room, "Outside"] }, room.rect)) errors.push(`floorplan: window ${w.id} is not on the edge of ${w.room}`);
+    // An outer wall: just beyond the window, away from its room, there's no room.
+    const mx = (w.x1 + w.x2) / 2;
+    const my = (w.y1 + w.y2) / 2;
+    const away = horizontal ? (my <= room.rect.y + EPS ? -0.25 : 0.25) : mx <= room.rect.x + EPS ? -0.25 : 0.25;
+    if (horizontal ? inAnyRoom(mx, my + away) : inAnyRoom(mx + away, my)) errors.push(`floorplan: window ${w.id} isn't on an outer wall`);
+    for (const d of fp.doors.filter((d) => d.wall === w.wall)) {
+      const overlap = horizontal
+        ? Math.min(Math.max(d.x1, d.x2), Math.max(w.x1, w.x2)) - Math.max(Math.min(d.x1, d.x2), Math.min(w.x1, w.x2))
+        : Math.min(Math.max(d.y1, d.y2), Math.max(w.y1, w.y2)) - Math.max(Math.min(d.y1, d.y2), Math.min(w.y1, w.y2));
+      if (overlap > EPS) errors.push(`floorplan: window ${w.id} overlaps door ${d.id}`);
+    }
+  }
+
+  // Every door is a bedroom or en-suite door, or in exactly one list in data/building.json.
+  const b = data.building;
+  const kind = (id: string) => rooms.get(id)?.kind;
+  const lists: [string, string[]][] = [["held_open_by_day", b.doors.held_open_by_day], ["closed", b.doors.closed], ["locked", b.doors.locked]];
+  for (const [name, ids] of lists) for (const id of ids) if (!fp.doors.some((d) => d.id === id)) errors.push(`building: ${name} lists unknown door "${id}"`);
+  for (const d of fp.doors) {
+    const own = d.rooms.some((r) => kind(r) === "ensuite") || (d.rooms.some((r) => kind(r) === "bedroom") && d.rooms.includes("Corridor"));
+    const listed = lists.filter(([, ids]) => ids.includes(d.id)).length;
+    if (!own && listed !== 1) errors.push(`building: door ${d.id} needs exactly one rule in data/building.json (held_open_by_day, closed or locked), found ${listed}`);
+    if (own && listed > 0) errors.push(`building: door ${d.id} is a bedroom or en-suite door, which has its own rules; take it out of data/building.json`);
+  }
+  for (const c of b.doors.closed_overnight) checkClock(c, "building: doors.closed_overnight", errors);
+  for (const c of [b.windows.close_by, b.windows.lounge_from]) checkClock(c, "building: windows", errors);
+  if (!(b.windows.max_opening_mm > 0)) errors.push("building: windows.max_opening_mm must be more than 0");
+  if (!(b.windows.close_after_mins > 0)) errors.push("building: windows.close_after_mins must be more than 0");
+
+  // Each card's night-time door: a reason whenever it isn't the default (closed).
+  for (const r of data.residents) {
+    const pref = r.care.door_at_night;
+    if (pref !== undefined && !["open", "ajar", "closed"].includes(pref)) errors.push(`${r.id}: door_at_night must be open, ajar or closed`);
+    if (pref && pref !== "closed" && !r.care.door_at_night_reason) errors.push(`${r.id}: door_at_night "${pref}" needs a door_at_night_reason`);
+  }
+
+  // Every activity the engine can give has an entry, ending with one that always fits.
+  const groups: [string, readonly string[], Record<string, unknown[]>][] = [
+    ["resident", RESIDENT_ACTIVITIES, data.activities.resident],
+    ["other", OTHER_ACTIVITIES, data.activities.other],
+  ];
+  for (const [group, needed, table] of groups) {
+    for (const a of needed) {
+      const entries = data.activities[group as "resident" | "other"][a];
+      if (!entries || entries.length === 0) {
+        errors.push(`activities: no ${group} entry for "${a}"`);
+        continue;
+      }
+      const last = entries[entries.length - 1]!;
+      if (last.aid !== undefined || last.below_mps !== undefined || last.in_bed !== undefined) errors.push(`activities: ${group} "${a}" needs a last entry with no conditions`);
+      for (const e of entries) if (!(e.met > 0) || !e.code || !["older", "adult"].includes(e.book)) errors.push(`activities: ${group} "${a}" has an entry without a book, code and MET`);
+    }
+    for (const a of Object.keys(table)) if (!needed.includes(a)) errors.push(`activities: ${group} "${a}" isn't an activity the engine gives`);
+  }
+
+  // The weather: every hour, in order, from `from` 00:00 to `to` 23:00, covering a whole year.
+  const w = data.weather;
+  if (!w) return;
+  let [y, m, d] = w.from.split("-").map(Number) as [number, number, number];
+  let h = 0;
+  const seen = new Set<string>();
+  for (const [i, hour] of w.hours.entries()) {
+    const expected = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}:00`;
+    if (hour.time !== expected) {
+      errors.push(`weather: hour ${i} is ${hour.time}, expected ${expected}`);
+      return;
+    }
+    seen.add(hour.time.slice(5, 10));
+    for (const [field, [lo, hi]] of Object.entries(WEATHER_RANGES)) {
+      const v = (hour as unknown as Record<string, number>)[field];
+      if (typeof v !== "number" || !Number.isFinite(v) || v < lo || v > hi) errors.push(`weather: ${hour.time} ${field} ${v} is out of range ${lo} to ${hi}`);
+    }
+    h += 1;
+    if (h === 24) {
+      h = 0;
+      d += 1;
+      if (d > daysIn(y, m)) (d = 1), (m += 1);
+      if (m > 12) (m = 1), (y += 1);
+    }
+  }
+  if (w.hours.at(-1)?.time !== `${w.to}T23:00`) errors.push(`weather: the last hour should be ${w.to}T23:00`);
+  for (let month = 1; month <= 12; month++)
+    for (let day = 1; day <= daysIn(2025, month); day++) {
+      const key = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      if (!seen.has(key)) errors.push(`weather: no hours for ${key}: the data must cover a whole year`);
+    }
 }

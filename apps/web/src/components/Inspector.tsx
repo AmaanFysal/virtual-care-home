@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { formatSimTime, type NeedName, type PersonView } from "@vch/shared-types";
+import { formatSimTime, type NeedName, type PersonActivity, type PersonView, type RoomDetail } from "@vch/shared-types";
 import { send } from "../net";
-import { select } from "../selection";
+import { select, selectRoom } from "../selection";
 import { useView } from "../store";
 import { describeEvent } from "./EventLog";
 
@@ -65,8 +65,96 @@ function Persona({ persona }: { persona: Record<string, unknown> }) {
   );
 }
 
-/** Details of the selected person, refreshed from the server every second. */
+/** "personal care · 3.0 MET, moderate". */
+function activityLine(a: PersonActivity): string {
+  return `${a.activity.replace(/_/g, " ")} · ${a.met.toFixed(1)} MET, ${a.intensity}`;
+}
+
+/** Outdoor weather in a few words: "13 °C, overcast, light rain". */
+export function weatherLine(w: NonNullable<RoomDetail["weather"]>): string {
+  const sky = w.cloudPct >= 80 ? "overcast" : w.cloudPct >= 40 ? "cloudy" : w.isDay ? "clear" : "clear night";
+  const rain = w.precipMm >= 2.5 ? ", heavy rain" : w.precipMm > 0 ? ", light rain" : "";
+  return `${Math.round(w.tempC)} °C, ${sky}${rain}, wind ${w.windMps.toFixed(1)} m/s`;
+}
+
+/** A room's slice of the world description (v1.0-testbed), refreshed every second. */
+function RoomInspector({ roomId }: { roomId: string }) {
+  const room = useView((s) => s.roomDetail);
+  const floorplan = useView((s) => s.floorplan);
+  const people = useView((s) => s.people);
+  useEffect(() => {
+    const timer = setInterval(() => send({ type: "inspect_room", roomId }), 1000);
+    return () => clearInterval(timer);
+  }, [roomId]);
+  const name = (id: string) => floorplan?.rooms.find((r) => r.id === id)?.name ?? (id === "Outside" ? "outside" : id);
+  if (!room) return <section className="inspector empty">Loading {name(roomId)}...</section>;
+  return (
+    <section className="inspector room">
+      <header>
+        <span className="dot room" />
+        <div>
+          <h2>{room.name}</h2>
+          <span className="muted">
+            {room.kind} · {room.areaM2} m² · ceiling {room.ceilingM} m
+          </span>
+        </div>
+        <button onClick={() => selectRoom(null)} title="Close">
+          ✕
+        </button>
+      </header>
+      <h3>Doors</h3>
+      <ul className="building">
+        {room.doors.map((d) => (
+          <li key={d.doorId}>
+            <span className={`state ${d.state}`}>{d.state}</span> to {name(d.rooms.find((r) => r !== roomId)!)}
+            {d.heldBy && <span className="muted"> · held by {people[d.heldBy]?.name ?? d.heldBy}</span>}
+          </li>
+        ))}
+      </ul>
+      <h3>Windows</h3>
+      <ul className="building">
+        {room.windows.map((w) => (
+          <li key={w.windowId}>
+            <span className={`state ${w.state}`}>{w.state}</span> {w.state === "open" ? `${w.openingMm} mm (restrictor)` : ""}
+          </li>
+        ))}
+        {room.windows.length === 0 && <li className="muted">None.</li>}
+      </ul>
+      <h3>People</h3>
+      <ul className="building">
+        {room.people.map((p) => (
+          <li key={p.personId}>
+            <button className="link" onClick={() => select(p.personId)}>
+              {p.name}
+            </button>{" "}
+            <span className="muted">
+              {activityLine(p)}
+              {p.roomId !== room.roomId && ` (in the ${name(p.roomId!).replace(`${room.name} `, "")})`}
+            </span>
+          </li>
+        ))}
+        {room.people.length === 0 && <li className="muted">Nobody.</li>}
+      </ul>
+      {room.weather && (
+        <p className="status">
+          Outside: {weatherLine(room.weather)} <span className="muted">({room.weather.time} GMT data)</span>
+        </p>
+      )}
+      <details className="json">
+        <summary>World description (JSON)</summary>
+        <pre>{JSON.stringify(room, null, 2)}</pre>
+      </details>
+    </section>
+  );
+}
+
+/** Details of the selected person or room, refreshed from the server every second. */
 export function Inspector() {
+  const selectedRoomId = useView((s) => s.selectedRoomId);
+  return selectedRoomId ? <RoomInspector roomId={selectedRoomId} /> : <PersonInspector />;
+}
+
+function PersonInspector() {
   const selectedId = useView((s) => s.selectedId);
   const person = useView((s) => (s.selectedId ? s.people[s.selectedId] : undefined));
   const detail = useView((s) => s.detail);
@@ -80,7 +168,7 @@ export function Inspector() {
     return () => clearInterval(timer);
   }, [selectedId]);
 
-  if (!person) return <section className="inspector empty">Click a person on the plan to inspect them.</section>;
+  if (!person) return <section className="inspector empty">Click a person on the plan to inspect them, or a room's floor to see its doors, windows and who is there.</section>;
   const recent = events.filter((e) => e.actors.includes(person.id)).slice(-10).reverse();
   return (
     <section className="inspector">
@@ -102,6 +190,11 @@ export function Inspector() {
         {detail?.currentTask && <> · {detail.currentTask}</>}
         {detail?.btNode && <span className="muted"> ({detail.btNode})</span>}
       </p>
+      {detail?.activity && (
+        <p className="status activity" title={`Compendium of Physical Activities 2024 (${detail.activity.book === "older" ? "Older Adult" : "Adult"}), code ${detail.activity.code}`}>
+          {activityLine(detail.activity)}
+        </p>
+      )}
       {person.infection && (
         <p className="infection">
           {person.infection.disease === "flu" ? "Flu" : "Norovirus"}: {person.infection.status}
