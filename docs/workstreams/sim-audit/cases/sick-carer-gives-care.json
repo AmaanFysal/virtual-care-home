@@ -1,0 +1,38 @@
+{
+  "id": "audit-sick-carer-gives-care",
+  "name": "A carer with norovirus gives bedtime care",
+  "description": "Dennis has norovirus; Florin catches it and gives Arthur's bedtime care after his symptoms start. (Fuzz case 00049, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 130380,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_dennis",
+        "disease": "norovirus"
+      }
+    },
+    {
+      "t": 248280,
+      "type": "inject_fall",
+      "params": {
+        "residentId": "res_arthur",
+        "severity": "minor"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U11"
+    ],
+    "rules": [
+      "sick_staff_giving_care@stf_florin"
+    ],
+    "expect": "fails",
+    "fixIn": "B",
+    "seed": 19,
+    "hours": 42,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 19 --hours 42 --scenario ../../docs/workstreams/sim-audit/cases/sick-carer-gives-care.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/sick-carer-gives-care.json"
+  }
+}

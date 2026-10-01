@@ -1,0 +1,45 @@
+{
+  "id": "audit-outbreak-admission",
+  "name": "Kamala moves in during norovirus",
+  "description": "Raj's 2-day decline begins on Tuesday; Arthur brings norovirus in at midnight and it spreads into an outbreak; Raj dies and Kamala moves into his room on Friday at 15:00, during the outbreak. (Fuzz case 00755, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 128700,
+      "type": "end_of_life_start",
+      "params": {
+        "residentId": "res_raj",
+        "expectedDays": 2
+      }
+    },
+    {
+      "t": 172800,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_arthur",
+        "disease": "norovirus"
+      }
+    },
+    {
+      "t": 399600,
+      "type": "admission",
+      "params": {
+        "cardId": "adm_kamala"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U10"
+    ],
+    "rules": [
+      "admission_during_outbreak"
+    ],
+    "expect": "fails",
+    "fixIn": "E",
+    "seed": 28,
+    "hours": 82,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 28 --hours 82 --scenario ../../docs/workstreams/sim-audit/cases/outbreak-admission.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/outbreak-admission.json"
+  }
+}

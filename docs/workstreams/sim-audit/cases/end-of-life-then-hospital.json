@@ -1,0 +1,40 @@
+{
+  "id": "audit-end-of-life-then-hospital",
+  "name": "An end-of-life decline with an ambulance already called",
+  "description": "Raj has a severe UTI; the GP sends him in and an ambulance is called at 12:51. His planned end-of-life decline (2 days) begins at 13:10, while the ambulance is on its way. He is taken to hospital anyway at 14:10 (against a planned death at home); his expected death passes while he's away, and he dies within minutes of coming back.",
+  "random": false,
+  "events": [
+    {
+      "t": 118800,
+      "type": "resident_illness",
+      "params": {
+        "residentId": "res_raj",
+        "kind": "uti",
+        "severity": "severe"
+      }
+    },
+    {
+      "t": 133800,
+      "type": "end_of_life_start",
+      "params": {
+        "residentId": "res_raj",
+        "expectedDays": 2
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "R2"
+    ],
+    "rules": [
+      "eol_conveyed_to_hospital@res_raj",
+      "died_on_return@res_raj"
+    ],
+    "expect": "fails",
+    "fixIn": "E",
+    "seed": 2,
+    "hours": 288,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 2 --hours 288 --scenario ../../docs/workstreams/sim-audit/cases/end-of-life-then-hospital.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/end-of-life-then-hospital.json"
+  }
+}

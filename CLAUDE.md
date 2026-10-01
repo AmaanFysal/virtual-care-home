@@ -18,6 +18,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm --filter @vch/sim-engine sim --director random --hours 672 --seeds 1-8 --report`: scenario director on (`random`, `scenario`, `both`; `--scenario <id>` from `data/scenarios/`), per-day report with totals
 - `pnpm --filter @vch/sim-engine director-rates`: realised director rates against the base rates, and what the pacing caps hold back
 - `pnpm --filter @vch/sim-engine tuning-review [--rule <name>|--off a,b] [--seeds 1-8]`: each tuning rule (`src/tuning.ts`) switched off against the calm-week baseline (docs/12)
+- `pnpm --filter @vch/sim-engine fuzz --cases 3000 --workers 10` (or `--baseline`, `--replay <case.json>`, `--dump <i>`): the simulation audit's fuzz runner, every tick checked by the safety monitor (`src/safety.ts`); report in `docs/workstreams/sim-audit/report.md`
 - `DIRECTOR=random pnpm dev` (or `SCENARIO=short-staffed-weekend pnpm dev`): run the server with the director on; `DEATHS=off` for the public demo
 
 ## Layout
@@ -67,7 +68,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 | Tests, invariants, golden scenarios | `docs/11-testing.md` |
 | Risks, caveats, tech debt | `docs/12-risks-and-debt.md` |
 | Background and evidence | `docs/research/` (plan-v2.md wins over v1) |
-| Current work | `docs/workstreams/phase-2-director/` (Phase 1 history: `docs/workstreams/phase-1-rules-mvp/`) |
+| Current work | `docs/workstreams/sim-audit/` (the full scenario audit and its fixes; history: `docs/workstreams/phase-2-director/`, `docs/workstreams/phase-1-rules-mvp/`) |
 
 Path-scoped rules in `.claude/rules/` load automatically for `packages/sim-engine/**` and `apps/web/**`.
 

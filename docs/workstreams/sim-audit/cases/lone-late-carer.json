@@ -1,0 +1,32 @@
+{
+  "id": "audit-lone-late-carer",
+  "name": "A late carer who doesn't turn up, with no cover",
+  "description": "Thursday's late CA (Lucy) doesn't come and nobody covers: Kasia is the only carer from 19:30. She reserves Dennis's two-person turn, which nobody can partner, and the reservation keeps her off Peggy's toilet request for 95 minutes; she gets no break; Raj's bedtime hoist and Dennis's turn wait with nobody sent for; overnight nobody owns Dennis's missed evening turn and he goes about 6.5 hours unturned.",
+  "random": false,
+  "events": [
+    {
+      "t": 299400,
+      "type": "shift_no_show",
+      "params": {
+        "slot": "late.ca",
+        "cover": "none"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U3",
+      "R5"
+    ],
+    "rules": [
+      "lone_carer_two_person_due",
+      "no_break"
+    ],
+    "expect": "fails",
+    "fixIn": "C",
+    "seed": 3,
+    "hours": 72,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 3 --hours 72 --scenario ../../docs/workstreams/sim-audit/cases/lone-late-carer.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/lone-late-carer.json"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "audit-outbreak-eol-visits",
+  "name": "A flu outbreak while Win is dying",
+  "description": "Win and Arthur have flu (an outbreak); Win's decline begins and her family's visits are cancelled every day of the outbreak. (Fuzz case 00130, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 139500,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_win",
+        "disease": "flu"
+      }
+    },
+    {
+      "t": 178980,
+      "type": "infection_case",
+      "params": {
+        "personId": "res_arthur",
+        "disease": "flu"
+      }
+    },
+    {
+      "t": 423000,
+      "type": "end_of_life_start",
+      "params": {
+        "residentId": "res_win",
+        "expectedDays": 3
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U9"
+    ],
+    "rules": [
+      "eol_visit_cancelled"
+    ],
+    "expect": "fails",
+    "fixIn": "E",
+    "seed": 5,
+    "hours": 91,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 5 --hours 91 --scenario ../../docs/workstreams/sim-audit/cases/outbreak-eol-visits.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/outbreak-eol-visits.json"
+  }
+}

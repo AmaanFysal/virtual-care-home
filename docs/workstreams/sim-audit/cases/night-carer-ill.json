@@ -1,0 +1,30 @@
+{
+  "id": "audit-night-carer-ill",
+  "name": "The night carer taken ill",
+  "description": "Florin gets flu symptoms on his night shift and stays (working) until cover arrives. (Fuzz case 00055, shrunk.)",
+  "random": false,
+  "events": [
+    {
+      "t": 165600,
+      "type": "infection_case",
+      "params": {
+        "personId": "stf_florin",
+        "disease": "flu"
+      }
+    }
+  ],
+  "audit": {
+    "gaps": [
+      "U11"
+    ],
+    "rules": [
+      "sick_staff_on_wing@stf_florin"
+    ],
+    "expect": "fails",
+    "fixIn": "B",
+    "seed": 21,
+    "hours": 19,
+    "command": "pnpm --filter @vch/sim-engine sim --seed 21 --hours 19 --scenario ../../docs/workstreams/sim-audit/cases/night-carer-ill.json --report",
+    "replay": "pnpm --filter @vch/sim-engine fuzz --replay ../../docs/workstreams/sim-audit/cases/night-carer-ill.json"
+  }
+}

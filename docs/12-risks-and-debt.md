@@ -52,6 +52,19 @@
 - **Director-off identity is a fixture.** `test/fixtures/director-off-hashes.json` holds the main-branch fingerprints (re-recorded on main e44f98f on 2026-09-30 with `sim.started`'s `dataVersion` blanked, when Nikos was added to `rota.json`; every other byte of all 8 weeks matched main; re-recorded again for the tuning review, which changes director-off runs on purpose). Any deliberate change to director-off behaviour must re-record it, with the reason in the commit.
 
 
+## Findings from the full scenario audit (2026-10-01)
+
+The audit (docs/workstreams/sim-audit/report.md) found **45 gaps where features combine: 19 unsafe, 19 unrealistic, 7 cosmetic**, each with a named scenario in `docs/workstreams/sim-audit/cases/`. They are open until fixed in the workstream's PRs B to F (plan.md), on the project owner's decisions (ADR-0007). The worst:
+
+- a fall while an ambulance is on its way for an illness leaves the resident on the floor for good (U1);
+- cover can leave no woman on shift, and female-only care then waits hours with nothing to escalate it by day (U2);
+- a lone carer is held off urgent work by a two-person reservation nobody can partner, and an evening turn missed before the night shift belongs to nobody (U3, U4);
+- the nurse waits with the first serious fall, so others wait up to 2 hours for assessment and 999 (U17);
+- a resident on the floor during a round gets no dose and nothing is recorded (U5);
+- every calm day: diet texture and Win's fluid limit ignored, visitors in the en-suite, escorts walking ahead (U13 to U16).
+
+Also: docs/11 lists `meds_trained` and `fall_moved_before_assessment` as engine invariants, but `checkInvariants` has neither (the safety monitor does), and the engine's `two_person` check fires falsely for two-person walks (C4, C5).
+
 ## Tuning debt: the review (sub-milestone e, 2026-09-30)
 
 In the Lounge and audit-fixes round (M8), narrow rules were added, beyond what the user asked for, to keep service breaches at zero on every no-fall week. The user's decision since: occasional breaches on normal days are acceptable and realistic, so no more rules like these. The tuning review switched each off on its own (`createSim({ tuning })`, `scripts/tuning-review.ts`) against the calm-week baseline (seeds 1 to 8, a week each, director off), with a rule kept only if removing it pushed a week over 2 breaches. The removals were then combined and checked on held-out seeds 9 to 16, and three more measures showed things the calm week can't: the same weeks with Kamala in Raj's room (a resident mix the director produces), short-staffed days (4 weeks of the random director against main), and the audit's food and drink flags. Full tables and the rounds: `docs/workstreams/phase-2-director/reports/e-tuning-review.txt`.
