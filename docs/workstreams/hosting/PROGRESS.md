@@ -43,7 +43,7 @@ All of plan.md. Checks:
   - no `.env`, key, certificate or credentials file has ever been committed.
 - **Personal data:**
   - commit authors and committers use GitHub's no-reply address only;
-  - no email address of a person anywhere in the history (the one address added, `noreply@anthropic.com`, is a pattern in `.githooks/attribution-patterns.txt`, the hook that blocks attribution);
+  - no email address of a person anywhere in the history (the one address added is a no-reply address listed in `.githooks/attribution-patterns.txt` as a pattern to block);
   - no phone numbers, UK postcodes, NHS-number-shaped numbers or street addresses in any version of `data/`; the people are fictional cards.
 - **Local path:** `tools/characters/CREATING_CHARACTERS.md` gave a local path with the owner's macOS username on two lines. It's replaced in this branch. It remains in the history (commit d505b99). Rewriting history is the owner's call; it isn't done.
 - **Large files:** the largest blobs ever committed are a tile sheet, the weather file and two reports, each under 600 KB.
