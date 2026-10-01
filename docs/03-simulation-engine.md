@@ -39,6 +39,7 @@ The engine has no clock of its own. It exposes `step()`, which advances exactly 
 5. **Movement:** advance every walking person along their path, with doorway reservations ([04](04-agents-and-behaviour.md)).
 6. **Arrivals:** the rota (and, from M4a, behaviour trees) react to people who reached their destination.
 7. **Invariants:** checked by the test harness after each tick; the server logs violations as `invariant.violated`.
+8. **The building (v1.0-testbed, `src/building.ts`):** last of all, an observer reads the world and the tick's events and updates the doors and windows (docs/02), appending their events after everything else in the tick. Nothing reads its state, and it draws no random numbers, so it can't change what people do: the director-off fingerprints match with its events left out and the rest renumbered (`test/director-off.test.ts`). It adds about 20% to a run's time.
 
 Within each system, people are processed in ascending id order.
 
@@ -79,5 +80,13 @@ Node-only helpers live outside `src/`: `tools/load-data.ts` (exported as `@vch/s
 - Agency workers (`agy_001`, ...) are created when their day is planned, named from the pool without repeats that day, and removed a day after they leave.
 
 ## Performance budget
+
+## The world description (v1.0-testbed)
+
+`sim.describe(): WorldDescription` (`src/describe.ts`, types in `shared-types/world.ts`) is what external models read each step: schema version, time, everyone on the map with their activity and MET (docs/04), the doors and windows (docs/02) and the hour's weather. `sim.describeRoom(roomId)` is one room's slice (a bedroom includes its en-suite), for the inspector. Both are pure: calling them every tick or never gives the same event log (`test/describe.test.ts`). The description isn't stored: a run is deterministic, so any tick's description is rebuilt by replaying it. Equipment and touches come in PR 2; the plug-in API after that.
+
+- **Weather** (`src/weather.ts`): 12 months of real hourly data for London (Open-Meteo, ERA5; `data/weather/`, credited in CREDITS.md), mapped onto the sim's calendar by date: the same month, day and hour (GMT, as the sim has no daylight saving). Runs over a year wrap round; 29 February uses the 28th. It's part of the run's data (`WorldData.weather`), shared rather than copied per run, and covered by `dataVersion`.
+- **Starting in another season:** `createSim({ startT })`, with `simTimeAt("2027-05-04")` (shared-types) for 06:00 on a date; the CLI's `describe --start`, and the server's `START=2027-05-04`.
+- **Printing it:** `pnpm --filter @vch/sim-engine describe --seed 1 --at "Wed 07:40" [--room Room5] [--start 2027-05-04]`.
 
 A sim day is 17,280 ticks. The headless acceptance test runs a day in a few seconds, so the average cost is below 0.2 ms per tick. At 360x the server needs 72 ticks per real second, which is easily within budget. A* runs only when a person gets a new destination or their path is blocked, never every tick.

@@ -3,6 +3,7 @@
 
 import type { FloorPlan, Gender } from "./data.js";
 import type { AnySimEvent, FallSeverity, InputPayloads, InputType, NeedName } from "./events.js";
+import type { BuildingView, PersonActivity, RoomDetail } from "./world.js";
 
 export type PersonKind = "resident" | "staff" | "agency" | "visitor" | "external";
 /** "dozing": asleep in a Lounge armchair (a nap away from their room). */
@@ -59,6 +60,8 @@ export interface PersonDetail {
   currentTask: string | null;
   btNode: string | null;
   schedule: { t: number; label: string }[];
+  /** What they're doing now, from the world description (v1.0-testbed); null when off the map. */
+  activity: PersonActivity | null;
 }
 
 /** How this run uses the scenario director (docs/10), for the Director panel. */
@@ -71,10 +74,12 @@ export interface DirectorView {
 }
 
 export type ServerMessage =
-  | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[]; director: DirectorView }
-  | { type: "delta"; clock: ClockView; people: PersonView[]; events: AnySimEvent[] }
+  | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[]; director: DirectorView; building: BuildingView }
+  /** `building`: only the doors and windows that changed, and the weather when its hour changed. */
+  | { type: "delta"; clock: ClockView; people: PersonView[]; events: AnySimEvent[]; building?: Partial<BuildingView> }
   | { type: "clock"; clock: ClockView }
   | { type: "detail"; detail: PersonDetail }
+  | { type: "room"; room: RoomDetail }
   | { type: "error"; message: string };
 
 export type ClientCommand =
@@ -83,6 +88,8 @@ export type ClientCommand =
   | { type: "step" }
   | { type: "set_speed"; speed: ClockSpeed }
   | { type: "inspect"; personId: string }
+  /** A room's slice of the world description, for the inspector (v1.0-testbed). */
+  | { type: "inspect_room"; roomId: string }
   | { type: "inject_fall"; residentId: string; severity: FallSeverity }
   /** Any director event, triggered by hand from the Director panel (applied with source "user"). */
   | { type: "inject"; input: InputType; params: InputPayloads[InputType] };

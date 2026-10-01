@@ -86,6 +86,46 @@ describe("Runner", () => {
   });
 });
 
+describe("the building (v1.0-testbed)", () => {
+  it("is in the snapshot: doors, windows and the weather", () => {
+    const { received } = setup();
+    const snapshot = received[0] as Extract<ServerMessage, { type: "snapshot" }>;
+    expect(snapshot.building.doors.find((d) => d.doorId === "D_Exit")).toMatchObject({ state: "locked" });
+    expect(snapshot.building.windows).toHaveLength(12);
+    expect(snapshot.building.weather?.time).toBe("2025-11-03T06:00");
+  });
+
+  it("sends only the doors and windows that changed, and the weather when its hour changes", () => {
+    const { runner, received } = setup();
+    runner.advance(12 * 60 * 2); // to 08:00: bedroom doors open for the day, the Lounge's held open
+    runner.frame(0);
+    const delta = received.at(-1) as Extract<ServerMessage, { type: "delta" }>;
+    expect(delta.building?.doors?.length).toBeGreaterThan(0);
+    expect(delta.building!.doors!.length).toBeLessThan(18);
+    expect(delta.building?.weather?.time).toBe("2025-11-03T08:00");
+    runner.handle({ type: "step" });
+    runner.frame(100);
+    const next = received.at(-1) as Extract<ServerMessage, { type: "delta" }>;
+    expect(next.building?.weather).toBeUndefined();
+  });
+
+  it("answers inspect_room with the room's world description, and a person's detail with their activity", () => {
+    const { runner } = setup();
+    runner.advance(12 * 60 * 2);
+    const reply = runner.handle({ type: "inspect_room", roomId: "Room5" }) as Extract<ServerMessage, { type: "room" }>;
+    expect(reply.type).toBe("room");
+    expect(reply.room.doors.map((d) => d.doorId).sort()).toEqual(["D_Ensuite5", "D_Room5"]);
+    expect(reply.room.people.every((p) => p.met > 0 && p.name.length > 0)).toBe(true);
+    expect(runner.handle({ type: "inspect_room", roomId: "Attic" })).toMatchObject({ type: "error" });
+    const detail = runner.handle({ type: "inspect", personId: "stf_blessing" }) as Extract<ServerMessage, { type: "detail" }>;
+    expect(detail.detail.activity).toMatchObject({ personId: "stf_blessing" });
+    const home = runner.handle({ type: "inspect", personId: "stf_florin" }) as Extract<ServerMessage, { type: "detail" }>;
+    expect(home.detail.activity).toBeNull(); // the night carer has gone home
+    expect(parseCommand('{"type":"inspect_room","roomId":"Lounge"}')).toEqual({ type: "inspect_room", roomId: "Lounge" });
+    expect(parseCommand('{"type":"inspect_room"}')).toBeNull();
+  });
+});
+
 describe("parseCommand", () => {
   it("accepts valid commands and rejects anything else", () => {
     expect(parseCommand('{"type":"set_speed","speed":360}')).toEqual({ type: "set_speed", speed: 360 });

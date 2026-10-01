@@ -51,6 +51,22 @@ export function simDate(t: number): { year: number; month: number; day: number }
   return { year, month, day: rest + 1 };
 }
 
+/**
+ * Sim time at `clock` on a calendar date ("2027-05-04"), for starting a run in another season
+ * (v1.0-testbed: the weather follows the date). The date must be on or after the epoch, 2 Nov 2026.
+ */
+export function simTimeAt(date: string, clock: ClockTime = "06:00"): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match) throw new Error(`Bad date "${date}" (use YYYY-MM-DD)`);
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) throw new Error(`Bad date "${date}"`);
+  let days = 0;
+  for (let y = 2026, m = 11; y < year || (y === year && m < month); m === 12 ? ((m = 1), (y += 1)) : (m += 1)) days += daysInMonth(y, m);
+  days += day - 2; // the epoch is the 2nd of November
+  if (days < 0) throw new Error(`${date} is before the sim's epoch (2026-11-02)`);
+  return days * SECONDS_PER_DAY + clockToSeconds(clock);
+}
+
 /** "Tue 03 Nov 07:30" (with ":05" seconds when `withSeconds`). */
 export function formatSimTime(t: number, withSeconds = false): string {
   const { month, day } = simDate(t);

@@ -1,7 +1,7 @@
 // Dashboard state: a pure mirror of what the server sends (docs/08). No simulation logic.
 
 import { create } from "zustand";
-import type { AnySimEvent, ClockView, DirectorView, FloorPlan, PersonDetail, PersonView, ServerMessage } from "@vch/shared-types";
+import type { AnySimEvent, BuildingView, ClockView, DirectorView, FloorPlan, PersonDetail, PersonView, RoomDetail, ServerMessage } from "@vch/shared-types";
 
 const MAX_EVENTS = 500;
 
@@ -13,6 +13,11 @@ export interface ViewState {
   events: AnySimEvent[];
   selectedId: string | null;
   detail: PersonDetail | null;
+  /** Doors, windows and the weather (v1.0-testbed). */
+  building: BuildingView | null;
+  /** A room selected by clicking its floor, and its slice of the world description. */
+  selectedRoomId: string | null;
+  roomDetail: RoomDetail | null;
   /** Camera follows the selected person. */
   following: boolean;
   /** Name tags over everyone (otherwise only the selected and hovered person). */
@@ -32,6 +37,9 @@ export const initialState: ViewState = {
   events: [],
   selectedId: null,
   detail: null,
+  building: null,
+  selectedRoomId: null,
+  roomDetail: null,
   following: false,
   showTags: true,
   director: null,
@@ -49,22 +57,39 @@ export function reduce(state: ViewState, message: ServerMessage): Partial<ViewSt
         people: Object.fromEntries(message.people.map((p) => [p.id, p])),
         events: message.events.slice(-MAX_EVENTS),
         director: message.director,
+        building: message.building,
         error: null,
       };
     case "delta": {
       const people = message.people.length > 0 ? { ...state.people } : state.people;
       for (const p of message.people) people[p.id] = p;
       const events = message.events.length > 0 ? [...state.events, ...message.events].slice(-MAX_EVENTS) : state.events;
-      return { clock: message.clock, people, events };
+      return { clock: message.clock, people, events, ...(message.building && state.building ? { building: mergeBuilding(state.building, message.building) } : {}) };
     }
     case "clock":
       return { clock: message.clock };
     case "detail":
       // Ignore a late reply for someone who is no longer selected.
       return message.detail.person.id === state.selectedId ? { detail: message.detail } : {};
+    case "room":
+      return message.room.roomId === state.selectedRoomId ? { roomDetail: message.room } : {};
     case "error":
       return { error: message.message };
   }
+}
+
+/** Applies a delta's changed doors and windows (by id) and new weather. */
+function mergeBuilding(current: BuildingView, change: Partial<BuildingView>): BuildingView {
+  const byId = <T,>(list: T[], changed: T[] | undefined, id: (x: T) => string): T[] => {
+    if (!changed?.length) return list;
+    const next = new Map(changed.map((x) => [id(x), x]));
+    return list.map((x) => next.get(id(x)) ?? x);
+  };
+  return {
+    doors: byId(current.doors, change.doors, (d) => d.doorId),
+    windows: byId(current.windows, change.windows, (w) => w.windowId),
+    weather: change.weather !== undefined ? change.weather : current.weather,
+  };
 }
 
 export const useView = create<ViewState>(() => initialState);

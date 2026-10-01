@@ -3,7 +3,7 @@ import { formatSimTime, type AnySimEvent } from "@vch/shared-types";
 import { select } from "../selection";
 import { useView } from "../store";
 
-type Category = "all" | "care" | "meds" | "falls" | "health" | "staff" | "visitors" | "director" | "alerts" | "movement";
+type Category = "all" | "care" | "meds" | "falls" | "health" | "staff" | "visitors" | "building" | "director" | "alerts" | "movement";
 type SourceFilter = "any" | "engine" | "director" | "user";
 
 const CATEGORIES: { id: Category; label: string }[] = [
@@ -14,6 +14,7 @@ const CATEGORIES: { id: Category; label: string }[] = [
   { id: "health", label: "Health" },
   { id: "staff", label: "Staff" },
   { id: "visitors", label: "Visitors" },
+  { id: "building", label: "Building" },
   { id: "director", label: "Director" },
   { id: "alerts", label: "Alerts" },
   { id: "movement", label: "Movement" },
@@ -29,6 +30,7 @@ export function categoryOf(type: string): Exclude<Category, "all"> {
   if (/^(shift|break|handover|rn\.|agency|second_carer|sim\.|staff\.|rota\.)/.test(type)) return "staff";
   if (/^(visit|celebration)/.test(type)) return "visitors";
   if (/^person\./.test(type)) return "movement";
+  if (/^(door|window|equipment|heating)\./.test(type)) return "building";
   return "care";
 }
 

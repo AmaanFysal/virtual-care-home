@@ -42,13 +42,12 @@
     "door": { "frame": "#6b4a2f", "note": "door jambs, drawn as 3 px posts either side of each opening" },
     "outside": "#3a3f36",
     "window": {
-      "$comment": "On the outer wall face of every room: one over each bed, otherwise one per 'spacing' metres. The window and its sill are cut from an LPC face.",
+      "$comment": "Drawn where data/floorplan.json has a window on an outer wall face (v1.0-testbed); on the short front wall a small pane is drawn instead. The window and its sill are cut from an LPC face.",
       "image": "walls",
       "parts": [
         { "x": 1804, "y": 1514, "w": 72, "h": 44, "dy": 2 },
         { "x": 1804, "y": 1566, "w": 72, "h": 4, "dy": 46 }
-      ],
-      "spacing": 3
+      ]
     },
     "pictures": { "image": "pictures", "w": 18, "h": 14, "count": 3, "dy": 12, "spacing": 4, "clear": 0.9, "note": "on the inner wall faces, clear of doors and wall ends" }
   },

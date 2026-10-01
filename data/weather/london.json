@@ -1,0 +1,28 @@
+{
+  "place": "London",
+  "latitude": 51.5072,
+  "longitude": -0.1276,
+  "grid": {
+    "latitude": 51.493847,
+    "longitude": -0.1630249,
+    "elevation_m": 16
+  },
+  "from": "2025-10-01",
+  "to": "2026-09-30",
+  "hours": "GMT (the sim has no daylight saving)",
+  "columns": {
+    "tempC": "temperature_2m",
+    "humidityPct": "relative_humidity_2m",
+    "dewPointC": "dew_point_2m",
+    "precipMm": "precipitation",
+    "cloudPct": "cloud_cover",
+    "windMps": "wind_speed_10m",
+    "windDirDeg": "wind_direction_10m",
+    "shortwaveWm2": "shortwave_radiation",
+    "pressureHpa": "surface_pressure",
+    "isDay": "is_day"
+  },
+  "source": "Open-Meteo historical weather API (https://open-meteo.com/en/docs/historical-weather-api), ERA5 and ERA5-Land reanalysis from the Copernicus Climate Change Service",
+  "licence": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "fetched_with": "packages/sim-engine/tools/fetch-weather.ts"
+}

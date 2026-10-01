@@ -16,6 +16,10 @@ The rooms, furniture and garden in `apps/web/public/tiles/` come from these Libe
 
 Drawn for this project and released under CC0, by tools/tiles/props.mjs: the flat-screen TV, the book tops on the Lounge bookshelf, the name-tag icons, the framed pictures, the potted plants and the bedside lamp (apps/web/public/tiles/props/).
 
+## Weather data
+
+`data/weather/london.csv` is 12 months of hourly weather for London (1 October 2025 to 30 September 2026), from the [Open-Meteo historical weather API](https://open-meteo.com/en/docs/historical-weather-api), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Weather data by Open-Meteo.com, from the ERA5 and ERA5-Land reanalysis by the Copernicus Climate Change Service (Hersbach et al., 2023, ERA5 hourly data on single levels from 1940 to present). Fetched by `packages/sim-engine/tools/fetch-weather.ts`; the values are unchanged.
+
 ## Character art
 
 The character sprites in `apps/web/public/sprites/characters/` were made with the [Universal LPC Spritesheet Character Generator](https://github.com/liberatedpixelcup/Universal-LPC-Spritesheet-Character-Generator) from Liberated Pixel Cup (LPC) art.

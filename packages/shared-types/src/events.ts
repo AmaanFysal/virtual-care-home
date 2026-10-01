@@ -180,6 +180,18 @@ export interface EventPayloads {
   /** Tea and cake: in the Lounge, or in the resident's room; led by Bev when she's on (staffId null: with the carers' afternoon tea). */
   "celebration.tea": { name: string; roomId: string; staffId: string | null; residentIds: string[]; visitorIds: string[] };
 
+  /**
+   * The building (v1.0-testbed): a door's or window's set state changed. `byId` is whoever changed it
+   * (null when it's a rule of the building, e.g. fire doors closing at 22:00). Passing through a
+   * closed door isn't logged: it's in the world description, rebuilt exactly by replay.
+   */
+  "door.opened": { doorId: string; byId: string | null; reason: string };
+  "door.closed": { doorId: string; byId: string | null; reason: string };
+  "door.set_ajar": { doorId: string; byId: string | null; reason: string };
+  "door.locked": { doorId: string; byId: string | null; reason: string };
+  "window.opened": { windowId: string; roomId: string; byId: string | null; reason: string };
+  "window.closed": { windowId: string; roomId: string; byId: string | null; reason: string };
+
   /** A hard safety rule broke: must never happen (docs/11). */
   "invariant.violated": { rule: string; details: string };
   /** A service target was missed: reported, not a failure (docs/11). */

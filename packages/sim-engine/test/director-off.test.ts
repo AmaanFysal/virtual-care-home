@@ -12,6 +12,10 @@
 // other), visitors wait by the bed rather than in the en-suite, Arthur's
 // time-critical dose isn't put off for care in progress, and whoever gives the next medication round
 // starts no long care in the 15 minutes before it.
+//
+// The building (v1.0-testbed) describes and never changes what people do (its spec, decision 2). So its
+// events (doors and windows) are left out and the rest renumbered: the fingerprints are the ones
+// recorded for PR B, unchanged, which is the proof.
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -24,10 +28,20 @@ const data = loadWorldData();
 const WEEK = (7 * 86400) / TICK_SECONDS;
 const expected = JSON.parse(readFileSync(new URL("./fixtures/director-off-hashes.json", import.meta.url), "utf8")) as Record<string, string>;
 
+/** The building's own events (v1.0-testbed), left out of the fingerprint. */
+const BUILDING_EVENT = /^(door|window|equipment|heating)\./;
+
 function weekHash(seed: string): string {
   const sim = createSim({ seed, data });
   const hash = createHash("sha256");
-  for (let i = 0; i < WEEK; i++) for (const e of sim.step()) hash.update(JSON.stringify(e.type === "sim.started" ? { ...e, payload: { ...e.payload, dataVersion: "(data)" } } : e));
+  let seq = 0;
+  for (let i = 0; i < WEEK; i++)
+    for (const e of sim.step()) {
+      if (BUILDING_EVENT.test(e.type)) continue;
+      seq += 1;
+      const renumbered = { ...e, id: `e${seq}`, seq };
+      hash.update(JSON.stringify(e.type === "sim.started" ? { ...renumbered, payload: { ...e.payload, dataVersion: "(data)" } } : renumbered));
+    }
   return hash.digest("hex");
 }
 

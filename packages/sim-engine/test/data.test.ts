@@ -120,4 +120,50 @@ describe("validateData catches", () => {
     Object.assign(door, { x1: 1.5, x2: 2.5 });
     expect(validateData(data).join("\n")).toMatch(/doors D_Room1 and D_Ensuite1 are too close|doors D_Ensuite1 and D_Room1 are too close/);
   });
+
+  it("a window on an inner wall, off its room's edge, or over a door (v1.0-testbed)", () => {
+    const d = fresh();
+    const w = d.floorplan.windows.find((x) => x.id === "Window_Room1")!;
+    Object.assign(w, { wall: "W_Bedrooms_Corridor", y1: 5.5, y2: 5.5 });
+    expect(validateData(d).join("\n")).toMatch(/Window_Room1 isn't on an outer wall/);
+    const e = fresh();
+    Object.assign(e.floorplan.windows.find((x) => x.id === "Window_Reception")!, { x1: 10.5, x2: 11.7 });
+    expect(validateData(e).join("\n")).toMatch(/Window_Reception overlaps door D_Exit/);
+  });
+
+  it("a door with no rule, or a bedroom door given one (v1.0-testbed)", () => {
+    const d = fresh();
+    d.building.doors.closed = [];
+    d.building.doors.held_open_by_day.push("D_Room1");
+    const errors = validateData(d).join("\n");
+    expect(errors).toMatch(/door D_StaffRoom needs exactly one rule/);
+    expect(errors).toMatch(/D_Room1 is a bedroom or en-suite door/);
+  });
+
+  it("a night-time door left open or ajar without a reason (v1.0-testbed)", () => {
+    const d = fresh();
+    d.residents.find((r) => r.id === "res_win")!.care.door_at_night = "open";
+    expect(validateData(d).join("\n")).toMatch(/res_win: door_at_night "open" needs a door_at_night_reason/);
+  });
+
+  it("an activity without a MET, or whose last entry has conditions (v1.0-testbed)", () => {
+    const d = fresh();
+    delete d.activities.other.personal_care;
+    d.activities.resident.walking = d.activities.resident.walking!.slice(0, 1);
+    const errors = validateData(d).join("\n");
+    expect(errors).toMatch(/no other entry for "personal_care"/);
+    expect(errors).toMatch(/resident "walking" needs a last entry with no conditions/);
+  });
+
+  it("weather with a missing hour, a value out of range, or less than a year (v1.0-testbed)", () => {
+    const d = fresh();
+    d.weather!.hours.splice(100, 1);
+    expect(validateData(d).join("\n")).toMatch(/weather: hour 100 is .*, expected/);
+    const e = fresh();
+    e.weather!.hours[5]!.humidityPct = 140;
+    expect(validateData(e).join("\n")).toMatch(/humidityPct 140 is out of range/);
+    const f = fresh();
+    f.weather!.hours = f.weather!.hours.slice(0, 24 * 300);
+    expect(validateData(f).join("\n")).toMatch(/the data must cover a whole year/);
+  });
 });

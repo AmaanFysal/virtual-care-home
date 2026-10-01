@@ -9,6 +9,7 @@ import type { FloorPlan, Furniture, Room } from "@vch/shared-types";
 import { FACE_PX, TILE_PX, TRIM_PX, type Band, type Banding } from "./banding";
 import type { Dir } from "./figures";
 import tileset from "./tileset.json";
+import { windowSpots } from "./buildingLayer";
 
 export type Images = Record<keyof typeof tileset.images, CanvasImageSource>;
 type Src = { image: string; x: number; y: number; w: number; h: number };
@@ -163,6 +164,7 @@ export function paintMap(plan: FloorPlan, banding: Banding, images: Images, faci
     tile(ctx, img(face.image), face.x, face.y, face.w, keepTop, x0, y, x1 - x0, keepTop);
     tile(ctx, img(face.image), face.x, face.y + face.h - keepBottom, face.w, keepBottom, x0, y + keepTop, x1 - x0, keepBottom);
   };
+  const spots = windowSpots(plan, banding);
   const doorsOn = (y: number) => plan.doors.filter((d) => d.y1 === y && d.y2 === y).map((d) => [Math.min(d.x1, d.x2), Math.max(d.x1, d.x2)] as const);
   for (const band of banding.bands) {
     const faceY = band.top + TRIM_PX;
@@ -176,20 +178,16 @@ export function paintMap(plan: FloorPlan, banding: Banding, images: Images, faci
         if (x1 > x0) drawFace(tileset.walls.face, X(x0), X(x1), faceY);
       }
     }
-    for (const r of below) (band.blended ? paintPictures : paintWindows)(band, r);
+    if (band.blended) for (const r of below) paintPictures(band, r);
+    else paintWindows(band);
     for (const [a, b] of doorsOn(band.y)) paintDoorway(band, a, b);
   }
 
-  /** Windows on an outer wall: one over each bed, otherwise one per `spacing` metres. */
-  function paintWindows(band: Band, room: Room): void {
+  /** The windows on an outer wall face, where the floor plan has them (v1.0-testbed: the sim knows each one). */
+  function paintWindows(band: Band): void {
     const win = tileset.walls.window;
-    const w = Math.max(...win.parts.map((p) => p.w)) / TILE_PX;
-    const inRoom = beds.filter((b) => b.room === room.id).map((b) => b.rect.x + b.rect.w / 2);
-    const n = Math.max(1, Math.floor(room.rect.w / win.spacing));
-    const centres = inRoom.length > 0 ? inRoom : Array.from({ length: n }, (_, i) => room.rect.x + (room.rect.w * (i + 0.5)) / n);
-    for (const c of centres) {
-      const cx = Math.min(Math.max(c, room.rect.x + w / 2 + 0.1), room.rect.x + room.rect.w - w / 2 - 0.1);
-      for (const p of win.parts) ctx.drawImage(img(win.image), p.x, p.y, p.w, p.h, Math.round(X(cx) - p.w / 2), band.top + TRIM_PX + p.dy, p.w, p.h);
+    for (const spot of spots.filter((s) => s.kind === "face" && plan.windows.find((w) => w.id === s.id)!.y1 === band.y)) {
+      for (const p of win.parts) ctx.drawImage(img(win.image), p.x, p.y, p.w, p.h, Math.round(spot.cx - p.w / 2), band.top + TRIM_PX + p.dy, p.w, p.h);
     }
   }
 
@@ -233,6 +231,18 @@ export function paintMap(plan: FloorPlan, banding: Banding, images: Images, faci
   for (const w of plan.walls.filter((w) => w.y1 === plan.size.h && w.y2 === plan.size.h)) {
     const [a, b] = [Math.min(w.x1, w.x2), Math.max(w.x1, w.x2)];
     drawFace(tileset.walls.exterior, X(a), X(b), buildingBottom + TRIM_PX, front);
+  }
+  // Windows in the front wall: small panes (the face is too short for the full window).
+  for (const spot of spots.filter((s) => s.kind === "front")) {
+    const x = Math.round(spot.cx - spot.w / 2);
+    ctx.fillStyle = tileset.walls.door.frame;
+    ctx.fillRect(x - 2, spot.y - 2, spot.w + 4, spot.h + 4);
+    ctx.fillStyle = "#9cc3d6";
+    ctx.fillRect(x, spot.y, spot.w, spot.h);
+    ctx.fillStyle = "#d7e9f1";
+    ctx.fillRect(x + 2, spot.y + 2, Math.round(spot.w / 3), 2);
+    ctx.fillStyle = tileset.walls.door.frame;
+    ctx.fillRect(Math.round(spot.cx) - 1, spot.y, 2, spot.h);
   }
   const G = tileset.garden;
   const garden = outsideCells.length ? bounds(outsideCells.map(([x, y]) => ({ x, y, w: cell, h: cell })), 0) : null;

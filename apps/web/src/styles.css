@@ -115,3 +115,17 @@ time { font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 4p
   .app { grid-template-columns: 1fr; grid-template-rows: auto 60vh auto auto; }
   aside { border-left: none; border-top: 1px solid var(--line); }
 }
+
+/* The building (v1.0-testbed): weather, the room inspector, door and window states. */
+.clock .weather { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.dot.room { background: #ffd43b; border-radius: 3px; }
+.inspector ul.building { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 3px; }
+.inspector .state { display: inline-block; min-width: 52px; padding: 0 6px; border-radius: 8px; font-size: 11px; font-weight: 600; text-align: center; }
+.inspector .state.open { background: #e3f2e6; color: #256b3a; }
+.inspector .state.ajar { background: #fff4d6; color: #8a6200; }
+.inspector .state.closed { background: #eceae6; color: #5b554d; }
+.inspector .state.locked { background: #f6e0dd; color: #9a2f1f; }
+.inspector .activity { color: var(--muted); }
+.inspector button.link { border: none; background: none; padding: 0; color: inherit; font: inherit; text-decoration: underline dotted; cursor: pointer; }
+.inspector details.json summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 6px; }
+.inspector details.json pre { font-size: 11px; max-height: 240px; overflow: auto; background: #f6f4f0; padding: 6px; border-radius: 4px; }

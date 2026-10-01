@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { select } from "../selection";
+import { select, selectRoom } from "../selection";
 import { useView } from "../store";
 import { WingRenderer } from "./renderer";
 
@@ -8,13 +8,15 @@ export function WingCanvas() {
   const host = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const renderer = new WingRenderer(select);
+    const renderer = new WingRenderer(select, selectRoom);
     const push = (state = useView.getState()) => {
       if (state.floorplan) renderer.setFloorplan(state.floorplan);
       renderer.setPeople(state.people, state.clock);
       renderer.setSelected(state.selectedId);
       renderer.setFollowing(state.following);
       renderer.setShowTags(state.showTags);
+      renderer.setBuilding(state.building);
+      renderer.setSelectedRoom(state.selectedRoomId);
     };
     let unsubscribe = () => {};
     void renderer.init(host.current!).then(() => {
@@ -25,6 +27,8 @@ export function WingCanvas() {
         if (state.selectedId !== prev.selectedId) renderer.setSelected(state.selectedId);
         if (state.following !== prev.following) renderer.setFollowing(state.following);
         if (state.showTags !== prev.showTags) renderer.setShowTags(state.showTags);
+        if (state.building !== prev.building) renderer.setBuilding(state.building);
+        if (state.selectedRoomId !== prev.selectedRoomId) renderer.setSelectedRoom(state.selectedRoomId);
       });
     });
     return () => {

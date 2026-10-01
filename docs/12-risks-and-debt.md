@@ -67,6 +67,13 @@ The audit (docs/workstreams/sim-audit/report.md) found **45 gaps where features 
 
 Also: docs/11 lists `meds_trained` and `fall_moved_before_assessment` as engine invariants, but `checkInvariants` has neither (the safety monitor does), and the engine's `two_person` check fires falsely for two-person walks (C4, C5).
 
+## Findings from v1.0-testbed PR 1 (2026-10-01)
+
+- **Run time:** the building observer adds about 20% to a run (about 1.6 µs a tick; a week of seed 1 in about 1.15 s against 0.93 s). The two 16-day outbreak replays went past Vitest's 5-second default and now have explicit timeouts.
+- **Hoisting is instant in the engine** (a placement), so the world description shows hoisting and being hoisted on that tick only; the care around it is personal care. A timed transfer would be a behaviour change, for later.
+- **Windows open rarely in a November run:** the default start is in November, and the window rule needs 12 °C, dry and calm. `START=2027-05-04` (or `--start`) shows them.
+- **The sidebar scrolls sideways at 380 px:** the event log's filter row (two selects, the search box and "selected") needs about 412 px. Seen while testing PR 1; not caused by it.
+
 ## Tuning debt: the review (sub-milestone e, 2026-09-30)
 
 In the Lounge and audit-fixes round (M8), narrow rules were added, beyond what the user asked for, to keep service breaches at zero on every no-fall week. The user's decision since: occasional breaches on normal days are acceptable and realistic, so no more rules like these. The tuning review switched each off on its own (`createSim({ tuning })`, `scripts/tuning-review.ts`) against the calm-week baseline (seeds 1 to 8, a week each, director off), with a rule kept only if removing it pushed a week over 2 breaches. The removals were then combined and checked on held-out seeds 9 to 16, and three more measures showed things the calm week can't: the same weeks with Kamala in Raj's room (a resident mix the director produces), short-staffed days (4 weeks of the random director against main), and the audit's food and drink flags. Full tables and the rounds: `docs/workstreams/phase-2-director/reports/e-tuning-review.txt`.

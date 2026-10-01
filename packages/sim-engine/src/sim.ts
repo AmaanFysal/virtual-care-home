@@ -13,12 +13,16 @@ import {
   type DirectorSettings,
   type Resident,
   type SimInput,
+  type RoomDetail,
   type WorldData,
+  type WorldDescription,
 } from "@vch/shared-types";
 import { validateData } from "./data/validate.js";
 import { emit } from "./emit.js";
 import { careMinute } from "./care.js";
 import { applyDirectorEvents, applyInput, initDirector, planDirectorDay } from "./director/director.js";
+import { initBuilding, observeBuilding } from "./building.js";
+import { describeRoom, describeWorld } from "./describe.js";
 import { ON_CALL_RN_ID, PARAMEDICS_ID, fallsMinute, staffFalls, watchFalls } from "./falls.js";
 import { medsMinute } from "./meds.js";
 import { planVisits, planWeek, visitorPerson, visitorsMinute, visitorsTick } from "./visitors.js";
@@ -65,6 +69,10 @@ export interface Sim {
   people(): PersonView[];
   /** The turning points each person passed in the last tick (display only; see World.trail). */
   trail(): ReadonlyMap<string, readonly { x: number; y: number }[]>;
+  /** The world description at the current tick (v1.0-testbed). Pure: calling it never changes the run. */
+  describe(): WorldDescription;
+  /** One room's slice of the description, for the inspector; null for an unknown room. */
+  describeRoom(roomId: string): RoomDetail | null;
   /** Internal state, for tests and the inspector. Treat as read-only. */
   readonly world: World;
 }
@@ -140,8 +148,10 @@ export function dataVersion(data: WorldData): string {
 export function createSim(options: SimOptions): Sim {
   const { seed } = options;
   // The run keeps its own copy: residents can join (admissions) and their cards change (care
-  // overrides after a hospital stay) without touching the caller's data.
-  const data: WorldData = structuredClone(options.data);
+  // overrides after a hospital stay) without touching the caller's data. The weather is never
+  // changed, so it's shared rather than copied (a year of hours).
+  const { weather, ...rest } = options.data;
+  const data: WorldData = { ...structuredClone(rest), ...(weather ? { weather } : {}) };
   const startT = options.startT ?? DEFAULT_START_T;
   if (startT % 60 !== 0) throw new Error("startT must be on a minute boundary");
   const errors = validateData(data);
@@ -185,6 +195,7 @@ export function createSim(options: SimOptions): Sim {
     agencyCount: 0,
     inputs: [],
     director: null,
+    building: null,
     config: options.director?.config ?? options.config ?? null,
     admissions: structuredClone(options.admissions ?? []),
     deaths: options.director?.deaths ?? options.deaths ?? true,
@@ -215,6 +226,7 @@ export function createSim(options: SimOptions): Sim {
   planWeek(world, dayIndex(startT));
   planVisits(world, dayIndex(startT), startT);
   emit(world, "sim.started", [], { seed, startT, dataVersion: dataVersion(data) });
+  initBuilding(world);
   if (options.director) {
     initDirector(world, options.director);
     planDirectorDay(world, startT);
@@ -266,6 +278,7 @@ export function createSim(options: SimOptions): Sim {
       noteLoungeSupervision(world);
       watchFalls(world);
       logInvariants(world);
+      observeBuilding(world); // last: it reads the tick and changes nothing people do (v1.0-testbed)
       const events = world.pending;
       world.pending = [];
       return events;
@@ -280,6 +293,12 @@ export function createSim(options: SimOptions): Sim {
     },
     trail() {
       return world.trail;
+    },
+    describe() {
+      return describeWorld(world);
+    },
+    describeRoom(roomId) {
+      return describeRoom(world, roomId);
     },
   };
 }

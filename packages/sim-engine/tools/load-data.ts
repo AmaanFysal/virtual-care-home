@@ -2,7 +2,7 @@
 
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { AdmissionCard, DirectorConfig, Scenario, SpriteChoice, WorldData } from "@vch/shared-types";
+import type { AdmissionCard, DirectorConfig, Scenario, SpriteChoice, WeatherData, WeatherHour, WorldData } from "@vch/shared-types";
 
 const dataDir = fileURLToPath(new URL("../../../data/", import.meta.url));
 
@@ -18,7 +18,24 @@ export function loadWorldData(): WorldData {
     visitors: read("personas/visitors.json"),
     relationships: read("personas/relationships.json"),
     rota: read("rota.json"),
+    building: read("building.json"),
+    activities: read("activities.json"),
+    weather: loadWeather("london"),
   };
+}
+
+/** data/weather/<place>.json (about the data) and .csv (one row per hour, GMT), v1.0-testbed. */
+export function loadWeather(place: string): WeatherData {
+  const meta = read<Omit<WeatherData, "hours">>(`weather/${place}.json`);
+  const [header, ...rows] = readFileSync(`${dataDir}weather/${place}.csv`, "utf8").trim().split("\n");
+  const columns = header!.split(",");
+  const hours = rows.map((row) => {
+    const cells = row.split(",");
+    const hour: Record<string, string | number | boolean> = {};
+    columns.forEach((c, i) => (hour[c] = c === "time" ? cells[i]! : c === "isDay" ? cells[i] === "1" : Number(cells[i])));
+    return hour as unknown as WeatherHour;
+  });
+  return { place: meta.place, latitude: meta.latitude, longitude: meta.longitude, from: meta.from, to: meta.to, source: meta.source, licence: meta.licence, hours };
 }
 
 /** data/director.json: the director's base rates and pacing (docs/10). */

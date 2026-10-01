@@ -5,6 +5,7 @@ import {
   TICK_SECONDS,
   clockToSeconds,
   type AnySimEvent,
+  type BuildingView,
   type ClientCommand,
   type ClockSpeed,
   type ClockView,
@@ -38,6 +39,8 @@ export class Runner {
   private recent: AnySimEvent[] = [];
   private unsent: AnySimEvent[] = [];
   private lastSent = new Map<string, string>();
+  /** The building as last sent (v1.0-testbed): each door and window, and the weather's hour. */
+  private lastBuilding = new Map<string, string>();
   /** Turning points each person passed since the last delta (from Sim.trail), sent as `via`. */
   private via = new Map<string, { x: number; y: number }[]>();
   private inputSeq = 0;
@@ -48,7 +51,9 @@ export class Runner {
     private data: WorldData,
     private log: EventLog,
     private director: DirectorView = { mode: "off", scenario: null, deaths: true },
-  ) {}
+  ) {
+    this.buildingChanges(); // the building as it starts: deltas then carry only what changes
+  }
 
   start(): void {
     this.timer = setInterval(() => this.frame(performance.now()), FRAME_MS);
@@ -96,8 +101,30 @@ export class Runner {
 
   connect(client: Client): () => void {
     this.clients.add(client);
-    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.sim.world.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director });
+    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.sim.world.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director, building: this.building() });
     return () => this.clients.delete(client);
+  }
+
+  /** The building part of the world description: doors, windows and the weather. */
+  private building(): BuildingView {
+    const d = this.sim.describe();
+    return { doors: d.doors, windows: d.windows, weather: d.weather };
+  }
+
+  /** The doors and windows that changed since the last delta, and the weather if its hour changed. */
+  private buildingChanges(): Partial<BuildingView> | undefined {
+    const now = this.building();
+    const changed = <T extends object>(key: string, item: T): boolean => {
+      const json = JSON.stringify(item);
+      if (this.lastBuilding.get(key) === json) return false;
+      this.lastBuilding.set(key, json);
+      return true;
+    };
+    const doors = now.doors.filter((d) => changed(`door:${d.doorId}`, d));
+    const windows = now.windows.filter((w) => changed(`window:${w.windowId}`, w));
+    const weather = changed("weather", { time: now.weather?.time ?? null });
+    if (doors.length === 0 && windows.length === 0 && !weather) return undefined;
+    return { ...(doors.length ? { doors } : {}), ...(windows.length ? { windows } : {}), ...(weather ? { weather: now.weather } : {}) };
   }
 
   private broadcastDelta(): void {
@@ -112,8 +139,9 @@ export class Runner {
       }
     }
     this.via.clear();
-    if (changed.length === 0 && this.unsent.length === 0 && this.paused) return;
-    const message: ServerMessage = { type: "delta", clock: this.clock(), people: changed, events: this.unsent };
+    const building = this.buildingChanges();
+    if (changed.length === 0 && this.unsent.length === 0 && !building && this.paused) return;
+    const message: ServerMessage = { type: "delta", clock: this.clock(), people: changed, events: this.unsent, ...(building ? { building } : {}) };
     this.unsent = [];
     for (const client of this.clients) client.send(message);
   }
@@ -151,6 +179,10 @@ export class Runner {
       case "inspect": {
         const detail = this.detail(command.personId);
         return detail ? { type: "detail", detail } : { type: "error", message: `Unknown person ${command.personId}` };
+      }
+      case "inspect_room": {
+        const room = this.sim.describeRoom(command.roomId);
+        return room ? { type: "room", room } : { type: "error", message: `Unknown room ${command.roomId}` };
       }
     }
   }
@@ -204,6 +236,7 @@ export class Runner {
       currentTask: task?.label ?? person.task,
       btNode: task?.bt.node ?? null,
       schedule,
+      activity: this.sim.describe().people.find((p) => p.personId === personId) ?? null,
     };
   }
 }
@@ -229,6 +262,8 @@ export function parseCommand(raw: string): ClientCommand | null {
       return SPEEDS.includes(c.speed as number) ? { type: "set_speed", speed: c.speed as ClockSpeed } : null;
     case "inspect":
       return typeof c.personId === "string" ? { type: "inspect", personId: c.personId } : null;
+    case "inspect_room":
+      return typeof c.roomId === "string" ? { type: "inspect_room", roomId: c.roomId } : null;
     case "inject_fall":
       return typeof c.residentId === "string" && (c.severity === "minor" || c.severity === "serious")
         ? { type: "inject_fall", residentId: c.residentId, severity: c.severity }

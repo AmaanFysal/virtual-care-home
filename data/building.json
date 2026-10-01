@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "doors": {
+    "held_open_by_day": ["D_Lounge", "D_WaitingArea", "D_Reception", "D_Waiting_Reception"],
+    "closed_overnight": ["22:00", "07:00"],
+    "closed": ["D_StaffRoom"],
+    "locked": ["D_Exit"],
+    "note": "Bedroom doors (bedroom to corridor) and en-suite doors follow their own rules (docs/02). The day-room doors are fire doors on hold-open devices, as in HM Government's 'Fire safety risk assessment: residential care premises' (2006), and are closed overnight. The staff room is kept closed for privacy; the exit is on a keypad."
+  },
+  "windows": {
+    "max_opening_mm": 100,
+    "open_min_temp_c": 12,
+    "open_max_wind_mps": 10,
+    "close_after_mins": 30,
+    "close_by": "20:00",
+    "lounge_from": "10:00",
+    "sources": {
+      "max_opening_mm": "HSE, 'Falls from windows or balconies in health and social care' (HSIS 5): windows people could fall from are restricted, 'to 100 mm or less' (https://www.hse.gov.uk/healthservices/falls-windows.htm)",
+      "open_min_temp_c, open_max_wind_mps, close_after_mins, close_by, lounge_from": "Assumptions in the v1.0-testbed spec, approved by the project owner (2026-10-01): staff air a room after morning care on a mild, dry, calm day and close it again within the half hour or at bedtime"
+    }
+  }
+}
