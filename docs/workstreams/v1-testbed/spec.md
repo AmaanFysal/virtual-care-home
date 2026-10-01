@@ -7,11 +7,11 @@ Status: **approved 2026-10-01**, with the answers recorded as decisions 4 to 7. 
 
 ## Decisions (project owner, 2026-10-01)
 
-1. **Build it now; the audit waits.** The full scenario audit pauses after PR B (merged, #14) and resumes with PR C once this milestone is done. Each later audit PR keeps the world description up to date, and its tests catch drift.
-2. **Describe, with a few light rules.** Doors, windows and equipment follow what people already do (a bedroom door closed for personal care, the Lounge TV on while someone is watching), plus a few rules of their own (doors at night, windows by the weather). They never change what people do. Opening a door takes no extra time and never stops anyone. Care timing, the audit results and every existing event stay the same.
+1. **Build it now.** The full scenario audit was paused for this milestone, then removed with the rest of the care-perfection work on 2026-10-01 (docs/12, docs/roadmap.md).
+2. **Describe, with a few light rules.** Doors, windows and equipment follow what people already do (a bedroom door closed for personal care, the Lounge TV on while someone is watching), plus a few rules of their own (doors at night, windows by the weather). They never change what people do. Opening a door takes no extra time and never stops anyone. Care timing and every existing event stay the same.
 3. **Weather from a real hourly data file**, checked into `data/`, the same in every run.
 4. **Weather for London:** the most recent complete 12 months of Open-Meteo hourly data, mapped onto the sim's calendar by date, credited in `CREDITS.md`.
-5. **Showers stay off.** No behaviour change in this milestone; shower days stay in the backlog (audit PR F).
+5. **Showers stay off.** No behaviour change in this milestone; shower days stay in the backlog.
 6. **Bedroom doors are closed at night** unless the resident's card says otherwise. Each resident's night-time door preference is drafted and listed for the project owner's review before it's used.
 7. **Heating set points are data,** defaulting to 22 °C in day rooms and 21 °C in bedrooms.
 8. **Lean PRs:** as few as makes sense, each ending with something the project owner can see in the browser, and each stopping for review.
@@ -180,7 +180,7 @@ Doors and windows add about 195 events a day (PR 1, measured over 8 seeds × 4 w
 - `pnpm typecheck` and `pnpm test` pass.
 - **Behaviour unchanged (decision 2):**
   - every existing golden and director-off fixture matches once the new event types are filtered out and `seq` and `id` are renumbered;
-  - a week of each scenario and 8 random-director seeds give the same audit and service-breach results as main.
+  - a week of each scenario and 8 random-director seeds give the same service-breach results as without the building.
 - **Determinism:** two runs of the same seed give identical descriptions on every tick (sampled), and `describe()` called every tick or never leaves the event log unchanged.
 - **Rules hold every tick (tests):**
   - a bedroom door is closed during personal care, and a closed door is only `heldBy` someone in its doorway;
@@ -207,5 +207,4 @@ Doors and windows add about 195 events a day (PR 1, measured over 8 seeds × 4 w
 - **Any physics:** room temperature, air quality, surface contamination, energy use, sensors. These are plug-ins (rule 4).
 - **Behaviour driven by the building:** doors taking time to open, residents asking for windows, staff hand washing at the basin (it needs time and walking). These come later, with the plug-in API's results or a care-routine change.
 - **Shower days** (decision 5).
-- **The audit's PRs C to F,** which resume after this milestone.
 - **LLM minds** (Phase 3).

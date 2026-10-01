@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { TICK_SECONDS, timeOfDay, weekday, type AnySimEvent, type EventPayloads, type SimEvent } from "@vch/shared-types";
-import { checkInvariants, checkServiceTargets, createSim } from "../src/index.js";
+import { checkInvariants, createSim } from "../src/index.js";
 import { isMedsTrained } from "../src/meds.js";
 import { loadWorldData } from "../tools/load-data.js";
 
@@ -20,12 +20,10 @@ describe("acceptance: one day on seed 1", () => {
   const sim = createSim({ seed: "1", data });
   const events: AnySimEvent[] = [];
   const hard: string[] = [];
-  const service: string[] = [];
   const floorDuringHandover: boolean[] = [];
   for (let i = 0; i < 24 * HOUR; i++) {
     events.push(...sim.step());
     for (const v of checkInvariants(sim.world)) hard.push(`${v.rule}: ${v.details}`);
-    for (const b of checkServiceTargets(sim.world)) service.push(`${b.target}: ${b.details}`);
     const handover = [...sim.world.tasks.values()].find((t) => t.kind === "handover" && t.startedT !== null);
     if (handover) {
       const cover = sim.world.people.get(String(handover.data.cover))!;
@@ -33,11 +31,9 @@ describe("acceptance: one day on seed 1", () => {
     }
   }
 
-  it("has zero hard safety violations and zero service breaches", () => {
+  it("has zero hard safety violations", () => {
     expect(hard.slice(0, 5)).toEqual([]);
-    expect(service.slice(0, 5)).toEqual([]);
     expect(ofType(events, "invariant.violated")).toEqual([]);
-    expect(ofType(events, "sla.breached")).toEqual([]);
   });
 
   it("holds all three handovers, with a carer on the floor during each", () => {

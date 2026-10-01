@@ -7,19 +7,13 @@
 | Phase 1 · Rules MVP | The wing, its people and its routines: deterministic engine, rota, care, meds, falls, visitors, the Lounge, pixel-art view (`workstreams/phase-1-rules-mvp/`) | Done |
 | Phase 2 · Scenario director | Unplanned events at realistic rates and scripted scenarios, without an LLM (docs/10, ADR-0005, `workstreams/phase-2-director/`): (a) core, falls, sick calls; (b) outbreaks; (c) illness, hospital, end of life, admissions; (d) visitors' missed weeks and celebrations; (e) tuning-debt review | Done (PRs #7 to #11, 2026-09-30) |
 | **v1.0-testbed** | The care home as a test bed, before any environmental model (below) | In progress (brought forward by the project owner, 2026-10-01; `workstreams/v1-testbed/`): PR 1 (people, doors, windows, weather) in review; PR 2 (equipment, touches) next; then the plug-in API's design discussion |
-| Care routine review | The audit regressions left by the tuning review (docs/12): late first food (Arthur, Peggy, Win), Arthur's hunger, Raj's toileting during meals and morning care. A shared daily planner, or pre-meal toileting rounds and a review of the morning routine; measured with the audit as well as the service targets | After v1.0-testbed |
 | Environmental models | External models as plug-ins: air (replacing the airborne proxy in docs/10), heat, surfaces, energy; steriliser experiments on the air model | After v1.0-testbed, built outside the engine against the plug-in API |
 | Phase 3 · LLM minds | Event-driven minds for residents, staff and visitors (docs/09) | After v1.0-testbed (project owner, 2026-09-30); parked until then |
 | Phase 4 | Branching and timeline scrubbing; richer visitors (moods, conflicts) | Later |
 
-## Full scenario audit (project owner, 2026-09-30)
+## Scope: activity data, not perfect care (project owner, 2026-10-01)
 
-Before the v1.0-testbed design discussion: an audit of the whole simulation, now that the director can make any combination of events happen. It **reports gaps first**; fixes are agreed and made afterwards.
-
-- **Feature interaction review:** every pair of director features that can overlap (falls, sick calls and no-shows, outbreaks and isolation, illness and hospital, end of life and death, admissions, visitors' missed weeks, celebrations, night cover, the tuning rules), checked for rules that conflict or assume the other isn't happening.
-- **New every-tick invariants:** hard rules checked on every tick for states that should never happen (for example staff holding a task that no longer exists, a resident in two places, work for someone who has died or left), added to the existing checks in docs/11.
-- **Random stress testing:** many seeds and long runs with the random director at raised rates and forced overlaps, watching the hard invariants and the audit.
-- **Realism review:** the behaviour and the numbers (rates, timings, staffing, family life) against care-home practice and the sources, noting where the sim is unrealistic.
+The wing exists to produce data: an ordinary UK care home day, with day-to-day randomness, everything logged and sent out for external models (the air model first). Care rules matter only where they change who is where, doing what. The full scenario audit, its fixes and the 15 tuning rules were removed on 2026-10-01 (docs/12); occasional late turns and missed look-ins are accepted.
 
 ## v1.0-testbed (project owner, 2026-09-30)
 

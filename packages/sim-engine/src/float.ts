@@ -2,8 +2,7 @@
 // visits on planned rounds, aligned with Dennis's turns, and is called out between rounds only
 // for urgent two-person or same-sex personal care.
 
-import { tuned } from "./tuning.js";
-import { clockToSeconds, timeOfDay } from "@vch/shared-types";
+import { timeOfDay } from "@vch/shared-types";
 import { FLOAT_TURNS } from "./care.js";
 import { emit } from "./emit.js";
 import { coverableOnSite, isNight, nextCoverT } from "./nightcover.js";
@@ -16,24 +15,12 @@ const IDLE_POST = "Corridor.East";
 const CALL_OUT_IF_COVER_AFTER_MINS = 30;
 /** She arrives this long before a turn is due so it starts on time (and takes open tasks, e.g. checks, meanwhile). */
 const ARRIVE_EARLY_MINS = 10;
-/** A turn takes this long (trees.ts careMinutes "reposition"). */
-const TURN_MINS = 10;
 /** On a round she also turns anyone due within this long (Raj's 4-hourly turn). */
 const BATCH_TURNS_WITHIN_MINS = 70;
 /** While on site she also helps with anything due within this many minutes. */
 const PRESSING_MINS = 20;
 /** Peggy's pad is changed on a round if toileting has reached this. */
 const PAD_CHANGE_DUE = 0.4;
-
-/** The 07:00 handover takes the night carer off the floor: turns due around it are done before it. */
-const MORNING_HANDOVER = { from: clockToSeconds("06:45"), until: clockToSeconds("07:30") };
-
-/** When a turn should be started by: its due time, or 06:45 if it falls due during the morning handover. */
-function plannedBy(world: World, due: number): number {
-  if (!tuned(world, "float_planning")) return due;
-  const tod = timeOfDay(due);
-  return tod >= MORNING_HANDOVER.from && tod < MORNING_HANDOVER.until ? due - tod + MORNING_HANDOVER.from : due;
-}
 
 export function floatPerson(world: World): Person {
   return world.people.get(world.data.rota.night_float.id)!;
@@ -93,12 +80,11 @@ export function floatMinute(world: World): void {
   const t = world.t;
   const tod = timeOfDay(t);
 
-  // Planned rounds, aligned with Dennis's turns: she comes about 10 minutes before the latest time
-  // that still lets the turns falling due together each start on time, one after another.
+  // Planned rounds, aligned with Dennis's turns: she comes about 10 minutes before the first turn
+  // due, and does any others falling due soon after it on the same round.
   const upcoming = nightTurnsDue(world).filter((d) => !hasCare(world, d.p.id, "reposition")).sort((a, b) => a.due - b.due);
   const batch = upcoming.filter((d) => upcoming[0] && d.due - upcoming[0].due <= BATCH_TURNS_WITHIN_MINS * 60);
-  // (Without the tuning rule: she comes for the first turn due, not planning the batch back to back.)
-  const startBy = tuned(world, "float_planning") ? Math.min(...batch.map((d, i) => plannedBy(world, d.due) - i * TURN_MINS * 60)) : Math.min(...batch.map((d) => d.due));
+  const startBy = Math.min(...batch.map((d) => d.due));
   const due = batch.length > 0 && t >= startBy - ARRIVE_EARLY_MINS * 60 ? batch : [];
   if (due.length > 0 && world.float.status === "off") {
     roundWork(world);

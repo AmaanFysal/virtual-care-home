@@ -7,7 +7,7 @@
 > - Sub-milestone (b) is built: infection state, spread through pluggable routes, isolation, outbreaks and the two outbreak scenarios.
 > - Sub-milestone (c) is built: illness, hospital stays by cause with care changes after, end of life, death and new admissions.
 > - Sub-milestone (d) is built: visitors' missed weeks with causes and seasons, birthdays and festivals.
-> - Sub-milestone (e) is done: the tuning review (docs/12), keeping 15 rules (one new) and removing 9.
+> - Sub-milestone (e) was the tuning review; its rules were all removed on 2026-10-01 (docs/12).
 >
 > Source: [plan-v2](research/plan-v2.md) (Base rates for the scenario director, Scenario catalogue). Workstream: [phase-2-director](workstreams/phase-2-director/spec.md). Code: `packages/sim-engine/src/director/`, `src/cover.ts`, `src/infection.ts`, `src/health.ts`, `src/celebrations.ts`, `src/director/calendar.ts`. Tuning: `data/director.json`. Scenarios: `data/scenarios/`.
 
@@ -152,7 +152,6 @@ No event type is meaningfully suppressed.
   - days by type, falls, sick calls, no-shows, cover outcomes;
   - what the caps held back;
   - breaches on days with and without a director event, grouped by target and cause.
-- **`sim --audit`** with the director adds the same per-day section.
 - **Director-off baseline:** at most 2 reported breaches a week and 0 hard violations (unchanged).
 - **Director runs:** 0 hard violations; breaches reported by day and cause, with no cap and no special rules.
 

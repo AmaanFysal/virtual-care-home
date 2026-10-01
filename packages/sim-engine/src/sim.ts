@@ -1,7 +1,6 @@
 // The simulation: builds the world from data and advances it one 5-second tick at a time
 // (docs/03). Pure: no I/O, no wall clock, all randomness from seeded streams.
 
-import { defaultTuning, type Tuning } from "./tuning.js";
 import {
   DEFAULT_START_T,
   TICK_SECONDS,
@@ -55,8 +54,6 @@ export interface SimOptions {
   admissions?: AdmissionCard[];
   /** Deaths and end-of-life decline (off for the public demo); `director.deaths` wins when given. Default on. */
   deaths?: boolean;
-  /** Tuning rules to switch off for this run (docs/12; the tuning review). All on by default. */
-  tuning?: Partial<Tuning>;
 }
 
 export interface Sim {
@@ -197,7 +194,6 @@ export function createSim(options: SimOptions): Sim {
     config: options.director?.config ?? options.config ?? null,
     admissions: structuredClone(options.admissions ?? []),
     deaths: options.director?.deaths ?? options.deaths ?? true,
-    tuning: defaultTuning(options.tuning),
     onsets: [],
     outbreaks: [],
     absences: [],

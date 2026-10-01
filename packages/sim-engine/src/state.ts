@@ -32,7 +32,6 @@ import type {
 import type { BtState } from "./bt.js";
 import type { Rng, StreamName } from "./rng.js";
 import type { Grid } from "./world/grid.js";
-import type { Tuning } from "./tuning.js";
 
 export interface Move {
   destPointId: string;
@@ -390,8 +389,6 @@ export interface World {
   session: { staffId: string; activity: string; residentIds: string[]; endT: number; roomId: string } | null;
   /** Today's birthdays and festivals (docs/10, sub-milestone d). */
   celebrations: Celebration[];
-  /** Tuning rules on for this run (docs/12; all on by default). */
-  tuning: Tuning;
   /** Ambulance calls in the order they were made; one crew answers them in turn (off the map until due). */
   paramedics: { taskId: string; dueT: number }[];
   metrics: { floatCallouts: number; medInterruptions: number };
