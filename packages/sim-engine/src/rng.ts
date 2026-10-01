@@ -8,7 +8,12 @@ export interface Rng {
   int(min: number, max: number): number;
   chance(p: number): boolean;
   pick<T>(items: readonly T[]): T;
+  /** The generator's internal state, for a snapshot (createRng's `state` restores it). */
+  state(): RngState;
 }
+
+/** The four 32-bit words of an sfc32 generator. */
+export type RngState = [number, number, number, number];
 
 /** xmur3 string hash; returns a generator of 32-bit seeds. */
 function xmur3(str: string): () => number {
@@ -24,7 +29,8 @@ function xmur3(str: string): () => number {
   };
 }
 
-export function createRng(seed: string): Rng {
+/** A generator seeded from `seed`, or resumed exactly from a saved `state` (a snapshot). */
+export function createRng(seed: string, state?: RngState): Rng {
   const seedGen = xmur3(seed);
   let a = seedGen();
   let b = seedGen();
@@ -45,10 +51,12 @@ export function createRng(seed: string): Rng {
     c = (c + t) | 0;
     return (t >>> 0) / 4294967296;
   };
-  for (let i = 0; i < 15; i++) next();
+  if (state) [a, b, c, d] = state;
+  else for (let i = 0; i < 15; i++) next();
 
   return {
     next,
+    state: () => [a >>> 0, b >>> 0, c >>> 0, d >>> 0],
     int: (min, max) => min + Math.floor(next() * (max - min + 1)),
     chance: (p) => next() < p,
     pick: (items) => {
@@ -66,8 +74,13 @@ export function createRng(seed: string): Rng {
 export const STREAMS = ["rota", "visitors", "needs", "decisions", "meds", "falls", "movement", "director", "cover", "infection", "health", "visitor_weeks"] as const;
 export type StreamName = (typeof STREAMS)[number];
 
-export function createStreams(seed: string): Record<StreamName, Rng> {
-  return Object.fromEntries(STREAMS.map((name) => [name, createRng(`${seed}/${name}`)])) as Record<StreamName, Rng>;
+export function createStreams(seed: string, states?: Record<StreamName, RngState>): Record<StreamName, Rng> {
+  return Object.fromEntries(STREAMS.map((name) => [name, createRng(`${seed}/${name}`, states?.[name])])) as Record<StreamName, Rng>;
+}
+
+/** Every stream's state, for a snapshot. */
+export function streamStates(rng: Record<StreamName, Rng>): Record<StreamName, RngState> {
+  return Object.fromEntries(STREAMS.map((name) => [name, rng[name].state()])) as Record<StreamName, RngState>;
 }
 
 /** Stable 32-bit FNV-1a hash as 8 hex chars (used for the data version). */
