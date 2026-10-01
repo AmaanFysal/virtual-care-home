@@ -37,7 +37,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - Phase 1 event log is SQLite via `node:sqlite`, owned by `apps/server` (ADR-0002).
 - The wing has six single en-suite bedrooms (Room 1 to Room 6, each en-suite a walled room inside the bedroom), the residents' Lounge (day and dining room), corridor, waiting area (visitors only; doors to the corridor and reception), reception and staff room (docs/02).
 - Two-person tasks are reserved, never held by one carer (ADR-0003); every room change is logged (`person.entered_room`).
-- The building (v1.0-testbed: doors, windows, weather, activity) only describes: an observer runs last in each tick and nothing reads it, so the director-off fingerprints match with its events (`door.*`, `window.*`) left out. `sim.describe()` is the world description external models read (docs/03).
+- The building (v1.0-testbed: doors, windows, equipment, touches, weather, activity) only describes: an observer runs last in each tick and nothing reads it, so the director-off fingerprints match with its events (`door.*`, `window.*`, `equipment.*`, `heating.*`) left out. `sim.describe()` is the world description external models read (docs/03).
 
 ## Non-negotiables (full text: docs/00-constitution.md)
 

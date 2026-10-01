@@ -12,8 +12,8 @@
 
 | PR | What | Done when |
 |---|---|---|
-| 1 (this branch, `v1-testbed`) | **People, doors, windows and weather.** The world description (schema 1) with activity and MET (2024 Compendium), door states and rules, windows in the floor plan with restrictors and weather rules, London's hourly weather (Open-Meteo, Oct 2025 to Sep 2026), `describe` CLI, `START` / `--start`. Browser: door leaves and open windows on the map, weather in the clock bar, a room inspector (click a room's floor), activity in the person inspector, a Building filter | Director-off fingerprints unchanged; doors and windows follow their rules every tick (`building.test.ts`); the description is deterministic and never changes a run (`describe.test.ts`); data validated; visible in the browser |
-| 2 (`v1-testbed-2`) | **Equipment and touches; schema 1 complete.** Lights, heating (22 °C day rooms, 21 °C bedrooms), the Lounge TV, the staff-room kettle, WC flushes, showers described but off; touches from task steps and events; lights and TV drawn; equipment and recent touches in the inspectors | Fingerprints still unchanged; equipment rules hold every tick; every touch in reach; visible in the browser |
+| 1 (merged, #15) | **People, doors, windows and weather.** The world description (schema 1) with activity and MET (2024 Compendium), door states and rules, windows in the floor plan with restrictors and weather rules, London's hourly weather (Open-Meteo, Oct 2025 to Sep 2026), `describe` CLI, `START` / `--start`. Browser: door leaves and open windows on the map, weather in the clock bar, a room inspector (click a room's floor), activity in the person inspector, a Building filter | Director-off fingerprints unchanged; doors and windows follow their rules every tick (`building.test.ts`); the description is deterministic and never changes a run (`describe.test.ts`); data validated; visible in the browser |
+| 2 (this branch, `v1-testbed-2`) | **Equipment and touches; schema 1 complete.** Lights, heating (22 °C day rooms, 21 °C bedrooms), the Lounge TV, the staff-room kettle, WC flushes, showers described but off; touches from task steps and events; lights and TV drawn; equipment and recent touches in the inspectors | Fingerprints still unchanged; equipment rules hold every tick; every touch in reach; visible in the browser |
 
 ## Night-time doors (decision 6, reviewed 2026-10-01)
 
@@ -26,6 +26,6 @@
 
 ## Risks
 
-- **Run time:** the observer adds about 20% to a run (1.6 µs a tick). Two 16-day scenario replays now have explicit test timeouts.
+- **Run time:** the observer adds about 20% to a run after PR 1 (1.6 µs a tick), about 65% after PR 2 (most of it the light rules). Two 16-day scenario replays have explicit test timeouts.
 - **Hoisting is instant in the engine,** so hoisting shows on that tick only.
 - **The world description is a contract:** any change bumps `WORLD_SCHEMA`.

@@ -54,10 +54,17 @@
 
 ## Findings from v1.0-testbed PR 1 (2026-10-01)
 
-- **Run time:** the building observer adds about 20% to a run (about 1.6 µs a tick; a week of seed 1 in about 1.15 s against 0.93 s). The two 16-day outbreak replays went past Vitest's 5-second default and now have explicit timeouts.
+- **Run time:** the building observer adds about 20% to a run (about 1.6 µs a tick; a week of seed 1 in about 1.15 s against 0.93 s). The two 16-day outbreak replays went past Vitest's 5-second default and now have explicit timeouts. With PR 2's equipment and touches, about 65% (1.5 s a week); the equipment rules are most of it (lights checked for every room every tick).
 - **Hoisting is instant in the engine** (a placement), so the world description shows hoisting and being hoisted on that tick only; the care around it is personal care. A timed transfer would be a behaviour change, for later.
 - **Windows open rarely in a November run:** the default start is in November, and the window rule needs 12 °C, dry and calm. `START=2027-05-04` (or `--start`) shows them.
 - **The sidebar scrolls sideways at 380 px:** the event log's filter row (two selects, the search box and "selected") needs about 412 px. Seen while testing PR 1; not caused by it.
+
+## Findings from v1.0-testbed PR 2 (2026-10-01)
+
+- **Touches are one per action, not continuous contact:** about 650 a day, against the spec's estimate of 5,000. Each action records its touches as it starts (a bed rail as the wash begins, a cup as a drink is served); hands on surfaces through a 20-minute wash aren't counted again. A contact model that needs a rate per minute would have to be built on this, or the rule changed.
+- **Touches only in reach:** opening a window or switching the kettle on is a touch only when the person is within 1.5 m (the engine doesn't walk them over). Lounge windows opened by someone at the door aren't touched.
+- **Lights are rules, not people's choices:** a light goes off when nobody awake is left in the room, and a resident's own light isn't left on for company or by habit.
+- **The map's darkness now follows the real daylight,** so November evenings go dark from about 16:30 rather than 20:00.
 
 ## Care perfection removed (2026-10-01)
 

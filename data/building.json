@@ -18,5 +18,22 @@
       "max_opening_mm": "HSE, 'Falls from windows or balconies in health and social care' (HSIS 5): windows people could fall from are restricted, 'to 100 mm or less' (https://www.hse.gov.uk/healthservices/falls-windows.htm)",
       "open_min_temp_c, open_max_wind_mps, close_after_mins, close_by, lounge_from": "Assumptions in the v1.0-testbed spec, approved by the project owner (2026-10-01): staff air a room after morning care on a mild, dry, calm day and close it again within the half hour or at bedtime"
     }
-  }
+  },
+  "lights": {
+    "dark_below_wm2": 50,
+    "corridor_dim": ["22:00", "07:00"],
+    "sources": {
+      "dark_below_wm2": "Assumption (v1.0-testbed PR 2): about the outdoor light of a heavily overcast morning or late afternoon, when indoor lights go on",
+      "corridor_dim": "The wing's night lights (docs/02), on the same hours as the fire doors"
+    }
+  },
+  "heating": {
+    "season": ["10-01", "04-30"],
+    "setpoint_c": { "bedroom": 21, "ensuite": 21, "lounge": 22, "waiting": 22, "reception": 22, "staff": 22, "corridor": 22 },
+    "sources": {
+      "setpoint_c": "Project owner, v1.0-testbed spec decision 7 (2026-10-01): 22 °C in day rooms, 21 °C in bedrooms (en-suites with their bedroom)",
+      "season": "Assumption: UK heating season, October to April"
+    }
+  },
+  "kettle_mins": 3
 }

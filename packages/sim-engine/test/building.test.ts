@@ -2,7 +2,7 @@
 // runs in November (the default start) and in May (mild enough for windows to open).
 
 import { describe, expect, it } from "vitest";
-import { SECONDS_PER_DAY, TICK_SECONDS, clockToSeconds, simTimeAt, type AnySimEvent } from "@vch/shared-types";
+import { SECONDS_PER_DAY, TICK_SECONDS, clockToSeconds, simDate, simTimeAt, type AnySimEvent } from "@vch/shared-types";
 import { createSim, type Sim } from "../src/index.js";
 import { raining, weatherAt } from "../src/weather.js";
 import { loadWorldData } from "../tools/load-data.js";
@@ -100,4 +100,70 @@ describe("windows (v1.0-testbed)", () => {
     const { problems } = run("3", 7, undefined, windowRules);
     expect(problems).toEqual([]);
   }, 60000);
+});
+
+// ---------------------------------------------------------------- equipment (PR 2)
+
+function inHours(tod: number, [from, until]: [string, string]): boolean {
+  const a = clockToSeconds(from), b = clockToSeconds(until);
+  return a <= b ? tod >= a && tod < b : tod >= a || tod < b;
+}
+
+function equipmentRules(sim: Sim, events: AnySimEvent[], problems: string[]): void {
+  const w = sim.world;
+  const b = w.data.building;
+  const kindOf = new Map(w.data.floorplan.rooms.map((r) => [r.id, r.kind]));
+  const people = w.order.map((id) => w.people.get(id)!).filter((p) => p.onMap);
+  const inRoom = (roomId: string) => people.filter((p) => p.roomId === roomId);
+  const { month, day } = simDate(w.t);
+  const md = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const season = md >= b.heating.season[0] || md <= b.heating.season[1];
+  for (const e of sim.describe().equipment) {
+    const here = inRoom(e.roomId);
+    const kind = kindOf.get(e.roomId)!;
+    if (e.kind === "light") {
+      if (kind === "corridor" && (!e.on || e.level !== (inHours(w.t % SECONDS_PER_DAY, b.lights.corridor_dim) ? "dim" : "full"))) problems.push(`corridor light ${e.level ?? "off"} at ${w.t % SECONDS_PER_DAY}`);
+      if (kind === "ensuite" && e.on !== here.length > 0) problems.push(`${e.equipmentId} ${e.on ? "on" : "off"} with ${here.length} inside`);
+      if (kind === "bedroom" && e.on && here.length === 0) problems.push(`${e.equipmentId} on in an empty room`);
+      if (kind === "bedroom" && e.on && here.every((p) => p.resident?.asleep)) problems.push(`${e.equipmentId} on with nobody awake there`);
+    }
+    if (e.kind === "tv" && e.on !== here.some((p) => p.resident?.loungeActivity === "tv" && !p.resident.asleep)) problems.push(`TV ${e.on ? "on" : "off"}, watchers ${here.filter((p) => p.resident?.loungeActivity === "tv").length}`);
+    if (e.kind === "heating") {
+      if (e.on !== season) problems.push(`${e.equipmentId} ${e.on ? "on" : "off"} on ${md}`);
+      if (e.setpointC !== b.heating.setpoint_c[kind]) problems.push(`${e.equipmentId} set to ${e.setpointC}, not ${b.heating.setpoint_c[kind]}`);
+    }
+    if ((e.kind === "shower" || e.kind === "wc" || e.kind === "basin") && e.on) problems.push(`${e.equipmentId} on`);
+  }
+  // The kettle: on only for the minutes after a break starts.
+  const kettle = w.building!.equipment.get("StaffRoom.kettle")!;
+  if (kettle.on && (kettle.offAtT === undefined || w.t >= kettle.offAtT)) problems.push("kettle left on");
+  for (const e of events) if (e.type === "equipment.turned_on" && e.payload.kind === "kettle" && !events.some((x) => x.type === "break.started")) problems.push("kettle on without a break");
+}
+
+describe("equipment (v1.0-testbed PR 2)", () => {
+  it.each([["1", undefined], ["2", simTimeAt("2027-05-04")]] as const)("follows its rules on every tick for a week (seed %s)", (seed, startT) => {
+    const { problems, events } = run(seed, 7, startT, equipmentRules);
+    expect(problems).toEqual([]);
+    const used = events.filter((e) => e.type === "equipment.used");
+    expect(used.some((e) => e.type === "equipment.used" && e.payload.kind === "wc")).toBe(true);
+    expect(events.some((e) => e.type === "equipment.turned_on" && e.payload.kind === "tv")).toBe(true);
+    expect(events.some((e) => e.type === "equipment.turned_on" && e.payload.kind === "kettle")).toBe(true);
+    expect(events.some((e) => e.type === "equipment.turned_on" && e.payload.kind === "light" && e.payload.level === "dim")).toBe(true);
+  }, 60000);
+
+  it("turns the heating on with its set points at the season's start, and off at its end", () => {
+    const at = (date: string) => {
+      const sim = createSim({ seed: "1", data, startT: simTimeAt(date, "23:50") });
+      const events: AnySimEvent[] = [];
+      for (let i = 0; i < 20 * 12; i++) events.push(...sim.step());
+      return events;
+    };
+    const radiators = data.floorplan.equipment.filter((e) => e.kind === "heating").length;
+    const autumn = at("2027-09-30");
+    expect(autumn.filter((e) => e.type === "equipment.turned_on" && e.payload.kind === "heating")).toHaveLength(radiators);
+    const set = autumn.filter((e) => e.type === "heating.set_point_changed");
+    expect(set.find((e) => e.type === "heating.set_point_changed" && e.payload.roomId === "Lounge")).toMatchObject({ payload: { setpointC: 22 } });
+    expect(set.find((e) => e.type === "heating.set_point_changed" && e.payload.roomId === "Room1")).toMatchObject({ payload: { setpointC: 21 } });
+    expect(at("2027-04-30").filter((e) => e.type === "equipment.turned_off" && e.payload.kind === "heating")).toHaveLength(radiators);
+  });
 });

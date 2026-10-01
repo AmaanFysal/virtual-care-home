@@ -2,7 +2,7 @@
 // models (air, heat, surfaces, energy) read every step. The engine describes; it models no
 // physics (constitution rule 4, ADR-0006). A contract: any change bumps `schema`.
 
-import type { WeatherHour } from "./data.js";
+import type { EquipmentKind, WeatherHour } from "./data.js";
 
 export const WORLD_SCHEMA = 1;
 
@@ -84,6 +84,24 @@ export interface WindowState {
   openingMm: number;
 }
 
+export interface EquipmentState {
+  equipmentId: string;
+  kind: EquipmentKind;
+  roomId: string;
+  on: boolean;
+  /** Lights: dim (a night check, the corridor's night lights) or full. */
+  level?: "dim" | "full";
+  /** Heating: the set point (°C); whether the radiator gives out heat is the heat model's to say. */
+  setpointC?: number;
+}
+
+/** Someone's hand on an object (v1.0-testbed). Objects: furniture, door handles and the exit keypad, light switches, windows, equipment, and a resident's own things (`res_x.cup`). */
+export interface Touch {
+  personId: string;
+  objectId: string;
+  t: number;
+}
+
 /** The outdoor weather this hour: one row of the data file, with the data's own timestamp (GMT). */
 export type Weather = WeatherHour;
 
@@ -95,10 +113,9 @@ export interface WorldDescription {
   people: PersonActivity[];
   doors: DoorState[];
   windows: WindowState[];
-  /** Equipment in use (v1.0-testbed PR 2); empty until then. */
-  equipment: never[];
-  /** Touches on objects since the previous tick (PR 2); empty until then. */
-  touches: never[];
+  equipment: EquipmentState[];
+  /** Touches on objects in this tick (since the previous description, when described every tick). */
+  touches: Touch[];
   /** Null when the run has no weather data. */
   weather: Weather | null;
 }
@@ -107,6 +124,7 @@ export interface WorldDescription {
 export interface BuildingView {
   doors: DoorState[];
   windows: WindowState[];
+  equipment: EquipmentState[];
   weather: Weather | null;
 }
 
@@ -120,6 +138,9 @@ export interface RoomDetail {
   t: number;
   doors: DoorState[];
   windows: WindowState[];
+  equipment: EquipmentState[];
   people: (PersonActivity & { name: string })[];
+  /** The last 20 touches in the room (an en-suite's count for its bedroom), newest first. */
+  touches: Touch[];
   weather: Weather | null;
 }

@@ -27,6 +27,8 @@ import type {
   StaffRole,
   WorldData,
   CelebrationKind,
+  EquipmentKind,
+  Touch,
   WeekOffCause,
 } from "@vch/shared-types";
 import type { BtState } from "./bt.js";
@@ -348,6 +350,24 @@ export interface BuildingState {
   hoisted: Set<string>;
   /** The day (index since the epoch) each window was last opened: at most once a day. */
   openedToday: Map<string, number>;
+  /** Equipment in use (PR 2): its state, and when a kettle switches itself off. */
+  equipment: Map<string, { kind: EquipmentKind; roomId: string; on: boolean; level?: "dim" | "full"; setpointC?: number; offAtT?: number }>;
+  /** Everything people can touch, and where it is (touches.ts). */
+  objects: Map<string, TouchObject>;
+  /** This tick's touches, and the last 20 by room and by person (for the inspector). */
+  touches: Touch[];
+  recentByRoom: Map<string, Touch[]>;
+  recentByPerson: Map<string, Touch[]>;
+  /** What each person was doing last tick (task, step, doorway, walking), to see what they've just started. */
+  last: Map<string, { taskId: string | null; node: string | null; zone: string | null; moving: boolean; x: number; y: number }>;
+}
+
+/** Something a hand can touch: where it is, or who has it with them. */
+export interface TouchObject {
+  id: string;
+  /** The room it's in; null for things people carry. */
+  roomId: string | null;
+  at: { kind: "point"; x: number; y: number } | { kind: "rect"; x: number; y: number; w: number; h: number } | { kind: "with"; personId: string } | { kind: "carried" };
 }
 
 export interface World {

@@ -65,6 +65,19 @@ export interface Window {
   y2: number;
 }
 
+/** Equipment in use (v1.0-testbed): described by the engine, its effects left to external models. */
+export type EquipmentKind = "light" | "heating" | "tv" | "kettle" | "wc" | "basin" | "shower";
+
+export interface Equipment {
+  id: string;
+  kind: EquipmentKind;
+  room: string;
+  /** Where it is (metres), for what's in reach. */
+  x: number;
+  y: number;
+  label?: string;
+}
+
 export type FurnitureKind = "bed" | "desk" | "table" | "chair" | "armchair" | "sofa" | "wc" | "tv" | "bookshelf";
 
 export interface Furniture {
@@ -97,6 +110,7 @@ export interface FloorPlan {
   walls: Wall[];
   doors: Door[];
   windows: Window[];
+  equipment: Equipment[];
   furniture: Furniture[];
   points: NamedPoint[];
 }
@@ -367,6 +381,22 @@ export interface BuildingSettings {
     lounge_from: ClockTime;
     sources: Record<string, string>;
   };
+  lights: {
+    /** Daylight is enough at or above this shortwave radiation (W/m²) by day; below it, an occupied room's lights go on. */
+    dark_below_wm2: number;
+    /** The corridor's night lights (dimmed) between these times. */
+    corridor_dim: [ClockTime, ClockTime];
+    sources: Record<string, string>;
+  };
+  heating: {
+    /** The heating season, as "MM-DD" dates, inclusive. */
+    season: [string, string];
+    /** Set points by room kind (°C). */
+    setpoint_c: Record<RoomKind, number>;
+    sources: Record<string, string>;
+  };
+  /** How long the kettle is on for a break's tea. */
+  kettle_mins: number;
 }
 
 /** One Compendium entry. `aid` (part of the card's mobility aid), `below_mps` (walking speed) and `in_bed` narrow it. */

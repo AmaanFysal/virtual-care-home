@@ -166,4 +166,15 @@ describe("validateData catches", () => {
     f.weather!.hours = f.weather!.hours.slice(0, 24 * 300);
     expect(validateData(f).join("\n")).toMatch(/the data must cover a whole year/);
   });
+
+  it("equipment outside its room, an en-suite without its shower, or a heated room with no set point (v1.0-testbed PR 2)", () => {
+    const d = fresh();
+    Object.assign(d.floorplan.equipment.find((e) => e.id === "StaffRoom.kettle")!, { x: 30 });
+    d.floorplan.equipment = d.floorplan.equipment.filter((e) => e.id !== "Ensuite3.shower");
+    delete (d.building.heating.setpoint_c as Partial<Record<string, number>>).lounge;
+    const errors = validateData(d).join("\n");
+    expect(errors).toMatch(/equipment StaffRoom.kettle is not inside StaffRoom/);
+    expect(errors).toMatch(/en-suite Ensuite3 has no shower/);
+    expect(errors).toMatch(/no heating set point for lounge rooms/);
+  });
 });

@@ -1,11 +1,14 @@
-// The building (v1.0-testbed): doors and windows, their states and the rules that change them.
+// The building (v1.0-testbed): doors and windows, their states and the rules that change them, and
+// (PR 2) the equipment in use (equipment.ts) and touches (touches.ts).
 // An observer: it runs last in each tick, reads the world and the tick's events, and writes only
 // `world.building`. Nothing else reads that, and it draws no random numbers, so it can never change
 // what people do (spec decision 2). Set-state changes are logged; passing through a closed door
 // is only in the world description.
 
-import { SECONDS_PER_DAY, clockToSeconds, type AnySimEvent, type BuildingSettings, type DoorState, type WindowState } from "@vch/shared-types";
+import { SECONDS_PER_DAY, clockToSeconds, type AnySimEvent, type BuildingSettings, type DoorState, type EquipmentState, type WindowState } from "@vch/shared-types";
 import { emit } from "./emit.js";
+import { equipmentRules, initEquipment } from "./equipment.js";
+import { recordTouches, touch, touchObjects } from "./touches.js";
 import type { BuildingState, DoorRule, Person, World } from "./state.js";
 import { raining, weatherAt } from "./weather.js";
 
@@ -36,7 +39,19 @@ function doorRule(world: World, rooms: [string, string], id: string, settings: B
 
 export function initBuilding(world: World): BuildingState {
   const settings = world.data.building;
-  const building: BuildingState = { doors: new Map(), windows: new Map(), night: new Set(), hoisted: new Set(), openedToday: new Map() };
+  const building: BuildingState = {
+    doors: new Map(),
+    windows: new Map(),
+    night: new Set(),
+    hoisted: new Set(),
+    openedToday: new Map(),
+    equipment: new Map(),
+    objects: touchObjects(world),
+    touches: [],
+    recentByRoom: new Map(),
+    recentByPerson: new Map(),
+    last: new Map(),
+  };
   for (const d of world.data.floorplan.doors) building.doors.set(d.id, { rule: doorRule(world, d.rooms, d.id, settings), state: "open", rooms: d.rooms });
   for (const w of world.data.floorplan.windows) building.windows.set(w.id, { roomId: w.room, open: false, openedT: null });
   // The run starts with everyone asleep in bed: their night has begun.
@@ -47,6 +62,7 @@ export function initBuilding(world: World): BuildingState {
   world.building = building;
   const s = scan(world);
   for (const [id, door] of building.doors) door.state = doorSetState(world, id, s).state;
+  initEquipment(world, building);
   return building;
 }
 
@@ -134,6 +150,7 @@ function setWindow(world: World, windowId: string, open: boolean, byId: string |
   w.openedT = open ? world.t : null;
   if (open) world.building!.openedToday.set(windowId, Math.floor(world.t / SECONDS_PER_DAY));
   emit(world, open ? "window.opened" : "window.closed", byId ? [byId] : [], { windowId, roomId: w.roomId, byId, reason });
+  if (byId) touch(world, byId, windowId);
 }
 
 function windowsIn(world: World, roomId: string): string[] {
@@ -186,7 +203,10 @@ export function observeBuilding(world: World): void {
   if (!building) return;
   const events = world.pending;
   building.hoisted.clear();
+  building.touches = [];
   for (const e of events) {
+    // A new resident's own things (cup, call bell, walking aid) can be touched from now on.
+    if (e.type === "resident.admitted") for (const [id, o] of touchObjects(world)) if (!building.objects.has(id)) building.objects.set(id, o);
     if (e.type === "resident.went_to_bed") building.night.add(e.payload.residentId);
     if (e.type === "resident.woke" && e.payload.reason === "routine") building.night.delete(e.payload.residentId);
     if (e.type === "resident.transferred" && e.payload.method === "hoist") building.hoisted.add(e.payload.residentId);
@@ -199,6 +219,19 @@ export function observeBuilding(world: World): void {
     emit(world, DOOR_EVENT[next.state], next.byId ? [next.byId] : [], { doorId: id, byId: next.byId, reason: next.reason });
   }
   windowRules(world, events, s);
+  equipmentRules(world, events, new Set(s.care.keys()));
+  recordTouches(world, events);
+}
+
+export function equipmentStates(world: World): EquipmentState[] {
+  return [...world.building!.equipment].map(([equipmentId, e]) => ({
+    equipmentId,
+    kind: e.kind,
+    roomId: e.roomId,
+    on: e.on,
+    ...(e.level ? { level: e.level } : {}),
+    ...(e.setpointC !== undefined ? { setpointC: e.setpointC } : {}),
+  }));
 }
 
 /** Doors as the description shows them: a closed, ajar or locked door is open while someone is in its doorway. */

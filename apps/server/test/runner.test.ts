@@ -93,6 +93,7 @@ describe("the building (v1.0-testbed)", () => {
     expect(snapshot.building.doors.find((d) => d.doorId === "D_Exit")).toMatchObject({ state: "locked" });
     expect(snapshot.building.windows).toHaveLength(12);
     expect(snapshot.building.weather?.time).toBe("2025-11-03T06:00");
+    expect(snapshot.building.equipment.find((e) => e.equipmentId === "Lounge.radiator1")).toMatchObject({ on: true, setpointC: 22 });
   });
 
   it("sends only the doors and windows that changed, and the weather when its hour changes", () => {
@@ -121,6 +122,8 @@ describe("the building (v1.0-testbed)", () => {
     expect(detail.detail.activity).toMatchObject({ personId: "stf_blessing" });
     const home = runner.handle({ type: "inspect", personId: "stf_florin" }) as Extract<ServerMessage, { type: "detail" }>;
     expect(home.detail.activity).toBeNull(); // the night carer has gone home
+    expect(reply.room.equipment.map((e) => e.equipmentId)).toEqual(expect.arrayContaining(["Room5.light", "Ensuite5.wc", "Room5.radiator"]));
+    expect(Array.isArray(detail.detail.touches)).toBe(true);
     expect(parseCommand('{"type":"inspect_room","roomId":"Lounge"}')).toEqual({ type: "inspect_room", roomId: "Lounge" });
     expect(parseCommand('{"type":"inspect_room"}')).toBeNull();
   });
