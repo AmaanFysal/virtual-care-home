@@ -6,7 +6,7 @@
 
 - **One observer, last in each tick** (`src/building.ts`): it reads the world and the tick's events, writes only `world.building`, and appends its events after the tick's others. Nothing reads its state and it draws no random numbers, so behaviour can't change (spec decision 2).
 - **`sim.describe()`** builds the description from the world. Pure, so calling it never changes a run.
-- **The proof:** the director-off fingerprints recorded for audit PR B match unchanged once building events are left out and the rest renumbered.
+- **The proof:** the director-off fingerprints match unchanged once building events are left out and the rest renumbered.
 
 ## Tasks
 

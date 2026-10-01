@@ -3,7 +3,6 @@
 // daytime turns, Dennis's comfort care and the Lounge routine (lounge.ts). Runs once per sim
 // minute; night turns and pad changes come with the floating carer's rounds (float.ts).
 
-import { tuned } from "./tuning.js";
 import { clockToSeconds, timeOfDay, type DrinkRound, type MealName } from "@vch/shared-types";
 import { checkInterval, isNight } from "./nightcover.js";
 import { onBreak } from "./floor.js";
@@ -37,8 +36,8 @@ const DEFAULT_WAKE = "07:30";
 const BED_BOUND_WASH = clockToSeconds("08:30");
 /** Checks are created this long before they are due, so someone can get there in time. */
 const CHECK_LEAD_MINS = 30;
-/** Day turns are scheduled this far ahead: before the 25-minute "pressing" window (tasks.ts), so nobody starts a long job just before one. */
-const TURN_LEAD_MINS = 30;
+/** Day turns are scheduled this far ahead of when they're due. */
+const TURN_LEAD_MINS = 20;
 /** Tea on waking should reach them within this long. */
 const TEA_WITHIN_MINS = 15;
 /** Awake this long without morning care: tea and toast before 07:30, breakfast first after it. */
@@ -53,16 +52,11 @@ const COMFORT_LEAD_MINS = 10;
  * morning rush has settled at 08:00.
  */
 export const FLOAT_TURNS = { from: clockToSeconds("21:30"), until: clockToSeconds("08:00") };
-/** Evening crunch: Raj's bedtime and the drinks round at 20:00, the 21:00 med round, the 21:15 handover. */
-const EVENING_CRUNCH = { from: clockToSeconds("20:00"), until: FLOAT_TURNS.from };
-/** A turn due in the crunch is brought forward to here, before Raj's bedtime and the drinks round. */
-const EVENING_TURN = clockToSeconds("19:45");
 
 /** When a turn due at `due` is done by day staff, or null if the floating carer's rounds cover it. */
-export function dayTurnTime(world: World, due: number): number | null {
+export function dayTurnTime(due: number): number | null {
   const tod = timeOfDay(due);
   if (tod >= FLOAT_TURNS.from || tod < FLOAT_TURNS.until) return null;
-  if (tuned(world, "evening_crunch") && tod >= EVENING_CRUNCH.from) return due - tod + EVENING_TURN;
   return due;
 }
 
@@ -154,9 +148,8 @@ function scheduleResident(world: World, p: Person): void {
   // Daytime turns (Dennis), from when each is due; the floating carer's rounds cover the night.
   const turnEvery = r.care.reposition_interval_mins.day;
   if (turnEvery && res.inBed && !hasCare(world, p.id, "reposition")) {
-    const at = dayTurnTime(world, res.lastTurnedT + turnEvery * 60);
-    const lead = tuned(world, "pressing_turns") ? TURN_LEAD_MINS : 20; // before the tuning rule: 20
-    if (at !== null && world.t >= at - lead * 60) createCare(world, p, "reposition", { dueT: at });
+    const at = dayTurnTime(res.lastTurnedT + turnEvery * 60);
+    if (at !== null && world.t >= at - TURN_LEAD_MINS * 60) createCare(world, p, "reposition", { dueT: at });
   }
 }
 

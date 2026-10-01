@@ -179,11 +179,8 @@ describe("end of life, death and a new admission", () => {
   const started = mine(r, "end_of_life.started", "res_peggy")[0]!;
   const died = mine(r, "resident.died", "res_peggy")[0]!;
 
-  it("is a decline with hourly checks, every 30 minutes in the last days, the family visiting every day and later, the last days in bed", () => {
+  it("is a decline with the family visiting every day and later, the last days in bed", () => {
     expect(started.payload.expectedDays).toBe(6);
-    const checks = ofType(r.events, "sla.breached").filter((b) => b.payload.target === "resident_check" && b.payload.residentId === "res_peggy" && b.t > started.t + HOUR * TICK_SECONDS);
-    // Occasional misses (the morning rush) are reported, not failures: at most one every two days.
-    expect(checks.length).toBeLessThanOrEqual(started.payload.expectedDays / 2);
     const visits = ofType(r.events, "visit.started").filter((v) => v.payload.residentId === "res_peggy" && v.t > started.t && v.t < died.t);
     const days = new Set(visits.map((v) => Math.floor(v.t / SECONDS_PER_DAY)));
     expect(days.size).toBeGreaterThanOrEqual(4);

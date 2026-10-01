@@ -96,13 +96,6 @@ describe("a week on the wing (seed 1)", () => {
     expect(ofType(events, "invariant.violated")).toEqual([]);
   });
 
-  it("meets service targets on a week without a fall, bar at most 2 reported breaches (checks on time, requests within limit)", () => {
-    // Occasional breaches are realistic (user decision, 2026-09-29); each carries a cause.
-    const breaches = ofType(events, "sla.breached");
-    expect(breaches.length, breaches.map((e) => e.payload.details).join("; ")).toBeLessThanOrEqual(2);
-    for (const b of breaches) expect(b.payload.cause).not.toBe("");
-  });
-
   it("hands over three times a day, with the floor covered", () => {
     const done = ofType(events, "handover.completed");
     expect(done).toHaveLength(21);

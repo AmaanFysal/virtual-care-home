@@ -1,21 +1,15 @@
 // The master switch (docs/10): with the director off, a run is exactly what it was before the
 // director existed. Each seed's week-long event log is fingerprinted and compared with the
-// fingerprints recorded on main (test/fixtures/). The one field left out is `sim.started`'s
-// `dataVersion`, a hash of the data files: adding data no rule reads without the director (Nikos,
-// the main-building carer, in rota.json) changes that string and nothing else. Re-recorded on main
-// (e44f98f) with it blanked, 2026-09-30; re-recorded again for the tuning review (sub-milestone e,
-// 2026-09-30), which deliberately changes director-off runs: 9 tuning rules removed, the only
-// people free for a pressing turn keep to short work, and a day break or going home counts only
-// staff on a shift as floor cover. Re-recorded for the full scenario audit's PR B (2026-10-01),
-// which deliberately changes calm days: escorting carers walk at the resident's pace (and follow them
-// straight through a doorway, on the resident's route; neither draws more than 1.5 m ahead of the
-// other), visitors wait by the bed rather than in the en-suite, Arthur's
-// time-critical dose isn't put off for care in progress, and whoever gives the next medication round
-// starts no long care in the 15 minutes before it.
+// fingerprints recorded in test/fixtures/. The one field left out is `sim.started`'s `dataVersion`,
+// a hash of the data files: adding data no rule reads without the director changes that string and
+// nothing else. Any deliberate change to director-off behaviour re-records them, with the reason in
+// the commit. Last re-recorded 2026-10-01 when the care-perfection work was removed (the full
+// scenario audit and its fixes reverted, the 15 tuning rules taken out): occasional late turns and
+// Lounge look-ins are accepted, and no hard rule breaks in 8 calm weeks or 32 random-director weeks.
 //
 // The building (v1.0-testbed) describes and never changes what people do (its spec, decision 2). So its
 // events (doors and windows) are left out and the rest renumbered: the fingerprints are the ones
-// recorded for PR B, unchanged, which is the proof.
+// recorded without its events.
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";

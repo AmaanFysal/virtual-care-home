@@ -32,7 +32,6 @@ import type {
 import type { BtState } from "./bt.js";
 import type { Rng, StreamName } from "./rng.js";
 import type { Grid } from "./world/grid.js";
-import type { Tuning } from "./tuning.js";
 
 export interface Move {
   destPointId: string;
@@ -390,8 +389,6 @@ export interface World {
   onCallRn: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; residentId: string | null };
   /** Medication rounds nobody on the wing could give at their time: given when the on-call RN comes over. */
   pendingRounds: { round: string; roundT: number }[];
-  /** Doses not given on a round (on the floor after a fall): given once they can take it, or recorded as missed. */
-  pendingDoses: { residentId: string; round: string; roundT: number }[];
   /** A carer from the main building, asked for when every care staff member here is with a fallen resident. */
   mainCarer: { status: "off" | "coming" | "on_site" | "leaving"; arriveT: number | null; retryT: number };
   /** Recent falls, for explaining missed service targets. */
@@ -402,8 +399,6 @@ export interface World {
   session: { staffId: string; activity: string; residentIds: string[]; endT: number; roomId: string } | null;
   /** Today's birthdays and festivals (docs/10, sub-milestone d). */
   celebrations: Celebration[];
-  /** Tuning rules on for this run (docs/12; all on by default). */
-  tuning: Tuning;
   /** Ambulance calls in the order they were made; each gets its own crew when it's due (off the map until then). */
   paramedics: { taskId: string; dueT: number; crewId: string | null }[];
   metrics: { floatCallouts: number; medInterruptions: number };

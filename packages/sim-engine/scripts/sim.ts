@@ -1,8 +1,6 @@
 // Headless run: prints the event log to the terminal.
 //   pnpm --filter @vch/sim-engine sim --seed 1 --hours 24 [--type shift] [--fall res_peggy@06:40[:serious]] [--positions] [--report]
 // --report prints help requests per day by need, the longest wait per resident and call-outs.
-// --audit prints a behaviour audit per resident, staff shift and day (thresholds in scripts/audit.config.ts);
-//   add --seeds 1-8 to audit several seeds and print only the combined flag summary.
 // --director random|scenario|both|off and --scenario <id or path> turn on the scenario director (docs/10);
 //   --report then adds a per-day report, and --report --seeds 1-8 prints it for several seeds with totals.
 
@@ -10,7 +8,6 @@ import { parseArgs } from "node:util";
 import { DEFAULT_START_T, clockToSeconds, dayIndex, formatSimTime, spriteClashes, type AnySimEvent, type DirectorSettings } from "@vch/shared-types";
 import { createSim, toView, validateScenario, type World } from "../src/index.js";
 import { loadAdmissions, loadDirectorConfig, loadScenario, loadSprites, loadWorldData } from "../tools/load-data.js";
-import { runAudit, summarise, type Flag } from "./audit.js";
 import { dayLines, dayReport, emptyTotals, totalsLines } from "./day-report.js";
 
 const { values } = parseArgs({
@@ -21,15 +18,11 @@ const { values } = parseArgs({
     fall: { type: "string" },
     positions: { type: "boolean", default: false },
     report: { type: "boolean", default: false },
-    audit: { type: "boolean", default: false },
     seeds: { type: "string" },
     director: { type: "string" },
     scenario: { type: "string" },
-    "tuning-off": { type: "string" },
   },
 });
-/** --tuning-off a,b: tuning rules switched off for this run (docs/12, the tuning review). */
-const tuning = Object.fromEntries((values["tuning-off"] ?? "").split(",").filter(Boolean).map((r) => [r, false]));
 
 function directorSettings(): DirectorSettings | undefined {
   const mode = values.director ?? (values.scenario ? "scenario" : "off");
@@ -68,7 +61,7 @@ if (values.report && values.seeds) {
   const totals = emptyTotals();
   const ticks = Math.round((Number(values.hours) * 3600) / 5);
   for (const seed of seedRange(values.seeds)) {
-    const sim = createSim({ seed, data: loadWorldData(), admissions: loadAdmissions(), tuning, ...(director ? { director } : {}) });
+    const sim = createSim({ seed, data: loadWorldData(), admissions: loadAdmissions(), ...(director ? { director } : {}) });
     const events: AnySimEvent[] = [];
     const names = new Map<string, string>();
     for (let i = 0; i < ticks; i++) {
@@ -86,32 +79,7 @@ if (values.report && values.seeds) {
   process.exit(0);
 }
 
-if (values.audit) {
-  if (values.fall) throw new Error("--audit runs without injected falls");
-  if (values.seeds) {
-    const [from, to] = values.seeds.split("-").map(Number);
-    const all: (Flag & { seed: number })[] = [];
-    for (let s = from!; s <= (to ?? from)!; s++) {
-      const { flags } = runAudit(String(s), Number(values.hours), loadWorldData(), undefined, director, tuning);
-      all.push(...flags.map((f) => ({ ...f, seed: s })));
-      console.error(`seed ${s}: ${flags.length} flags`);
-    }
-    console.log(`Flags across seeds ${values.seeds}, ${values.hours} h each (by type, most frequent first; who: count):`);
-    for (const line of summarise(all)) console.log(line);
-    const types = new Map<string, number[]>();
-    for (const f of all) types.set(f.type, [...(types.get(f.type) ?? []), f.seed]);
-    console.log("\nPer seed:");
-    for (const [type, seeds] of [...types].sort((a, b) => b[1].length - a[1].length)) {
-      const per = Array.from({ length: (to ?? from)! - from! + 1 }, (_, i) => seeds.filter((x) => x === from! + i).length);
-      console.log(`  ${type.padEnd(40)} ${per.map((n) => String(n).padStart(4)).join("")}`);
-    }
-  } else {
-    for (const line of runAudit(values.seed!, Number(values.hours), loadWorldData(), undefined, director, tuning).lines) console.log(line);
-  }
-  process.exit(0);
-}
-
-const sim = createSim({ seed: values.seed!, data: loadWorldData(), admissions: loadAdmissions(), tuning, ...(director ? { director } : {}) });
+const sim = createSim({ seed: values.seed!, data: loadWorldData(), admissions: loadAdmissions(), ...(director ? { director } : {}) });
 if (values.fall) {
   // --fall res_peggy@06:40 or res_stan@02:00:serious (the first such time after the start)
   const [residentId, when] = values.fall.split("@");

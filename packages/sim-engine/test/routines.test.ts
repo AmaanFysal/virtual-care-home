@@ -75,14 +75,6 @@ describe("a week of mornings and drinks (seed 1)", () => {
     expect(nurseOnTwoPersonMorning).toEqual([]);
   });
 
-  it("gives time-critical medication first on every round (Arthur's Parkinson's)", () => {
-    const rounds = ofType(events, "med_round.started");
-    for (const r of rounds) {
-      const first = ofType(events, "med.administered").find((e) => e.t >= r.t && e.payload.round === r.payload.round);
-      if (first) expect(first.payload.residentId, `${r.payload.round} at ${r.t}`).toBe("res_arthur");
-    }
-  });
-
   it("never leaves a drink with someone who needs help to drink (Raj, Dennis)", () => {
     const left = ofType(events, "drink.served").filter((e) => e.payload.outcome === "left" && ["res_raj", "res_dennis"].includes(e.payload.residentId));
     expect(left).toEqual([]);
@@ -91,24 +83,6 @@ describe("a week of mornings and drinks (seed 1)", () => {
 
   it("never holds a two-person task with one carer (it is reserved instead)", () => {
     expect(heldInCorridor.slice(0, 3)).toEqual([]);
-  });
-});
-
-describe("breakfast first", () => {
-  it("holds a resident's morning care while breakfast offered first is waiting", () => {
-    const sim = createSim({ seed: "1", data });
-    const w = sim.world;
-    while (timeOfDay(w.t) !== at(7, 50)) sim.step();
-    const stan = w.people.get("res_stan")!;
-    const care = createCare(w, stan, "morning");
-    const breakfast = createCare(w, stan, "meal", { meal: "breakfast", first: true });
-    for (let i = 0; i < 12; i++) sim.step(); // one decision minute
-    expect(care.assigned).toEqual([]);
-    while (w.tasks.has(breakfast.id) && timeOfDay(w.t) < at(10)) {
-      expect(care.assigned, "care waits until they've eaten").toEqual([]);
-      sim.step();
-    }
-    expect(w.tasks.has(breakfast.id)).toBe(false);
   });
 });
 

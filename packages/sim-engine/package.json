@@ -11,8 +11,6 @@
     "typecheck": "tsc --noEmit",
     "sim": "tsx scripts/sim.ts",
     "director-rates": "tsx scripts/director-rates.ts",
-    "tuning-review": "tsx scripts/tuning-review.ts",
-    "fuzz": "tsx scripts/fuzz.ts",
     "fetch-weather": "tsx tools/fetch-weather.ts",
     "describe": "tsx scripts/describe.ts"
   },

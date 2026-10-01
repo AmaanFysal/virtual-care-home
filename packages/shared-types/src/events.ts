@@ -76,10 +76,7 @@ export interface EventPayloads {
   "med_round.completed": { round: string; staffId: string; interruptions: number };
   "med.administered": { residentId: string; round: string; staffId: string; lateMins: number };
   "med.late": { residentId: string; round: string; lateMins: number };
-  /** Not given: an interrupted round's error, or a delayed dose that can't be given (the reason says which). */
-  "med.missed": { residentId: string; round: string; reason?: string };
-  /** Not given on the round, recorded with why (on the floor after a fall); given when they can take it, or missed. */
-  "med.delayed": { residentId: string; round: string; reason: string };
+  "med.missed": { residentId: string; round: string };
   "med.prn_requested": { residentId: string; via: "on_call_rn" | "rn" };
 
   "resident.fell": { residentId: string; severity: FallSeverity; roomId: string };
