@@ -1,7 +1,7 @@
 // Dashboard state: a pure mirror of what the server sends (docs/08). No simulation logic.
 
 import { create } from "zustand";
-import type { AnySimEvent, BuildingView, ClockView, DirectorView, FloorPlan, PersonDetail, PersonView, RoomDetail, ServerMessage } from "@vch/shared-types";
+import type { AnySimEvent, BuildingView, ClockView, DirectorView, FloorPlan, PersonDetail, PersonView, Role, RoomDetail, ServerMessage } from "@vch/shared-types";
 
 const MAX_EVENTS = 500;
 
@@ -26,6 +26,15 @@ export interface ViewState {
   director: DirectorView | null;
   /** Which panel shows above the event log. */
   sideTab: "inspector" | "director";
+  /**
+   * What the server lets this connection do: controls show only for admins (docs/08). Locally the
+   * server says admin; on the public server, viewer until the admin page's token is accepted.
+   */
+  role: Role;
+  /** The hidden admin page (#/admin) is open. */
+  adminPage: boolean;
+  /** The answer to the last admin token sent, when it wasn't accepted. */
+  authMessage: string | null;
   error: string | null;
 }
 
@@ -44,6 +53,9 @@ export const initialState: ViewState = {
   showTags: true,
   director: null,
   sideTab: "inspector",
+  role: "viewer",
+  adminPage: false,
+  authMessage: null,
   error: null,
 };
 
@@ -58,6 +70,7 @@ export function reduce(state: ViewState, message: ServerMessage): Partial<ViewSt
         events: message.events.slice(-MAX_EVENTS),
         director: message.director,
         building: message.building,
+        role: message.role,
         error: null,
       };
     case "delta": {
@@ -73,6 +86,8 @@ export function reduce(state: ViewState, message: ServerMessage): Partial<ViewSt
       return message.detail.person.id === state.selectedId ? { detail: message.detail } : {};
     case "room":
       return message.room.roomId === state.selectedRoomId ? { roomDetail: message.room } : {};
+    case "auth":
+      return { role: message.role, authMessage: message.ok ? null : (message.message ?? "Not accepted") };
     case "error":
       return { error: message.message };
   }

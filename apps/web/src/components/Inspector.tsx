@@ -204,6 +204,7 @@ function PersonInspector() {
   const person = useView((s) => (s.selectedId ? s.people[s.selectedId] : undefined));
   const detail = useView((s) => s.detail);
   const following = useView((s) => s.following);
+  const admin = useView((s) => s.role === "admin");
   const events = useView((s) => s.events);
   const clock = useView((s) => s.clock);
 
@@ -271,7 +272,7 @@ function PersonInspector() {
           </ul>
         </>
       )}
-      {person.kind === "resident" && person.onMap && person.posture !== "on_floor" && (
+      {admin && person.kind === "resident" && person.onMap && person.posture !== "on_floor" && (
         <p className="inject">
           Inject a fall:
           <button onClick={() => send({ type: "inject_fall", residentId: person.id, severity: "minor" })}>minor</button>

@@ -1,4 +1,5 @@
 import { WingCanvas } from "./canvas/WingCanvas";
+import { AdminPage } from "./components/AdminPage";
 import { ClockBar } from "./components/ClockBar";
 import { EventLog } from "./components/EventLog";
 import { DirectorPanel } from "./components/DirectorPanel";
@@ -19,6 +20,10 @@ export function App() {
   const error = useView((s) => s.error);
   const showTags = useView((s) => s.showTags);
   const sideTab = useView((s) => s.sideTab);
+  const admin = useView((s) => s.role === "admin");
+  const adminPage = useView((s) => s.adminPage);
+  // The Director tab is for admins (docs/08); viewers watch and inspect.
+  const tab = admin ? sideTab : "inspector";
   return (
     <div className="app">
       <header className="top">
@@ -43,16 +48,19 @@ export function App() {
         <WingCanvas />
       </main>
       <aside>
+        {adminPage && <AdminPage />}
         <Notable />
-        <nav className="tabs">
-          <button className={sideTab === "inspector" ? "active" : ""} onClick={() => useView.setState({ sideTab: "inspector" })}>
-            Inspector
-          </button>
-          <button className={sideTab === "director" ? "active" : ""} onClick={() => useView.setState({ sideTab: "director" })}>
-            Director
-          </button>
-        </nav>
-        {sideTab === "inspector" ? <Inspector /> : <DirectorPanel />}
+        {admin && (
+          <nav className="tabs">
+            <button className={tab === "inspector" ? "active" : ""} onClick={() => useView.setState({ sideTab: "inspector" })}>
+              Inspector
+            </button>
+            <button className={tab === "director" ? "active" : ""} onClick={() => useView.setState({ sideTab: "director" })}>
+              Director
+            </button>
+          </nav>
+        )}
+        {tab === "inspector" ? <Inspector /> : <DirectorPanel />}
         <EventLog />
       </aside>
       <footer className="credits">

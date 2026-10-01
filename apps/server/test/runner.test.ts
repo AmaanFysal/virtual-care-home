@@ -154,3 +154,68 @@ describe("inspect detail", () => {
     expect(staff.detail.schedule.map((s) => s.label)).toContain("early shift ends");
   });
 });
+
+describe("roles (docs/08)", () => {
+  it("makes every connection an admin by default, as in local dev, paused with every control", () => {
+    const { runner, received } = setup();
+    expect((received[0] as Extract<ServerMessage, { type: "snapshot" }>).role).toBe("admin");
+    expect(runner.handle({ type: "set_speed", speed: 360 })).toBeNull();
+    expect(runner.handle({ type: "resume" })).toBeNull();
+    expect(runner.clock()).toMatchObject({ paused: false, speed: 360 });
+  });
+
+  it("lets viewers watch and inspect, and nothing else", () => {
+    const log = new EventLog(":memory:", { runId: "test", seed: "1", startT: 108000, dataVersion: "x", createdWallclock: "now" });
+    const db = (log as unknown as { db: DatabaseSync }).db;
+    const runner = new Runner(createSim({ seed: "1", data }), data, log, undefined, { paused: false, speed: 10 });
+    const received: ServerMessage[] = [];
+    runner.connect({ send: (m) => received.push(m), role: "viewer" });
+    const snapshot = received[0] as Extract<ServerMessage, { type: "snapshot" }>;
+    expect(snapshot.role).toBe("viewer");
+    expect(snapshot.clock).toMatchObject({ paused: false, speed: 10 });
+    for (const command of [
+      { type: "pause" },
+      { type: "resume" },
+      { type: "step" },
+      { type: "set_speed", speed: 360 },
+      { type: "inject_fall", residentId: "res_win", severity: "serious" },
+      { type: "inject", input: "staff_sick", params: { staffId: "stf_maria" } },
+    ] as const)
+      expect(runner.handle(command, "viewer"), command.type).toEqual({ type: "error", message: "Admin only" });
+    expect(runner.clock()).toMatchObject({ paused: false, speed: 10 });
+    expect(runner.handle({ type: "inspect", personId: "res_peggy" }, "viewer")?.type).toBe("detail");
+    expect(runner.handle({ type: "inspect_room", roomId: "Lounge" }, "viewer")?.type).toBe("room");
+    // Nothing a viewer sent was logged; an admin's command is, with its role.
+    expect(db.prepare("SELECT count(*) AS n FROM commands").get()).toEqual({ n: 0 });
+    runner.handle({ type: "pause" }, "admin");
+    expect(JSON.parse((db.prepare("SELECT payload FROM commands").get() as { payload: string }).payload)).toEqual({ type: "pause", role: "admin" });
+  });
+
+  it("parses auth, and never accepts it as a runner command", () => {
+    expect(parseCommand('{"type":"auth","token":"abc"}')).toEqual({ type: "auth", token: "abc" });
+    expect(parseCommand('{"type":"auth","token":""}')).toBeNull();
+    expect(parseCommand(JSON.stringify({ type: "auth", token: "x".repeat(300) }))).toBeNull();
+    const { runner } = setup();
+    expect(runner.handle({ type: "auth", token: "abc" })?.type).toBe("error");
+  });
+
+  it("skips a viewer too slow to keep up, sends it a fresh snapshot once it has caught up, and closes it if it never does", () => {
+    const { runner } = setup();
+    let backlog = 0;
+    let closed = "";
+    const got: string[] = [];
+    runner.connect({ send: (m) => got.push(m.type), buffered: () => backlog, close: (r) => (closed = r) });
+    runner.handle({ type: "resume" });
+    got.splice(1); // the clock message for resuming
+    backlog = 2 * 1024 * 1024;
+    runner.frame(0);
+    runner.frame(100);
+    expect(got).toEqual(["snapshot"]);
+    backlog = 0;
+    runner.frame(200);
+    expect(got).toEqual(["snapshot", "snapshot"]);
+    backlog = 2 * 1024 * 1024;
+    for (let ms = 300; ms <= 31_000; ms += 100) runner.frame(ms);
+    expect(closed).toMatch(/too slow/);
+  });
+});

@@ -13,12 +13,14 @@ import {
   type InputType,
   type PersonDetail,
   type PersonView,
+  type Role,
   type ServerMessage,
   type SimInput,
   type WorldData,
 } from "@vch/shared-types";
-import { INPUT_TYPES, validateInput, type Sim } from "@vch/sim-engine";
+import { INPUT_TYPES, validateInput, type Sim, type SimSnapshot } from "@vch/sim-engine";
 import type { EventLog } from "./eventlog.js";
+import { BACKLOG_BYTES, STALL_MS } from "./limits.js";
 
 /** How often deltas go out (10 Hz). */
 export const FRAME_MS = 100;
@@ -28,6 +30,25 @@ const RECENT_EVENTS = 300;
 
 export interface Client {
   send(message: ServerMessage): void;
+  /** What this connection may do; an admin when absent (local dev, tests). */
+  role?: Role;
+  /** Bytes queued on the socket and not yet sent, if known (a slow viewer). */
+  buffered?(): number;
+  /** Closes the connection (a viewer too slow to keep up). */
+  close?(reason: string): void;
+}
+
+/** Commands only an admin may send; viewers watch and inspect (docs/08). */
+const ADMIN_COMMANDS = new Set<ClientCommand["type"]>(["pause", "resume", "step", "set_speed", "inject_fall", "inject"]);
+
+export interface RunnerOptions {
+  /** Start paused (local dev) or running (the public server). Default paused. */
+  paused?: boolean;
+  speed?: ClockSpeed;
+  /** Recent events to show new browsers (after a restart, from the log). */
+  recent?: AnySimEvent[];
+  /** The last input sequence number used (after a restart, from the snapshot). */
+  inputSeq?: number;
 }
 
 export class Runner {
@@ -45,14 +66,32 @@ export class Runner {
   private via = new Map<string, { x: number; y: number }[]>();
   private inputSeq = 0;
   private timer: NodeJS.Timeout | null = null;
+  /** Clients that fell behind (backlog over the limit), and since when (ms): they get a fresh snapshot once caught up. */
+  private stale = new Map<Client, number>();
+  private now = 0;
 
   constructor(
     private sim: Sim,
     private data: WorldData,
     private log: EventLog,
     private director: DirectorView = { mode: "off", scenario: null, deaths: true },
+    options: RunnerOptions = {},
   ) {
+    this.paused = options.paused ?? true;
+    this.speed = options.speed ?? 60;
+    this.recent = [...(options.recent ?? [])].slice(-RECENT_EVENTS);
+    this.inputSeq = options.inputSeq ?? 0;
     this.buildingChanges(); // the building as it starts: deltas then carry only what changes
+  }
+
+  /** Browsers connected now. */
+  get viewers(): number {
+    return this.clients.size;
+  }
+
+  /** Everything needed to resume this run after a restart (persist.ts). Call between frames. */
+  save(): { sim: SimSnapshot; inputSeq: number } {
+    return { sim: this.sim.snapshot(), inputSeq: this.inputSeq };
   }
 
   start(): void {
@@ -70,6 +109,7 @@ export class Runner {
 
   /** Advances the sim by as many ticks as real time and the speed allow, then sends a delta. */
   frame(now: number): void {
+    this.now = now;
     const dt = this.lastFrame === null ? FRAME_MS : now - this.lastFrame;
     this.lastFrame = now;
     if (!this.paused) {
@@ -101,8 +141,16 @@ export class Runner {
 
   connect(client: Client): () => void {
     this.clients.add(client);
-    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.sim.world.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director, building: this.building() });
-    return () => this.clients.delete(client);
+    this.sendSnapshot(client);
+    return () => {
+      this.clients.delete(client);
+      this.stale.delete(client);
+    };
+  }
+
+  /** The whole picture for one browser: on connect, after auth (its role changed), or once a slow one catches up. */
+  sendSnapshot(client: Client): void {
+    client.send({ type: "snapshot", clock: this.clock(), floorplan: this.sim.world.data.floorplan, people: this.sim.people(), events: [...this.recent], director: this.director, building: this.building(), role: client.role ?? "admin" });
   }
 
   /** The building part of the world description: doors, windows and the weather. */
@@ -144,16 +192,40 @@ export class Runner {
     if (changed.length === 0 && this.unsent.length === 0 && !building && this.paused) return;
     const message: ServerMessage = { type: "delta", clock: this.clock(), people: changed, events: this.unsent, ...(building ? { building } : {}) };
     this.unsent = [];
-    for (const client of this.clients) client.send(message);
+    this.broadcast(message);
   }
 
+  /**
+   * Sends to every browser that can take it. One whose socket backlog is over the limit is skipped
+   * (deltas build on each other, so it gets a fresh snapshot once it has caught up), and closed if
+   * it stays behind for STALL_MS.
+   */
   private broadcast(message: ServerMessage): void {
-    for (const client of this.clients) client.send(message);
+    for (const client of this.clients) {
+      const backlog = client.buffered?.() ?? 0;
+      if (backlog > BACKLOG_BYTES) {
+        const since = this.stale.get(client) ?? this.now;
+        this.stale.set(client, since);
+        if (this.now - since > STALL_MS) client.close?.("too slow to keep up");
+        continue;
+      }
+      if (this.stale.has(client)) {
+        this.stale.delete(client);
+        this.sendSnapshot(client);
+        continue;
+      }
+      client.send(message);
+    }
   }
 
-  /** Applies a command from a browser. Returns a reply for that client only, if any. */
-  handle(command: ClientCommand): ServerMessage | null {
-    this.log.appendCommand(this.sim.tick, command.type, command);
+  /**
+   * Applies a command from a browser. Returns a reply for that client only, if any. Viewers may
+   * only inspect (docs/08); the clock and events are for admins.
+   */
+  handle(command: ClientCommand, role: Role = "admin"): ServerMessage | null {
+    if (command.type === "auth") return { type: "error", message: "auth is handled by the connection" };
+    if (ADMIN_COMMANDS.has(command.type) && role !== "admin") return { type: "error", message: "Admin only" };
+    if (ADMIN_COMMANDS.has(command.type)) this.log.appendCommand(this.sim.tick, command.type, { ...command, role });
     switch (command.type) {
       case "pause":
         this.paused = true;
@@ -256,6 +328,8 @@ export function parseCommand(raw: string): ClientCommand | null {
   if (typeof value !== "object" || value === null) return null;
   const c = value as Record<string, unknown>;
   switch (c.type) {
+    case "auth":
+      return typeof c.token === "string" && c.token.length > 0 && c.token.length <= 256 ? { type: "auth", token: c.token } : null;
     case "pause":
     case "resume":
     case "step":

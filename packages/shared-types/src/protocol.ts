@@ -11,6 +11,12 @@ export type Posture = "standing" | "walking" | "sitting" | "dozing" | "in_bed" |
 /** "alert": on the floor after a fall; "obs": back up, on post-fall observations (docs/05). */
 export type Badge = "pill" | "tray" | "cup" | "towel" | "hoist" | "asleep" | "confused" | "break" | "handover" | "phone" | "alert" | "obs";
 export type ClockSpeed = 1 | 10 | 60 | 360;
+/**
+ * What a connection may do (docs/08). Viewers watch and inspect; admins also run the clock and
+ * trigger events. Locally (dev) every connection is an admin; on the public server everyone is a
+ * viewer until they send the admin token.
+ */
+export type Role = "viewer" | "admin";
 
 /** What the canvas needs to draw one person. */
 export interface PersonView {
@@ -76,15 +82,19 @@ export interface DirectorView {
 }
 
 export type ServerMessage =
-  | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[]; director: DirectorView; building: BuildingView }
+  | { type: "snapshot"; clock: ClockView; floorplan: FloorPlan; people: PersonView[]; events: AnySimEvent[]; director: DirectorView; building: BuildingView; role: Role }
   /** `building`: only the doors, windows and equipment that changed, and the weather when its hour changed. */
   | { type: "delta"; clock: ClockView; people: PersonView[]; events: AnySimEvent[]; building?: Partial<BuildingView> }
   | { type: "clock"; clock: ClockView }
   | { type: "detail"; detail: PersonDetail }
   | { type: "room"; room: RoomDetail }
+  /** The answer to `auth`: the connection's role from now on. */
+  | { type: "auth"; ok: boolean; role: Role; message?: string }
   | { type: "error"; message: string };
 
 export type ClientCommand =
+  /** Unlocks admin controls on the public server with the secret token (never stored by the server). */
+  | { type: "auth"; token: string }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "step" }
