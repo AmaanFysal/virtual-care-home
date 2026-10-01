@@ -6,8 +6,8 @@
 
 ## Server (`apps/server`)
 
-- Fastify + `@fastify/websocket` on `127.0.0.1:8787` (`PORT`, `SEED`, `RUNS_DIR` env vars). `GET /api/health` returns the run id and tick; the WebSocket is `/ws`.
-- One `Runner` hosts one sim. It starts **paused at 60x**. A 100 ms timer (10 Hz) adds `elapsed × speed / 5 s` ticks to an accumulator and steps the engine that many times (capped at 200 per frame), writes the new events to SQLite in one transaction, then sends a delta.
+- Fastify + `@fastify/websocket` on `127.0.0.1:8787` (`PORT`, `HOST`, `SEED`, `RUNS_DIR` env vars). `GET /api/health` returns the run id, tick and number of viewers; the WebSocket is `/ws`.
+- One `Runner` hosts one sim. Locally it starts **paused at 60x**; on the public server (production mode, docs/13) it runs at `SPEED` (10x) from the start and resumes from snapshots. A 100 ms timer (10 Hz) adds `elapsed × speed / 5 s` ticks to an accumulator and steps the engine that many times (capped at 200 per frame), writes the new events to SQLite in one transaction, then sends a delta.
 - Wall-clock time lives only here (the pacer and the run's creation time); the engine never sees it.
 
 ## Protocol
@@ -21,11 +21,32 @@
 | `clock` | After pause, resume or a speed change | Clock (so the UI reflects the server, not a guess) |
 | `detail` | Reply to `inspect` | Person, persona card, schedule, needs, BT node, workload, their activity with MET and their last 20 touches (v1.0-testbed) |
 | `room` | Reply to `inspect_room` | The room's slice of the world description: doors, windows, equipment, who is there with activity and MET, its last 20 touches, the weather (v1.0-testbed) |
-| `error` | Bad or refused command | Message |
+| `auth` | Reply to `auth` | `ok`, the connection's `role` from now on, and why not |
+| `error` | Bad or refused command | Message (`Admin only` for a viewer's clock or event command) |
 
 Each person view (`PersonView`) carries their id, kind, name, initials, position, room, posture, badges and task. It also carries two display-only fields for choosing a sprite: `gender`, and `role` (staff role) for staff, agency workers and responders. In deltas it may carry `via`: the turning points (path corners, doorway cells, arrivals, placements) the person passed since the previous update, in order, collected by the server from the engine's per-tick trail.
 
-**Browser → server** (`ClientCommand`): `pause`, `resume`, `step` (only while paused; one 5 s tick), `set_speed` (1, 10, 60, 360), `inspect`, `inspect_room`, `inject_fall`, and `inject {input, params}` (any director event from the Director panel). Commands are validated by `parseCommand`, and `inject` params by the engine's `validateInput` against the data; unknown or malformed ones get an `error`. Every command is written to the `commands` table; `inject_fall` and `inject` also become logged inputs with `source: "user"` (docs/07).
+**Browser → server** (`ClientCommand`): `auth {token}` (the admin token, public server only), `pause`, `resume`, `step` (only while paused; one 5 s tick), `set_speed` (1, 10, 60, 360), `inspect`, `inspect_room`, `inject_fall`, and `inject {input, params}` (any director event from the Director panel). Commands are validated by `parseCommand`, and `inject` params by the engine's `validateInput` against the data; unknown or malformed ones get an `error`. Every command is written to the `commands` table; `inject_fall` and `inject` also become logged inputs with `source: "user"` (docs/07).
+
+**Roles.** Every connection is a `viewer` or an `admin`, and the snapshot says which. Locally (no `VCH_MODE`) everyone is an admin, so every control works as it always has. On the public server everyone starts as a viewer:
+- viewers may only `inspect` and `inspect_room`;
+- `pause`, `resume`, `step`, `set_speed`, `inject_fall` and `inject` need admin;
+- the browser shows the clock buttons, the Director tab and the Inspector's fall buttons only to admins (viewers see the speed);
+- the hidden page `/#/admin` asks for the token and sends `auth`. The server compares it in constant time, and 5 wrong tokens lock an address out for 15 minutes. The browser keeps the token in `sessionStorage` (that tab only) to sign in again after a reconnect. It's never part of the web app's code.
+
+**Limits on the public server** (`apps/server/src/limits.ts`):
+
+| Limit | Value |
+|---|---|
+| Origin | in `ALLOWED_ORIGINS`, checked before the upgrade |
+| Connections per address | 5 at once, 20 new a minute |
+| Viewers in total | `MAX_VIEWERS` |
+| Messages per connection | 5 a second |
+| Largest message | 4 KB |
+
+Compression is on (permessage-deflate). A viewer whose socket backlog passes 1 MB is skipped and gets a fresh snapshot once it catches up, or is closed after 30 s.
+
+**The server's address:** the web app connects to `VITE_SIM_URL` when set at build time (the public server, `wss://` required in a production build), otherwise to `/ws` on its own host (the Vite proxy in dev).
 
 The server takes `DIRECTOR=off|random|scenario|both`, `SCENARIO=<id or path>` and `DEATHS=off` (docs/10), and `START=YYYY-MM-DD` to start at 06:00 on that date (its season's weather, docs/03).
 

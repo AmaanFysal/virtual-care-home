@@ -77,17 +77,23 @@ New types follow the `new-event-type` skill and are added here.
 
 ## Storage (Phase 1: SQLite)
 
-One database file per run: `runs/<runId>.sqlite` (git-ignored).
+One folder per run: `runs/<runId>/events.sqlite` (git-ignored; `RUNS_DIR` on the public server is the volume, `/data/runs`), and on the public server its newest snapshots (below).
 
 | Table | Columns | Notes |
 |---|---|---|
 | `run` | run_id, seed, start_t, data_version, created_wallclock, director | One row. The wall-clock creation time is server metadata, never read by the engine. `director` is `off` or JSON: mode, random, scenario id, a hash of the scenario and of `data/director.json`, deaths |
 | `events` | seq (PK), tick, t, type, actors (JSON), payload (JSON), source | Append-only; one transaction per tick |
 | `inputs` | seq (PK), apply_tick, type, payload (JSON), source | Append-only; written before the engine sees the input |
-| `commands` | id, tick, type, payload (JSON) | Clock and inspect commands, audit only |
+| `commands` | id, tick, type, payload (JSON) | Clock and event commands with the sender's role (`admin` locally and for the token holder), audit only. Read-only commands (`inspect`, `inspect_room`) aren't logged |
+
+On the public server (docs/13) events older than 30 sim days are pruned once a sim day (with SQLite's incremental vacuum); inputs and commands are always kept, and only the newest two run folders.
 
 ## Replay
 
 Seed + data version + the director settings and scenario (from the `run` row) + the ordered `inputs` reproduce the run exactly. A scripted scenario replays to a byte-identical log (`test/director.test.ts`). The determinism test runs the same seed and inputs twice and compares the event logs byte for byte.
 
-Snapshots and branching (restore state at a tick and run a what-if) are Phase 4.
+## Snapshots (ADR-0008)
+
+`sim.snapshot()` gives the whole world between ticks, each random stream replaced by its state and the weather left out; `restoreSim(snapshot, data)` carries on from it exactly (`test/snapshot.test.ts`: restored at several ticks, through v8's serialiser, the rest of the run is byte-identical). The public server writes one every 5 minutes and on shutdown, as `runs/<runId>/snap-<tick>.v8.gz` (v8 structured clone, gzipped, about 45 KB; the newest three kept), with a header: run, tick, seed, start, engine build, data version, director settings.
+
+On start it resumes the newest readable snapshot when the engine build, data, director settings and seed match, cutting the log back to the snapshot's tick (later events and commands, and inputs logged after it); otherwise it starts a fresh run at 06:00 the next sim day. Branching (run a what-if from a snapshot) is Phase 4.

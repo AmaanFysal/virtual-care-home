@@ -11,7 +11,7 @@ Every character is a set of generator selections, stored as the generator's URL 
 You need Node 22.19 or later. The generator clone takes about 1 GB, and you can delete it when you're finished.
 
 ```sh
-cd /Users/amaanfy/Documents/virtual-care-home-characters/_scripts
+cd path/to/virtual-care-home-characters/_scripts
 git clone --depth 1 https://github.com/liberatedpixelcup/Universal-LPC-Spritesheet-Character-Generator.git lpc
 (cd lpc && npm ci && npx playwright install chromium)
 ```
@@ -19,7 +19,7 @@ git clone --depth 1 https://github.com/liberatedpixelcup/Universal-LPC-Spriteshe
 Before each session, start the generator in a separate terminal and leave it running:
 
 ```sh
-cd /Users/amaanfy/Documents/virtual-care-home-characters/_scripts/lpc && npx vite --port 5199 --strictPort
+cd path/to/virtual-care-home-characters/_scripts/lpc && npx vite --port 5199 --strictPort
 ```
 
 The first start creates `lpc/dist/`, which `catalog.mjs` and `audit.mjs` read.

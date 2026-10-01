@@ -8,6 +8,11 @@ import "./styles.css";
 
 connect();
 
+// The hidden admin page (#/admin): a token prompt for the public server's controls.
+const onHash = () => useView.setState({ adminPage: location.hash === "#/admin" });
+onHash();
+window.addEventListener("hashchange", onHash);
+
 // ?select=<person id>&follow=1 opens the inspector on someone (handy for demos and links), and
 // ?tags=0 starts with name tags off (screenshots).
 const params = new URLSearchParams(location.search);

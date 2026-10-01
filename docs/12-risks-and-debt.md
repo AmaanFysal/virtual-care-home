@@ -74,3 +74,12 @@ The project's goal is activity data for external models, not flawless care (docs
 
 **What it costs:** about 2 to 3 turns a day for Dennis and Raj done a few minutes past their interval, and the odd Lounge look-in late (a calm week: 12 to 21 late turns and 0 to 3 look-ins on seeds 1 to 8). **What holds:** no hard rule breaks (`invariant.violated`) in 8 calm weeks or 32 weeks with the random director. Female-only personal care and two-person tasks are still enforced as rules; only the scoring tweaks around them went. Service breaches stay in the event log as `sla.breached`; nothing tries to hold them at zero.
 
+## Hosting (2026-10-01, ADR-0008, docs/13)
+
+- **One machine, one disk.** A deploy or a host restart means 10 to 30 seconds without the stream, and the volume lives in one region. Fly keeps daily volume snapshots for 5 days. There's no second instance: the world is one process.
+- **Any engine or data change ends the public run** on its next deploy (a fresh run the next sim morning, by decision). Server-only changes resume.
+- **Snapshots rely on the engine keeping all its state in `World`** (or deriving it from data, like the weather and equipment caches). New state anywhere else would break restore; `test/snapshot.test.ts` catches it.
+- **v8's serialisation format** belongs to Node. A Node upgrade in the image comes with a deploy, and an unreadable snapshot falls back to the one before, then to a fresh run.
+- **One admin token, sent over the socket** (WSS only). A leaked token is replaced with `fly secrets set`. There are no per-person accounts.
+- **Viewers see everything the event log shows,** including the director's plans for the day (`director.planned`).
+

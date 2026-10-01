@@ -19,6 +19,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm --filter @vch/sim-engine describe --seed 1 --at "Wed 07:40" [--room Room5] [--start 2027-05-04]`: the world description (v1.0-testbed) at a moment of a run, as JSON
 - `pnpm --filter @vch/sim-engine fetch-weather 2025-10-01 2026-09-30`: refetch London's hourly weather into `data/weather/` (Open-Meteo; run by hand, the engine never uses the network)
 - `DIRECTOR=random pnpm dev` (or `SCENARIO=short-staffed-weekend pnpm dev`): run the server with the director on; `DEATHS=off` for the public demo; `START=2027-05-04` to start on a date (its season's weather)
+- Public demo: web app on Vercel, server on Fly.io (`fly deploy`); production mode only via the host's `VCH_MODE=production` + `ADMIN_TOKEN` + `ALLOWED_ORIGINS` (docs/13, ADR-0008). Locally every control stays on
 
 ## Layout
 
@@ -64,6 +65,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 | Event schema, event log, snapshots, replay | `docs/07-events-and-persistence.md` |
 | WebSocket protocol, canvas, dashboard | `docs/08-realtime-and-ui.md` |
 | LLM minds, memory, cost (Phase 3) | `docs/09-minds-llm.md` |
+| Hosting, production mode, deploying | `docs/13-hosting.md` |
 | Director, scenario files, base rates (Phase 2) | `docs/10-director-and-scenarios.md` |
 | Tests, invariants, golden scenarios | `docs/11-testing.md` |
 | Risks, caveats, tech debt | `docs/12-risks-and-debt.md` |

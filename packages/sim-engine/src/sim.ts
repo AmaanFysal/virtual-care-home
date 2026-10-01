@@ -31,7 +31,7 @@ import { noteLoungeSupervision } from "./lounge.js";
 import { healthMinute } from "./health.js";
 import { infectionMinute } from "./infection.js";
 import { initialNeeds, noAppetite, residentsMinute } from "./needs.js";
-import { createStreams, hashString } from "./rng.js";
+import { createStreams, hashString, streamStates, type RngState, type StreamName } from "./rng.js";
 import { addPerson, initials, placeInitialStaff, rotaArrivals, rotaLeaving, rotaMinute, sendIdleToPosts, staffPerson } from "./rota.js";
 import type { Person, World } from "./state.js";
 import { decideStaff, runTasks } from "./tasks.js";
@@ -70,8 +70,42 @@ export interface Sim {
   describe(): WorldDescription;
   /** One room's slice of the description, for the inspector; null for an unknown room. */
   describeRoom(roomId: string): RoomDetail | null;
+  /**
+   * The whole state between ticks, for resuming after a restart (ADR-0008). Pure and cheap: it
+   * holds live references, so serialise it (structured clone, e.g. `v8.serialize`) before the next
+   * step. The weather isn't included; `restoreSim` takes it back from the caller's data.
+   */
+  snapshot(): SimSnapshot;
   /** Internal state, for tests and the inspector. Treat as read-only. */
   readonly world: World;
+}
+
+/** Bumped whenever the shape of a snapshot changes; a snapshot of another schema isn't restored. */
+export const SNAPSHOT_SCHEMA = 1;
+
+export interface SimSnapshot {
+  schema: typeof SNAPSHOT_SCHEMA;
+  seed: string;
+  tick: number;
+  t: number;
+  /** The world without its random streams (kept as `rng` states) or its weather. */
+  world: Omit<World, "rng">;
+  rng: Record<StreamName, RngState>;
+}
+
+/**
+ * A sim that carries on exactly from a snapshot: its next step gives the same events as the run it
+ * was taken from would have. `data` supplies the weather (the same data the run was built from).
+ */
+export function restoreSim(snapshot: SimSnapshot, data?: Pick<WorldData, "weather">): Sim {
+  if (snapshot.schema !== SNAPSHOT_SCHEMA) throw new Error(`Snapshot schema ${String(snapshot.schema)} isn't ${SNAPSHOT_SCHEMA}`);
+  const weather = data?.weather;
+  const world: World = {
+    ...snapshot.world,
+    data: { ...snapshot.world.data, ...(weather ? { weather } : {}) },
+    rng: createStreams(snapshot.seed, snapshot.rng),
+  };
+  return simFor(world);
 }
 
 export function residentPerson(r: Resident, world: World): Person {
@@ -227,6 +261,11 @@ export function createSim(options: SimOptions): Sim {
     planDirectorDay(world, startT);
   }
 
+  return simFor(world);
+}
+
+/** The Sim interface over a world, new or restored. */
+function simFor(world: World): Sim {
   const applyInputs = () => {
     while (world.inputs.length > 0 && world.inputs[0]!.applyTick <= world.tick) {
       const input = world.inputs.shift()!;
@@ -245,7 +284,7 @@ export function createSim(options: SimOptions): Sim {
     world,
     step() {
       world.tick += 1;
-      world.t = startT + world.tick * TICK_SECONDS;
+      world.t = world.startT + world.tick * TICK_SECONDS;
       world.trail.clear();
       applyInputs();
       if (world.t % 60 === 0) {
@@ -294,6 +333,11 @@ export function createSim(options: SimOptions): Sim {
     },
     describeRoom(roomId) {
       return describeRoom(world, roomId);
+    },
+    snapshot() {
+      const { rng, ...rest } = world;
+      const { weather: _weather, ...data } = world.data;
+      return { schema: SNAPSHOT_SCHEMA, seed: world.seed, tick: world.tick, t: world.t, world: { ...rest, data: data as WorldData }, rng: streamStates(rng) };
     },
   };
 }

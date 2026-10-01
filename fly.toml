@@ -1,0 +1,52 @@
+# The sim server for the public demo on Fly.io (docs/13). Change `app` to your app's name.
+# ADMIN_TOKEN and ALLOWED_ORIGINS are set with `fly secrets set`, never in this file.
+app = "vch-sim"
+primary_region = "lhr"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  VCH_MODE = "production"
+  HOST = "0.0.0.0"
+  PORT = "8080"
+  RUNS_DIR = "/data/runs"
+  DIRECTOR = "random"
+  DEATHS = "off"
+  SPEED = "10"
+  SEED = "1"
+  CLIENT_IP_HEADER = "fly-client-ip"
+  SNAPSHOT_EVERY_MIN = "5"
+  EVENT_RETENTION_DAYS = "30"
+  KEEP_RUNS = "2"
+  MAX_VIEWERS = "200"
+
+[[mounts]]
+  source = "vch_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Always on: the world keeps running with nobody watching.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

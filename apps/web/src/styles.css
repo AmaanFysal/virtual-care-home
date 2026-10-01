@@ -131,3 +131,10 @@ time { font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 4p
 .inspector details.json pre { font-size: 11px; max-height: 240px; overflow: auto; background: #f6f4f0; padding: 6px; border-radius: 4px; }
 .inspector ul.touches li { font-size: 12px; }
 .inspector ul.touches time { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 4px; }
+
+/* Viewers on the public server: the speed instead of the controls. The hidden admin page (#/admin). */
+.clock .speed-label { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.admin-page { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line, #ddd); }
+.admin-page label { display: flex; align-items: center; gap: 6px; }
+.admin-page input { min-width: 0; width: 200px; max-width: 100%; }
+.admin-page p { margin: 0; flex-basis: 100%; }
