@@ -17,6 +17,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 - `pnpm --filter @vch/sim-engine sim --director random --hours 672 --seeds 1-8 --report`: scenario director on (`random`, `scenario`, `both`; `--scenario <id>` from `data/scenarios/`), per-day report with totals
 - `pnpm --filter @vch/sim-engine director-rates`: realised director rates against the base rates, and what the pacing caps hold back
 - `pnpm --filter @vch/sim-engine describe --seed 1 --at "Wed 07:40" [--room Room5] [--start 2027-05-04]`: the world description (v1.0-testbed) at a moment of a run, as JSON
+- `pnpm --filter @vch/sim-engine export --seeds 1-4 --start 2026-12-01 --days 31 --director random [--every 1m] [--no-gzip]`: the activity export, gzipped CSV per stream with `rooms.json` and `manifest.json`, in `runs/export/` (docs/07, `docs/workstreams/activity-export/`)
 - `pnpm --filter @vch/sim-engine fetch-weather 2025-10-01 2026-09-30`: refetch London's hourly weather into `data/weather/` (Open-Meteo; run by hand, the engine never uses the network)
 - `DIRECTOR=random pnpm dev` (or `SCENARIO=short-staffed-weekend pnpm dev`): run the server with the director on; `DEATHS=off` for the public demo; `START=2027-05-04` to start on a date (its season's weather)
 - Public demo: web app on Vercel, server on Fly.io (`fly deploy`); production mode only via the host's `VCH_MODE=production` + `ADMIN_TOKEN` + `ALLOWED_ORIGINS` (docs/13, ADR-0008). Locally every control stays on
@@ -70,7 +71,7 @@ This file is an index. Details live in `docs/`; read the relevant doc before wor
 | Tests, invariants, golden scenarios | `docs/11-testing.md` |
 | Risks, caveats, tech debt | `docs/12-risks-and-debt.md` |
 | Background and evidence | `docs/research/` (plan-v2.md wins over v1) |
-| Current work | `docs/workstreams/v1-testbed/` (the world description: doors, windows, equipment, activity, touches, weather; then the plug-in API). History: `docs/workstreams/phase-2-director/`, `docs/workstreams/phase-1-rules-mvp/` |
+| Current work | `docs/workstreams/activity-export/` (the activity data as files for external models). History: `docs/workstreams/v1-testbed/` (the world description), `docs/workstreams/phase-2-director/`, `docs/workstreams/phase-1-rules-mvp/` |
 
 Path-scoped rules in `.claude/rules/` load automatically for `packages/sim-engine/**` and `apps/web/**`.
 

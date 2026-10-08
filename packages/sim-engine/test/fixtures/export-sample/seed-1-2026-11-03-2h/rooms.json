@@ -1,0 +1,2739 @@
+{
+  "units": {
+    "length": "m",
+    "area": "m2",
+    "opening": "mm"
+  },
+  "size": {
+    "w": 33.5,
+    "h": 13
+  },
+  "rooms": [
+    {
+      "id": "Room1",
+      "name": "Room 1",
+      "kind": "bedroom",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 5.5
+      },
+      "floorAreaM2": 19,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Ensuite1",
+      "name": "Room 1 en-suite",
+      "kind": "ensuite",
+      "rect": {
+        "x": 0,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      },
+      "floorAreaM2": 3,
+      "ceilingHeightM": 2.4,
+      "inside": "Room1"
+    },
+    {
+      "id": "Room2",
+      "name": "Room 2",
+      "kind": "bedroom",
+      "rect": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 5.5
+      },
+      "floorAreaM2": 19,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Ensuite2",
+      "name": "Room 2 en-suite",
+      "kind": "ensuite",
+      "rect": {
+        "x": 4,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      },
+      "floorAreaM2": 3,
+      "ceilingHeightM": 2.4,
+      "inside": "Room2"
+    },
+    {
+      "id": "Room3",
+      "name": "Room 3",
+      "kind": "bedroom",
+      "rect": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 5.5
+      },
+      "floorAreaM2": 19,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Ensuite3",
+      "name": "Room 3 en-suite",
+      "kind": "ensuite",
+      "rect": {
+        "x": 8,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      },
+      "floorAreaM2": 3,
+      "ceilingHeightM": 2.4,
+      "inside": "Room3"
+    },
+    {
+      "id": "Room4",
+      "name": "Room 4",
+      "kind": "bedroom",
+      "rect": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 5.5
+      },
+      "floorAreaM2": 19,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Ensuite4",
+      "name": "Room 4 en-suite",
+      "kind": "ensuite",
+      "rect": {
+        "x": 12,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      },
+      "floorAreaM2": 3,
+      "ceilingHeightM": 2.4,
+      "inside": "Room4"
+    },
+    {
+      "id": "Room5",
+      "name": "Room 5",
+      "kind": "bedroom",
+      "rect": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 5.5
+      },
+      "floorAreaM2": 19,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Ensuite5",
+      "name": "Room 5 en-suite",
+      "kind": "ensuite",
+      "rect": {
+        "x": 16,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      },
+      "floorAreaM2": 3,
+      "ceilingHeightM": 2.4,
+      "inside": "Room5"
+    },
+    {
+      "id": "Room6",
+      "name": "Room 6",
+      "kind": "bedroom",
+      "rect": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 5.5
+      },
+      "floorAreaM2": 19,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Ensuite6",
+      "name": "Room 6 en-suite",
+      "kind": "ensuite",
+      "rect": {
+        "x": 20,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      },
+      "floorAreaM2": 3,
+      "ceilingHeightM": 2.4,
+      "inside": "Room6"
+    },
+    {
+      "id": "Lounge",
+      "name": "Lounge",
+      "kind": "lounge",
+      "rect": {
+        "x": 24,
+        "y": 0,
+        "w": 9.5,
+        "h": 5.5
+      },
+      "floorAreaM2": 52.25,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Corridor",
+      "name": "Corridor",
+      "kind": "corridor",
+      "rect": {
+        "x": 0,
+        "y": 5.5,
+        "w": 33.5,
+        "h": 2
+      },
+      "floorAreaM2": 67,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "WaitingArea",
+      "name": "Waiting area",
+      "kind": "waiting",
+      "rect": {
+        "x": 0,
+        "y": 7.5,
+        "w": 8,
+        "h": 5.5
+      },
+      "floorAreaM2": 44,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "Reception",
+      "name": "Reception",
+      "kind": "reception",
+      "rect": {
+        "x": 8,
+        "y": 7.5,
+        "w": 6,
+        "h": 5.5
+      },
+      "floorAreaM2": 33,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    },
+    {
+      "id": "StaffRoom",
+      "name": "Staff room",
+      "kind": "staff",
+      "rect": {
+        "x": 14,
+        "y": 7.5,
+        "w": 6,
+        "h": 5.5
+      },
+      "floorAreaM2": 33,
+      "ceilingHeightM": 2.4,
+      "inside": null
+    }
+  ],
+  "doors": [
+    {
+      "id": "D_Room1",
+      "rooms": [
+        "Room1",
+        "Corridor"
+      ],
+      "x1": 2.5,
+      "y1": 5.5,
+      "x2": 3.5,
+      "y2": 5.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Ensuite1",
+      "rooms": [
+        "Ensuite1",
+        "Room1"
+      ],
+      "x1": 1.5,
+      "y1": 4,
+      "x2": 1.5,
+      "y2": 5,
+      "widthM": 0.9
+    },
+    {
+      "id": "D_Room2",
+      "rooms": [
+        "Room2",
+        "Corridor"
+      ],
+      "x1": 6.5,
+      "y1": 5.5,
+      "x2": 7.5,
+      "y2": 5.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Ensuite2",
+      "rooms": [
+        "Ensuite2",
+        "Room2"
+      ],
+      "x1": 5.5,
+      "y1": 4,
+      "x2": 5.5,
+      "y2": 5,
+      "widthM": 0.9
+    },
+    {
+      "id": "D_Room3",
+      "rooms": [
+        "Room3",
+        "Corridor"
+      ],
+      "x1": 10.5,
+      "y1": 5.5,
+      "x2": 11.5,
+      "y2": 5.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Ensuite3",
+      "rooms": [
+        "Ensuite3",
+        "Room3"
+      ],
+      "x1": 9.5,
+      "y1": 4,
+      "x2": 9.5,
+      "y2": 5,
+      "widthM": 0.9
+    },
+    {
+      "id": "D_Room4",
+      "rooms": [
+        "Room4",
+        "Corridor"
+      ],
+      "x1": 14.5,
+      "y1": 5.5,
+      "x2": 15.5,
+      "y2": 5.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Ensuite4",
+      "rooms": [
+        "Ensuite4",
+        "Room4"
+      ],
+      "x1": 13.5,
+      "y1": 4,
+      "x2": 13.5,
+      "y2": 5,
+      "widthM": 0.9
+    },
+    {
+      "id": "D_Room5",
+      "rooms": [
+        "Room5",
+        "Corridor"
+      ],
+      "x1": 18.5,
+      "y1": 5.5,
+      "x2": 19.5,
+      "y2": 5.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Ensuite5",
+      "rooms": [
+        "Ensuite5",
+        "Room5"
+      ],
+      "x1": 17.5,
+      "y1": 4,
+      "x2": 17.5,
+      "y2": 5,
+      "widthM": 0.9
+    },
+    {
+      "id": "D_Room6",
+      "rooms": [
+        "Room6",
+        "Corridor"
+      ],
+      "x1": 22.5,
+      "y1": 5.5,
+      "x2": 23.5,
+      "y2": 5.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Ensuite6",
+      "rooms": [
+        "Ensuite6",
+        "Room6"
+      ],
+      "x1": 21.5,
+      "y1": 4,
+      "x2": 21.5,
+      "y2": 5,
+      "widthM": 0.9
+    },
+    {
+      "id": "D_Lounge",
+      "rooms": [
+        "Lounge",
+        "Corridor"
+      ],
+      "x1": 28,
+      "y1": 5.5,
+      "x2": 29.5,
+      "y2": 5.5,
+      "widthM": 1.5
+    },
+    {
+      "id": "D_WaitingArea",
+      "rooms": [
+        "Corridor",
+        "WaitingArea"
+      ],
+      "x1": 2,
+      "y1": 7.5,
+      "x2": 4,
+      "y2": 7.5,
+      "widthM": 2
+    },
+    {
+      "id": "D_Reception",
+      "rooms": [
+        "Corridor",
+        "Reception"
+      ],
+      "x1": 10.5,
+      "y1": 7.5,
+      "x2": 11.5,
+      "y2": 7.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_StaffRoom",
+      "rooms": [
+        "Corridor",
+        "StaffRoom"
+      ],
+      "x1": 16.5,
+      "y1": 7.5,
+      "x2": 17.5,
+      "y2": 7.5,
+      "widthM": 1
+    },
+    {
+      "id": "D_Exit",
+      "rooms": [
+        "Reception",
+        "Outside"
+      ],
+      "x1": 10.5,
+      "y1": 13,
+      "x2": 11.5,
+      "y2": 13,
+      "widthM": 1
+    },
+    {
+      "id": "D_Waiting_Reception",
+      "rooms": [
+        "WaitingArea",
+        "Reception"
+      ],
+      "x1": 8,
+      "y1": 11.5,
+      "x2": 8,
+      "y2": 12.5,
+      "widthM": 1
+    }
+  ],
+  "windows": [
+    {
+      "id": "Window_Room1",
+      "room": "Room1",
+      "wall": "W_North",
+      "x1": 1.4,
+      "y1": 0,
+      "x2": 2.6,
+      "y2": 0,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Room2",
+      "room": "Room2",
+      "wall": "W_North",
+      "x1": 5.4,
+      "y1": 0,
+      "x2": 6.6,
+      "y2": 0,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Room3",
+      "room": "Room3",
+      "wall": "W_North",
+      "x1": 9.4,
+      "y1": 0,
+      "x2": 10.6,
+      "y2": 0,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Room4",
+      "room": "Room4",
+      "wall": "W_North",
+      "x1": 13.4,
+      "y1": 0,
+      "x2": 14.6,
+      "y2": 0,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Room5",
+      "room": "Room5",
+      "wall": "W_North",
+      "x1": 17.4,
+      "y1": 0,
+      "x2": 18.6,
+      "y2": 0,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Room6",
+      "room": "Room6",
+      "wall": "W_North",
+      "x1": 21.4,
+      "y1": 0,
+      "x2": 22.6,
+      "y2": 0,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Lounge1",
+      "room": "Lounge",
+      "wall": "W_North",
+      "x1": 24.75,
+      "y1": 0,
+      "x2": 26.25,
+      "y2": 0,
+      "widthM": 1.5,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Lounge2",
+      "room": "Lounge",
+      "wall": "W_North",
+      "x1": 28,
+      "y1": 0,
+      "x2": 29.5,
+      "y2": 0,
+      "widthM": 1.5,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Lounge3",
+      "room": "Lounge",
+      "wall": "W_North",
+      "x1": 31.25,
+      "y1": 0,
+      "x2": 32.75,
+      "y2": 0,
+      "widthM": 1.5,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_WaitingArea",
+      "room": "WaitingArea",
+      "wall": "W_South",
+      "x1": 3.4,
+      "y1": 13,
+      "x2": 4.6,
+      "y2": 13,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_Reception",
+      "room": "Reception",
+      "wall": "W_South",
+      "x1": 12.15,
+      "y1": 13,
+      "x2": 13.35,
+      "y2": 13,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    },
+    {
+      "id": "Window_StaffRoom",
+      "room": "StaffRoom",
+      "wall": "W_South",
+      "x1": 16.4,
+      "y1": 13,
+      "x2": 17.6,
+      "y2": 13,
+      "widthM": 1.2,
+      "maxOpeningMm": 100
+    }
+  ],
+  "equipment": [
+    {
+      "id": "Room1.light",
+      "kind": "light",
+      "room": "Room1",
+      "x": 2,
+      "y": 2.75
+    },
+    {
+      "id": "Ensuite1.light",
+      "kind": "light",
+      "room": "Ensuite1",
+      "x": 0.75,
+      "y": 4.5
+    },
+    {
+      "id": "Room2.light",
+      "kind": "light",
+      "room": "Room2",
+      "x": 6,
+      "y": 2.75
+    },
+    {
+      "id": "Ensuite2.light",
+      "kind": "light",
+      "room": "Ensuite2",
+      "x": 4.75,
+      "y": 4.5
+    },
+    {
+      "id": "Room3.light",
+      "kind": "light",
+      "room": "Room3",
+      "x": 10,
+      "y": 2.75
+    },
+    {
+      "id": "Ensuite3.light",
+      "kind": "light",
+      "room": "Ensuite3",
+      "x": 8.75,
+      "y": 4.5
+    },
+    {
+      "id": "Room4.light",
+      "kind": "light",
+      "room": "Room4",
+      "x": 14,
+      "y": 2.75
+    },
+    {
+      "id": "Ensuite4.light",
+      "kind": "light",
+      "room": "Ensuite4",
+      "x": 12.75,
+      "y": 4.5
+    },
+    {
+      "id": "Room5.light",
+      "kind": "light",
+      "room": "Room5",
+      "x": 18,
+      "y": 2.75
+    },
+    {
+      "id": "Ensuite5.light",
+      "kind": "light",
+      "room": "Ensuite5",
+      "x": 16.75,
+      "y": 4.5
+    },
+    {
+      "id": "Room6.light",
+      "kind": "light",
+      "room": "Room6",
+      "x": 22,
+      "y": 2.75
+    },
+    {
+      "id": "Ensuite6.light",
+      "kind": "light",
+      "room": "Ensuite6",
+      "x": 20.75,
+      "y": 4.5
+    },
+    {
+      "id": "Lounge.light",
+      "kind": "light",
+      "room": "Lounge",
+      "x": 28.75,
+      "y": 2.75
+    },
+    {
+      "id": "Corridor.light",
+      "kind": "light",
+      "room": "Corridor",
+      "x": 16.75,
+      "y": 6.5
+    },
+    {
+      "id": "WaitingArea.light",
+      "kind": "light",
+      "room": "WaitingArea",
+      "x": 4,
+      "y": 10.25
+    },
+    {
+      "id": "Reception.light",
+      "kind": "light",
+      "room": "Reception",
+      "x": 11,
+      "y": 10.25
+    },
+    {
+      "id": "StaffRoom.light",
+      "kind": "light",
+      "room": "StaffRoom",
+      "x": 17,
+      "y": 10.25
+    },
+    {
+      "id": "Room1.radiator",
+      "kind": "heating",
+      "room": "Room1",
+      "x": 2,
+      "y": 0.15
+    },
+    {
+      "id": "Room2.radiator",
+      "kind": "heating",
+      "room": "Room2",
+      "x": 6,
+      "y": 0.15
+    },
+    {
+      "id": "Room3.radiator",
+      "kind": "heating",
+      "room": "Room3",
+      "x": 10,
+      "y": 0.15
+    },
+    {
+      "id": "Room4.radiator",
+      "kind": "heating",
+      "room": "Room4",
+      "x": 14,
+      "y": 0.15
+    },
+    {
+      "id": "Room5.radiator",
+      "kind": "heating",
+      "room": "Room5",
+      "x": 18,
+      "y": 0.15
+    },
+    {
+      "id": "Room6.radiator",
+      "kind": "heating",
+      "room": "Room6",
+      "x": 22,
+      "y": 0.15
+    },
+    {
+      "id": "Lounge.radiator1",
+      "kind": "heating",
+      "room": "Lounge",
+      "x": 25.5,
+      "y": 0.15
+    },
+    {
+      "id": "Lounge.radiator2",
+      "kind": "heating",
+      "room": "Lounge",
+      "x": 28.75,
+      "y": 0.15
+    },
+    {
+      "id": "Lounge.radiator3",
+      "kind": "heating",
+      "room": "Lounge",
+      "x": 32,
+      "y": 0.15
+    },
+    {
+      "id": "WaitingArea.radiator",
+      "kind": "heating",
+      "room": "WaitingArea",
+      "x": 4,
+      "y": 12.85
+    },
+    {
+      "id": "Reception.radiator",
+      "kind": "heating",
+      "room": "Reception",
+      "x": 12.75,
+      "y": 12.85
+    },
+    {
+      "id": "StaffRoom.radiator",
+      "kind": "heating",
+      "room": "StaffRoom",
+      "x": 17,
+      "y": 12.85
+    },
+    {
+      "id": "Corridor.radiator",
+      "kind": "heating",
+      "room": "Corridor",
+      "x": 16.75,
+      "y": 7.35
+    },
+    {
+      "id": "Ensuite1.towel_rail",
+      "kind": "heating",
+      "room": "Ensuite1",
+      "x": 1.35,
+      "y": 3.7
+    },
+    {
+      "id": "Ensuite1.wc",
+      "kind": "wc",
+      "room": "Ensuite1",
+      "x": 0.75,
+      "y": 3.75
+    },
+    {
+      "id": "Ensuite1.basin",
+      "kind": "basin",
+      "room": "Ensuite1",
+      "x": 0.3,
+      "y": 4.6
+    },
+    {
+      "id": "Ensuite1.shower",
+      "kind": "shower",
+      "room": "Ensuite1",
+      "x": 0.75,
+      "y": 5.2
+    },
+    {
+      "id": "Ensuite2.towel_rail",
+      "kind": "heating",
+      "room": "Ensuite2",
+      "x": 5.35,
+      "y": 3.7
+    },
+    {
+      "id": "Ensuite2.wc",
+      "kind": "wc",
+      "room": "Ensuite2",
+      "x": 4.75,
+      "y": 3.75
+    },
+    {
+      "id": "Ensuite2.basin",
+      "kind": "basin",
+      "room": "Ensuite2",
+      "x": 4.3,
+      "y": 4.6
+    },
+    {
+      "id": "Ensuite2.shower",
+      "kind": "shower",
+      "room": "Ensuite2",
+      "x": 4.75,
+      "y": 5.2
+    },
+    {
+      "id": "Ensuite3.towel_rail",
+      "kind": "heating",
+      "room": "Ensuite3",
+      "x": 9.35,
+      "y": 3.7
+    },
+    {
+      "id": "Ensuite3.wc",
+      "kind": "wc",
+      "room": "Ensuite3",
+      "x": 8.75,
+      "y": 3.75
+    },
+    {
+      "id": "Ensuite3.basin",
+      "kind": "basin",
+      "room": "Ensuite3",
+      "x": 8.3,
+      "y": 4.6
+    },
+    {
+      "id": "Ensuite3.shower",
+      "kind": "shower",
+      "room": "Ensuite3",
+      "x": 8.75,
+      "y": 5.2
+    },
+    {
+      "id": "Ensuite4.towel_rail",
+      "kind": "heating",
+      "room": "Ensuite4",
+      "x": 13.35,
+      "y": 3.7
+    },
+    {
+      "id": "Ensuite4.wc",
+      "kind": "wc",
+      "room": "Ensuite4",
+      "x": 12.75,
+      "y": 3.75
+    },
+    {
+      "id": "Ensuite4.basin",
+      "kind": "basin",
+      "room": "Ensuite4",
+      "x": 12.3,
+      "y": 4.6
+    },
+    {
+      "id": "Ensuite4.shower",
+      "kind": "shower",
+      "room": "Ensuite4",
+      "x": 12.75,
+      "y": 5.2
+    },
+    {
+      "id": "Ensuite5.towel_rail",
+      "kind": "heating",
+      "room": "Ensuite5",
+      "x": 17.35,
+      "y": 3.7
+    },
+    {
+      "id": "Ensuite5.wc",
+      "kind": "wc",
+      "room": "Ensuite5",
+      "x": 16.75,
+      "y": 3.75
+    },
+    {
+      "id": "Ensuite5.basin",
+      "kind": "basin",
+      "room": "Ensuite5",
+      "x": 16.3,
+      "y": 4.6
+    },
+    {
+      "id": "Ensuite5.shower",
+      "kind": "shower",
+      "room": "Ensuite5",
+      "x": 16.75,
+      "y": 5.2
+    },
+    {
+      "id": "Ensuite6.towel_rail",
+      "kind": "heating",
+      "room": "Ensuite6",
+      "x": 21.35,
+      "y": 3.7
+    },
+    {
+      "id": "Ensuite6.wc",
+      "kind": "wc",
+      "room": "Ensuite6",
+      "x": 20.75,
+      "y": 3.75
+    },
+    {
+      "id": "Ensuite6.basin",
+      "kind": "basin",
+      "room": "Ensuite6",
+      "x": 20.3,
+      "y": 4.6
+    },
+    {
+      "id": "Ensuite6.shower",
+      "kind": "shower",
+      "room": "Ensuite6",
+      "x": 20.75,
+      "y": 5.2
+    },
+    {
+      "id": "Lounge.tv.set",
+      "kind": "tv",
+      "room": "Lounge",
+      "x": 33.25,
+      "y": 1.75
+    },
+    {
+      "id": "StaffRoom.kettle",
+      "kind": "kettle",
+      "room": "StaffRoom",
+      "x": 17,
+      "y": 10.05
+    }
+  ],
+  "objects": [
+    {
+      "id": "Corridor.light",
+      "room": "Corridor",
+      "at": {
+        "kind": "point",
+        "x": 16.75,
+        "y": 6.5
+      }
+    },
+    {
+      "id": "Corridor.light_switch",
+      "room": "Corridor",
+      "at": {
+        "kind": "point",
+        "x": 3,
+        "y": 5.8
+      }
+    },
+    {
+      "id": "Corridor.radiator",
+      "room": "Corridor",
+      "at": {
+        "kind": "point",
+        "x": 16.75,
+        "y": 7.35
+      }
+    },
+    {
+      "id": "D_Ensuite1.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 1.5,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "D_Ensuite2.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 5.5,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "D_Ensuite3.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 9.5,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "D_Ensuite4.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 13.5,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "D_Ensuite5.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 17.5,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "D_Ensuite6.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 21.5,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "D_Exit.keypad",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 11,
+        "y": 13
+      }
+    },
+    {
+      "id": "D_Lounge.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 28.75,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_Reception.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 11,
+        "y": 7.5
+      }
+    },
+    {
+      "id": "D_Room1.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 3,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_Room2.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 7,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_Room3.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 11,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_Room4.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 15,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_Room5.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 19,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_Room6.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 23,
+        "y": 5.5
+      }
+    },
+    {
+      "id": "D_StaffRoom.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 17,
+        "y": 7.5
+      }
+    },
+    {
+      "id": "D_WaitingArea.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 3,
+        "y": 7.5
+      }
+    },
+    {
+      "id": "D_Waiting_Reception.handle",
+      "room": null,
+      "at": {
+        "kind": "point",
+        "x": 8,
+        "y": 12
+      }
+    },
+    {
+      "id": "Ensuite1.basin",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "point",
+        "x": 0.3,
+        "y": 4.6
+      }
+    },
+    {
+      "id": "Ensuite1.light",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "point",
+        "x": 0.75,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite1.light_switch",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "point",
+        "x": 1.2,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite1.shower",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "point",
+        "x": 0.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Ensuite1.towel_rail",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "point",
+        "x": 1.35,
+        "y": 3.7
+      }
+    },
+    {
+      "id": "Ensuite1.wc",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "point",
+        "x": 0.75,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "Ensuite2.basin",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "point",
+        "x": 4.3,
+        "y": 4.6
+      }
+    },
+    {
+      "id": "Ensuite2.light",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "point",
+        "x": 4.75,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite2.light_switch",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "point",
+        "x": 5.2,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite2.shower",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "point",
+        "x": 4.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Ensuite2.towel_rail",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "point",
+        "x": 5.35,
+        "y": 3.7
+      }
+    },
+    {
+      "id": "Ensuite2.wc",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "point",
+        "x": 4.75,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "Ensuite3.basin",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "point",
+        "x": 8.3,
+        "y": 4.6
+      }
+    },
+    {
+      "id": "Ensuite3.light",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "point",
+        "x": 8.75,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite3.light_switch",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "point",
+        "x": 9.2,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite3.shower",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "point",
+        "x": 8.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Ensuite3.towel_rail",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "point",
+        "x": 9.35,
+        "y": 3.7
+      }
+    },
+    {
+      "id": "Ensuite3.wc",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "point",
+        "x": 8.75,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "Ensuite4.basin",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "point",
+        "x": 12.3,
+        "y": 4.6
+      }
+    },
+    {
+      "id": "Ensuite4.light",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "point",
+        "x": 12.75,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite4.light_switch",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "point",
+        "x": 13.2,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite4.shower",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "point",
+        "x": 12.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Ensuite4.towel_rail",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "point",
+        "x": 13.35,
+        "y": 3.7
+      }
+    },
+    {
+      "id": "Ensuite4.wc",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "point",
+        "x": 12.75,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "Ensuite5.basin",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "point",
+        "x": 16.3,
+        "y": 4.6
+      }
+    },
+    {
+      "id": "Ensuite5.light",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "point",
+        "x": 16.75,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite5.light_switch",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "point",
+        "x": 17.2,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite5.shower",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "point",
+        "x": 16.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Ensuite5.towel_rail",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "point",
+        "x": 17.35,
+        "y": 3.7
+      }
+    },
+    {
+      "id": "Ensuite5.wc",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "point",
+        "x": 16.75,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "Ensuite6.basin",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "point",
+        "x": 20.3,
+        "y": 4.6
+      }
+    },
+    {
+      "id": "Ensuite6.light",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "point",
+        "x": 20.75,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite6.light_switch",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "point",
+        "x": 21.2,
+        "y": 4.5
+      }
+    },
+    {
+      "id": "Ensuite6.shower",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "point",
+        "x": 20.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Ensuite6.towel_rail",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "point",
+        "x": 21.35,
+        "y": 3.7
+      }
+    },
+    {
+      "id": "Ensuite6.wc",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "point",
+        "x": 20.75,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "Lounge.activityChair1",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 31.5,
+        "y": 4,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.activityChair2",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 31.5,
+        "y": 4.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.activityChair3",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 33,
+        "y": 4,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.activityChair4",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 33,
+        "y": 4.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.activityTable",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 32,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      }
+    },
+    {
+      "id": "Lounge.armchair1",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 31,
+        "y": 0.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.armchair2",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 31,
+        "y": 1.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.armchair3",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 31,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.armchair4",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 31,
+        "y": 3.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.bookshelf",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 24,
+        "y": 3.5,
+        "w": 0.5,
+        "h": 1.5
+      }
+    },
+    {
+      "id": "Lounge.diningChair1",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 25,
+        "y": 1,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.diningChair2",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 26,
+        "y": 1,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.diningChair3",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 27,
+        "y": 1,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.diningChair4",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 25,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.diningChair5",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 26,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.diningChair6",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 27,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.diningTable",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 25,
+        "y": 1.5,
+        "w": 2.5,
+        "h": 1
+      }
+    },
+    {
+      "id": "Lounge.light",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 28.75,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Lounge.light_switch",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 28.75,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Lounge.radiator1",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 25.5,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Lounge.radiator2",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 28.75,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Lounge.radiator3",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 32,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Lounge.readingChair",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 24.5,
+        "y": 4.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Lounge.tv",
+      "room": "Lounge",
+      "at": {
+        "kind": "rect",
+        "x": 33,
+        "y": 1,
+        "w": 0.5,
+        "h": 1.5
+      }
+    },
+    {
+      "id": "Lounge.tv.remote",
+      "room": "Lounge",
+      "at": {
+        "kind": "carried"
+      }
+    },
+    {
+      "id": "Lounge.tv.set",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 33.25,
+        "y": 1.75
+      }
+    },
+    {
+      "id": "Reception.desk",
+      "room": "Reception",
+      "at": {
+        "kind": "rect",
+        "x": 9,
+        "y": 9.5,
+        "w": 1,
+        "h": 1.5
+      }
+    },
+    {
+      "id": "Reception.deskChair",
+      "room": "Reception",
+      "at": {
+        "kind": "rect",
+        "x": 8.5,
+        "y": 10,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Reception.light",
+      "room": "Reception",
+      "at": {
+        "kind": "point",
+        "x": 11,
+        "y": 10.25
+      }
+    },
+    {
+      "id": "Reception.light_switch",
+      "room": "Reception",
+      "at": {
+        "kind": "point",
+        "x": 11,
+        "y": 7.8
+      }
+    },
+    {
+      "id": "Reception.officeChair",
+      "room": "Reception",
+      "at": {
+        "kind": "rect",
+        "x": 12.5,
+        "y": 11,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Reception.officeDesk",
+      "room": "Reception",
+      "at": {
+        "kind": "rect",
+        "x": 13,
+        "y": 11,
+        "w": 1,
+        "h": 1
+      }
+    },
+    {
+      "id": "Reception.radiator",
+      "room": "Reception",
+      "at": {
+        "kind": "point",
+        "x": 12.75,
+        "y": 12.85
+      }
+    },
+    {
+      "id": "Reception.visitors_book",
+      "room": "Reception",
+      "at": {
+        "kind": "point",
+        "x": 10.25,
+        "y": 10.25
+      }
+    },
+    {
+      "id": "Room1.Bed.bed",
+      "room": "Room1",
+      "at": {
+        "kind": "rect",
+        "x": 1.5,
+        "y": 0,
+        "w": 1,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room1.Bed.chair",
+      "room": "Room1",
+      "at": {
+        "kind": "rect",
+        "x": 2.5,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Room1.light",
+      "room": "Room1",
+      "at": {
+        "kind": "point",
+        "x": 2,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Room1.light_switch",
+      "room": "Room1",
+      "at": {
+        "kind": "point",
+        "x": 3,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Room1.radiator",
+      "room": "Room1",
+      "at": {
+        "kind": "point",
+        "x": 2,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Room1.wc",
+      "room": "Ensuite1",
+      "at": {
+        "kind": "rect",
+        "x": 0,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room2.Bed.bed",
+      "room": "Room2",
+      "at": {
+        "kind": "rect",
+        "x": 5.5,
+        "y": 0,
+        "w": 1,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room2.Bed.chair",
+      "room": "Room2",
+      "at": {
+        "kind": "rect",
+        "x": 6.5,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Room2.light",
+      "room": "Room2",
+      "at": {
+        "kind": "point",
+        "x": 6,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Room2.light_switch",
+      "room": "Room2",
+      "at": {
+        "kind": "point",
+        "x": 7,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Room2.radiator",
+      "room": "Room2",
+      "at": {
+        "kind": "point",
+        "x": 6,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Room2.wc",
+      "room": "Ensuite2",
+      "at": {
+        "kind": "rect",
+        "x": 4,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room3.Bed.bed",
+      "room": "Room3",
+      "at": {
+        "kind": "rect",
+        "x": 9.5,
+        "y": 0,
+        "w": 1,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room3.hoist",
+      "room": "Room3",
+      "at": {
+        "kind": "point",
+        "x": 10,
+        "y": 1
+      }
+    },
+    {
+      "id": "Room3.light",
+      "room": "Room3",
+      "at": {
+        "kind": "point",
+        "x": 10,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Room3.light_switch",
+      "room": "Room3",
+      "at": {
+        "kind": "point",
+        "x": 11,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Room3.radiator",
+      "room": "Room3",
+      "at": {
+        "kind": "point",
+        "x": 10,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Room3.wc",
+      "room": "Ensuite3",
+      "at": {
+        "kind": "rect",
+        "x": 8,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room4.Bed.bed",
+      "room": "Room4",
+      "at": {
+        "kind": "rect",
+        "x": 13.5,
+        "y": 0,
+        "w": 1,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room4.Bed.chair",
+      "room": "Room4",
+      "at": {
+        "kind": "rect",
+        "x": 14.5,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Room4.light",
+      "room": "Room4",
+      "at": {
+        "kind": "point",
+        "x": 14,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Room4.light_switch",
+      "room": "Room4",
+      "at": {
+        "kind": "point",
+        "x": 15,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Room4.radiator",
+      "room": "Room4",
+      "at": {
+        "kind": "point",
+        "x": 14,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Room4.wc",
+      "room": "Ensuite4",
+      "at": {
+        "kind": "rect",
+        "x": 12,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room5.Bed.bed",
+      "room": "Room5",
+      "at": {
+        "kind": "rect",
+        "x": 17.5,
+        "y": 0,
+        "w": 1,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room5.Bed.chair",
+      "room": "Room5",
+      "at": {
+        "kind": "rect",
+        "x": 18.5,
+        "y": 2.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "Room5.light",
+      "room": "Room5",
+      "at": {
+        "kind": "point",
+        "x": 18,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Room5.light_switch",
+      "room": "Room5",
+      "at": {
+        "kind": "point",
+        "x": 19,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Room5.radiator",
+      "room": "Room5",
+      "at": {
+        "kind": "point",
+        "x": 18,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Room5.wc",
+      "room": "Ensuite5",
+      "at": {
+        "kind": "rect",
+        "x": 16,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room6.Bed.bed",
+      "room": "Room6",
+      "at": {
+        "kind": "rect",
+        "x": 21.5,
+        "y": 0,
+        "w": 1,
+        "h": 2
+      }
+    },
+    {
+      "id": "Room6.light",
+      "room": "Room6",
+      "at": {
+        "kind": "point",
+        "x": 22,
+        "y": 2.75
+      }
+    },
+    {
+      "id": "Room6.light_switch",
+      "room": "Room6",
+      "at": {
+        "kind": "point",
+        "x": 23,
+        "y": 5.2
+      }
+    },
+    {
+      "id": "Room6.radiator",
+      "room": "Room6",
+      "at": {
+        "kind": "point",
+        "x": 22,
+        "y": 0.15
+      }
+    },
+    {
+      "id": "Room6.wc",
+      "room": "Ensuite6",
+      "at": {
+        "kind": "rect",
+        "x": 20,
+        "y": 3.5,
+        "w": 1.5,
+        "h": 2
+      }
+    },
+    {
+      "id": "StaffRoom.chair1",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 15.5,
+        "y": 10,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "StaffRoom.chair2",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 15.5,
+        "y": 10.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "StaffRoom.chair3",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 18,
+        "y": 10,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "StaffRoom.chair4",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 18,
+        "y": 10.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "StaffRoom.chair5",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 16.5,
+        "y": 11,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "StaffRoom.chair6",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 17,
+        "y": 11,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "StaffRoom.kettle",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "point",
+        "x": 17,
+        "y": 10.05
+      }
+    },
+    {
+      "id": "StaffRoom.light",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "point",
+        "x": 17,
+        "y": 10.25
+      }
+    },
+    {
+      "id": "StaffRoom.light_switch",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "point",
+        "x": 17,
+        "y": 7.8
+      }
+    },
+    {
+      "id": "StaffRoom.radiator",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "point",
+        "x": 17,
+        "y": 12.85
+      }
+    },
+    {
+      "id": "StaffRoom.table",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "rect",
+        "x": 16,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      }
+    },
+    {
+      "id": "WaitingArea.chair1",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 2.5,
+        "y": 10,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair2",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 2.5,
+        "y": 10.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair3",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 5,
+        "y": 10,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair4",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 5,
+        "y": 10.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair5",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 3.5,
+        "y": 9.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair6",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 4,
+        "y": 9.5,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair7",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 3.5,
+        "y": 11,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.chair8",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 4,
+        "y": 11,
+        "w": 0.5,
+        "h": 0.5
+      }
+    },
+    {
+      "id": "WaitingArea.light",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "point",
+        "x": 4,
+        "y": 10.25
+      }
+    },
+    {
+      "id": "WaitingArea.light_switch",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "point",
+        "x": 3,
+        "y": 7.8
+      }
+    },
+    {
+      "id": "WaitingArea.radiator",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "point",
+        "x": 4,
+        "y": 12.85
+      }
+    },
+    {
+      "id": "WaitingArea.table",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "rect",
+        "x": 3,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      }
+    },
+    {
+      "id": "Window_Lounge1",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 25.5,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Lounge2",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 28.75,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Lounge3",
+      "room": "Lounge",
+      "at": {
+        "kind": "point",
+        "x": 32,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Reception",
+      "room": "Reception",
+      "at": {
+        "kind": "point",
+        "x": 12.75,
+        "y": 13
+      }
+    },
+    {
+      "id": "Window_Room1",
+      "room": "Room1",
+      "at": {
+        "kind": "point",
+        "x": 2,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Room2",
+      "room": "Room2",
+      "at": {
+        "kind": "point",
+        "x": 6,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Room3",
+      "room": "Room3",
+      "at": {
+        "kind": "point",
+        "x": 10,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Room4",
+      "room": "Room4",
+      "at": {
+        "kind": "point",
+        "x": 14,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Room5",
+      "room": "Room5",
+      "at": {
+        "kind": "point",
+        "x": 18,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_Room6",
+      "room": "Room6",
+      "at": {
+        "kind": "point",
+        "x": 22,
+        "y": 0
+      }
+    },
+    {
+      "id": "Window_StaffRoom",
+      "room": "StaffRoom",
+      "at": {
+        "kind": "point",
+        "x": 17,
+        "y": 13
+      }
+    },
+    {
+      "id": "Window_WaitingArea",
+      "room": "WaitingArea",
+      "at": {
+        "kind": "point",
+        "x": 4,
+        "y": 13
+      }
+    },
+    {
+      "id": "med_trolley",
+      "room": null,
+      "at": {
+        "kind": "carried"
+      }
+    },
+    {
+      "id": "res_arthur.call_bell",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_arthur"
+      }
+    },
+    {
+      "id": "res_arthur.cup",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_arthur"
+      }
+    },
+    {
+      "id": "res_arthur.tray",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_arthur"
+      }
+    },
+    {
+      "id": "res_arthur.walking_aid",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_arthur"
+      }
+    },
+    {
+      "id": "res_dennis.call_bell",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_dennis"
+      }
+    },
+    {
+      "id": "res_dennis.cup",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_dennis"
+      }
+    },
+    {
+      "id": "res_dennis.tray",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_dennis"
+      }
+    },
+    {
+      "id": "res_peggy.call_bell",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_peggy"
+      }
+    },
+    {
+      "id": "res_peggy.cup",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_peggy"
+      }
+    },
+    {
+      "id": "res_peggy.tray",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_peggy"
+      }
+    },
+    {
+      "id": "res_peggy.walking_aid",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_peggy"
+      }
+    },
+    {
+      "id": "res_raj.call_bell",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_raj"
+      }
+    },
+    {
+      "id": "res_raj.cup",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_raj"
+      }
+    },
+    {
+      "id": "res_raj.tray",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_raj"
+      }
+    },
+    {
+      "id": "res_raj.wheelchair",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_raj"
+      }
+    },
+    {
+      "id": "res_stan.call_bell",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_stan"
+      }
+    },
+    {
+      "id": "res_stan.cup",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_stan"
+      }
+    },
+    {
+      "id": "res_stan.tray",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_stan"
+      }
+    },
+    {
+      "id": "res_win.call_bell",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_win"
+      }
+    },
+    {
+      "id": "res_win.cup",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_win"
+      }
+    },
+    {
+      "id": "res_win.tray",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_win"
+      }
+    },
+    {
+      "id": "res_win.walking_aid",
+      "room": null,
+      "at": {
+        "kind": "with",
+        "personId": "res_win"
+      }
+    }
+  ]
+}

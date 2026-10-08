@@ -89,7 +89,17 @@ A versioned snapshot of the whole wing at any moment (`sim.describe()`, schema 1
 
 MET values and codes come from the 2024 Compendium of Physical Activities (the Older Adult Compendium for residents). Weather is 12 months of real hourly London data from Open-Meteo, mapped onto the sim's calendar.
 
-> A versioned per-minute export to files, for models to read directly, is the next step for the data pipeline.
+### 3. The activity export
+
+A run written to files for models to read directly: every minute (or `--every 5s`, `5m`...), who is in which room doing what and how hard (with their infection state), every door, window and item of equipment; every touch and event to the second; the weather each hour; and the building's geometry. Gzipped CSV, one file per stream, with a versioned `manifest.json`. The same command always writes the same files.
+
+```sh
+# December and July for seeds 1 to 4, with random events: 17 MB a month per seed
+pnpm --filter @vch/sim-engine export --seeds 1-4 --start 2026-12-01 --days 31 --director random
+pnpm --filter @vch/sim-engine export --seeds 1-4 --start 2027-07-01 --days 31 --director random
+```
+
+Files go to `runs/export/seed-<n>-<start>-<days>d/`: `people`, `doors`, `windows`, `equipment`, `touches`, `weather`, `events` and `activities` (`.csv.gz`), `rooms.json` and `manifest.json`. The columns are in [the export spec](docs/workstreams/activity-export/spec.md); a two-hour sample is in [`packages/sim-engine/test/fixtures/export-sample/`](packages/sim-engine/test/fixtures/export-sample/).
 
 ## Quick start
 
@@ -116,6 +126,9 @@ pnpm --filter @vch/sim-engine sim --director random --hours 672 --seeds 1-8 --re
 
 # The world description at a moment, as JSON
 pnpm --filter @vch/sim-engine describe --seed 1 --at "Wed 07:40" --room Room5
+
+# A week of activity data as files (gzipped CSV; --no-gzip for plain)
+pnpm --filter @vch/sim-engine export --seed 1 --start 2026-12-01 --days 7 --director random
 ```
 
 ### Scenarios
@@ -238,7 +251,7 @@ Guidance read while checking the building, ventilation and infection rules. Not 
 - [x] **Phase 1:** the wing, its people and routines, pixel-art view
 - [x] **Phase 2:** scenario director (falls, sick calls, outbreaks, illness, admissions, celebrations)
 - [x] **v1.0-testbed:** the world description (activity and MET, doors, windows, equipment, touches, weather)
-- [ ] Activity data export to files for external models
+- [x] Activity data export to files for external models
 - [ ] **Phase 3:** LLM minds for residents, staff and visitors
 - [ ] **Phase 4:** branching and timeline scrubbing, richer visitors
 

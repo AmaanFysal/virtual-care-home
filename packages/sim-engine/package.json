@@ -12,7 +12,8 @@
     "sim": "tsx scripts/sim.ts",
     "director-rates": "tsx scripts/director-rates.ts",
     "fetch-weather": "tsx tools/fetch-weather.ts",
-    "describe": "tsx scripts/describe.ts"
+    "describe": "tsx scripts/describe.ts",
+    "export": "tsx scripts/export.ts"
   },
   "dependencies": {
     "@vch/shared-types": "workspace:*"
