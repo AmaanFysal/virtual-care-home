@@ -83,3 +83,9 @@ The project's goal is activity data for external models, not flawless care (docs
 - **One admin token, sent over the socket** (WSS only). A leaked token is replaced with `fly secrets set`. There are no per-person accounts.
 - **Viewers see everything the event log shows,** including the director's plans for the day (`director.planned`).
 
+
+## Activity export (2026-10-08)
+
+- **The committed export sample follows the engine's behaviour.** Any change to what people do changes `test/fixtures/export-sample/`, so the test fails until the sample is written again (the command is at the top of `test/export.test.ts`). That's deliberate: the diff shows what the change did to the data.
+- **Door passes shorter than the sampling interval are only touches.** At the default 1 minute, most passes through a closed door show only as a handle touch in `touches.csv`. `--every 5s` catches them in `doors.csv` too.
+- **A timing flake in the test suite, fixed:** `celebrations.test.ts` ("more of her family and more people in the Lounge than an ordinary Wednesday") runs several 2.5-day runs in about 5 s, on Vitest's 5 s default timeout. It timed out in 2 of 10 full runs once the export tests (which start the CLI) added load. Its timeout is now 60 s, like the other long runs. Tests that run days of sim should always set one.

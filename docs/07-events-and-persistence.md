@@ -97,3 +97,23 @@ Seed + data version + the director settings and scenario (from the `run` row) + 
 `sim.snapshot()` gives the whole world between ticks, each random stream replaced by its state and the weather left out; `restoreSim(snapshot, data)` carries on from it exactly (`test/snapshot.test.ts`: restored at several ticks, through v8's serialiser, the rest of the run is byte-identical). The public server writes one every 5 minutes and on shutdown, as `runs/<runId>/snap-<tick>.v8.gz` (v8 structured clone, gzipped, about 45 KB; the newest three kept), with a header: run, tick, seed, start, engine build, data version, director settings.
 
 On start it resumes the newest readable snapshot when the engine build, data, director settings and seed match, cutting the log back to the snapshot's tick (later events and commands, and inputs logged after it); otherwise it starts a fresh run at 06:00 the next sim day. Branching (run a what-if from a snapshot) is Phase 4.
+
+## Activity export (files for external models)
+
+`pnpm --filter @vch/sim-engine export` runs the sim headless and writes its activity data to `runs/export/seed-<n>-<start>-<length>/`, for external models to read (`docs/workstreams/activity-export/spec.md` has every column). It reads the world only (`src/export.ts`: `exportRun` hands each line to the caller, `scripts/export.ts` writes the files), so a run exported is the same run.
+
+| File | Rows |
+|---|---|
+| `people.csv.gz` | Each person on the map at each sample: room, position, activity, MET, intensity, Compendium entry, and their infection state (from the world, not the world description) |
+| `doors.csv.gz`, `windows.csv.gz`, `equipment.csv.gz` | Every door, window and item at each sample |
+| `touches.csv.gz` | Every touch, to the second, with the room the person was in |
+| `events.csv.gz` | The whole event log, as stored in SQLite (`actors` `;`-separated, `payload` JSON) |
+| `weather.csv.gz` | One row an hour, with the source data's own hour |
+| `activities.csv.gz` | Every Compendium entry in `data/activities.json` |
+| `rooms.json` | Rooms (with the room an en-suite is inside), doors, windows (with the restrictor), equipment and everything people touch |
+| `manifest.json` | `exportSchema` (1), `worldSchema`, seed, start and end, `sampleSeconds`, director settings, `dataVersion`, the weather's source and licence, each file's columns and row count, and the command's options in full |
+
+- **Sampling:** every `--every` (default 1 minute; any whole number of 5 s ticks). Door passes shorter than the interval show only as handle touches (`<doorId>.handle`, or the exit's keypad) in `touches.csv`, which a model can treat as brief openings.
+- **Gzip by default,** written in 4 MB chunks as concatenated gzip members (one valid `.gz` file for gzip, zcat, Python and pandas); `--no-gzip` for plain CSV.
+- **Deterministic:** no wall-clock time in any file. The same options write byte-identical files; a 2-hour sample is committed (`test/fixtures/export-sample/`) and `test/export.test.ts` writes it again and compares.
+- **Size and time** (measured 2026-10-08, director random): 17.4 MB a month per seed gzipped (about 300 MB plain), about 10 s a month.

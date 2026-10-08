@@ -7,3 +7,4 @@ export { validateInput, validateScenario, INPUT_TYPES } from "./director/scenari
 export { planRandomDay, residentRisk, weekOffChance, weekOffShare, type RosterEntry, type ResidentRisk, type PlanMemory, type VisitorRisk } from "./director/plan.js";
 export { celebrationsOn, easterSunday, faithGroups } from "./director/calendar.js";
 export { createRng, hashString, type RngState } from "./rng.js";
+export { EXPORT_SCHEMA, STREAMS, exportRun, manifestJson, roomsJson, isoTime, csvLine, type StreamName, type ExportOptions, type ManifestInput } from "./export.js";

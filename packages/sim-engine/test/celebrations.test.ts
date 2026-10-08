@@ -201,7 +201,7 @@ describe("the birthday-party scenario", () => {
     }
     expect(partyFamily).toBeGreaterThan(ordinaryFamily);
     expect(partyLounge).toBeGreaterThan(ordinaryLounge * 1.3);
-  });
+  }, 60000); // several 2.5-day runs: about 5 s, over the 5 s default when the suite is busy
 });
 
 describe("celebrations elsewhere", () => {

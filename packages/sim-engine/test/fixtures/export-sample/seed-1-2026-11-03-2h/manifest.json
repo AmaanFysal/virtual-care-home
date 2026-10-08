@@ -1,0 +1,140 @@
+{
+  "exportSchema": 1,
+  "worldSchema": 1,
+  "seed": "1",
+  "start": "2026-11-03",
+  "startT": 108000,
+  "endT": 115200,
+  "startTime": "2026-11-03T06:00:00",
+  "endTime": "2026-11-03T08:00:00",
+  "days": 0.083,
+  "sampleSeconds": 300,
+  "gzip": false,
+  "director": {
+    "mode": "off",
+    "scenario": null,
+    "deaths": true
+  },
+  "dataVersion": "37112aa4",
+  "weather": {
+    "place": "London",
+    "source": "Open-Meteo historical weather API (https://open-meteo.com/en/docs/historical-weather-api), ERA5 and ERA5-Land reanalysis from the Copernicus Climate Change Service",
+    "licence": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
+    "from": "2025-10-01",
+    "to": "2026-09-30"
+  },
+  "time": "t is sim seconds since Mon 2026-11-02 00:00; time is the sim's clock (no time zone, no daylight saving); weather dataTime is the source hour (GMT)",
+  "files": {
+    "people.csv": {
+      "rows": 207,
+      "columns": [
+        "t",
+        "time",
+        "personId",
+        "kind",
+        "roomId",
+        "x",
+        "y",
+        "activity",
+        "met",
+        "intensity",
+        "book",
+        "code",
+        "infection",
+        "infectionStatus",
+        "infectious",
+        "isolated"
+      ]
+    },
+    "doors.csv": {
+      "rows": 432,
+      "columns": [
+        "t",
+        "time",
+        "doorId",
+        "state",
+        "heldBy"
+      ]
+    },
+    "windows.csv": {
+      "rows": 288,
+      "columns": [
+        "t",
+        "time",
+        "windowId",
+        "roomId",
+        "state",
+        "openingMm"
+      ]
+    },
+    "equipment.csv": {
+      "rows": 1344,
+      "columns": [
+        "t",
+        "time",
+        "equipmentId",
+        "kind",
+        "roomId",
+        "on",
+        "level",
+        "setpointC"
+      ]
+    },
+    "touches.csv": {
+      "rows": 55,
+      "columns": [
+        "t",
+        "time",
+        "personId",
+        "objectId",
+        "roomId"
+      ]
+    },
+    "weather.csv": {
+      "rows": 2,
+      "columns": [
+        "t",
+        "time",
+        "dataTime",
+        "tempC",
+        "humidityPct",
+        "dewPointC",
+        "precipMm",
+        "cloudPct",
+        "windMps",
+        "windDirDeg",
+        "shortwaveWm2",
+        "pressureHpa",
+        "isDay"
+      ]
+    },
+    "events.csv": {
+      "rows": 288,
+      "columns": [
+        "t",
+        "time",
+        "seq",
+        "type",
+        "source",
+        "actors",
+        "payload"
+      ]
+    },
+    "activities.csv": {
+      "rows": 41,
+      "columns": [
+        "group",
+        "activity",
+        "book",
+        "code",
+        "met",
+        "intensity",
+        "description",
+        "aid",
+        "belowMps",
+        "inBed"
+      ]
+    }
+  },
+  "command": "export --seed 1 --start 2026-11-03 --hours 2 --every 5m --director off --deaths on --no-gzip"
+}
